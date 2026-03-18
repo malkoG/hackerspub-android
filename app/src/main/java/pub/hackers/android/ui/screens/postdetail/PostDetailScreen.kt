@@ -400,13 +400,16 @@ private fun PostDetailContent(
                         contentDescription = null,
                         modifier = Modifier
                             .size(48.dp)
-                            .clip(CircleShape),
+                            .clip(CircleShape)
+                            .clickable { onProfileClick(post.actor.handle) },
                         contentScale = ContentScale.Crop
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    Column {
+                    Column(
+                        modifier = Modifier.clickable { onProfileClick(post.actor.handle) }
+                    ) {
                         Text(
                             text = post.actor.name ?: post.actor.handle,
                             style = MaterialTheme.typography.bodyLarge,
