@@ -200,6 +200,9 @@ private fun NotificationItem(
 
     val actor = notification.actors.firstOrNull()
 
+    val customEmoji = (notification as? Notification.React)?.customEmoji
+    val emojiChar = (notification as? Notification.React)?.emoji
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -212,12 +215,26 @@ private fun NotificationItem(
             .padding(12.dp),
         verticalAlignment = Alignment.Top
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(24.dp)
-        )
+        if (customEmoji != null) {
+            AsyncImage(
+                model = customEmoji.imageUrl,
+                contentDescription = customEmoji.name,
+                modifier = Modifier.size(24.dp)
+            )
+        } else if (emojiChar != null) {
+            Text(
+                text = emojiChar,
+                modifier = Modifier.size(24.dp),
+                style = MaterialTheme.typography.titleMedium
+            )
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 
