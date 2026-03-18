@@ -52,6 +52,7 @@ fun PostCard(
     onProfileClick: (String) -> Unit,
     onReplyClick: (() -> Unit)? = null,
     onShareClick: (() -> Unit)? = null,
+    onQuoteClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -219,7 +220,8 @@ fun PostCard(
             EngagementBar(
                 post = displayPost,
                 onReplyClick = onReplyClick,
-                onShareClick = onShareClick
+                onShareClick = onShareClick,
+                onQuoteClick = onQuoteClick
             )
         }
     }
@@ -229,7 +231,8 @@ fun PostCard(
 private fun EngagementBar(
     post: Post,
     onReplyClick: (() -> Unit)?,
-    onShareClick: (() -> Unit)?
+    onShareClick: (() -> Unit)?,
+    onQuoteClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -261,7 +264,7 @@ private fun EngagementBar(
             icon = Icons.Outlined.FormatQuote,
             count = post.engagementStats.quotes,
             contentDescription = stringResource(R.string.quotes),
-            onClick = null
+            onClick = onQuoteClick
         )
     }
 }

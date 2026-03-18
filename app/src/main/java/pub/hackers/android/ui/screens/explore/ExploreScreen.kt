@@ -44,6 +44,7 @@ fun ExploreScreen(
     onPostClick: (String) -> Unit,
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
+    onQuoteClick: (String) -> Unit = {},
     onSignInClick: () -> Unit,
     isLoggedIn: Boolean,
     viewModel: ExploreViewModel = hiltViewModel()
@@ -161,6 +162,9 @@ fun ExploreScreen(
                                                     viewModel.sharePost(post.id)
                                                 }
                                             }
+                                        } else null,
+                                        onQuoteClick = if (isLoggedIn) {
+                                            { onQuoteClick(post.sharedPost?.id ?: post.id) }
                                         } else null,
                                         onQuotedPostClick = onPostClick
                                     )
