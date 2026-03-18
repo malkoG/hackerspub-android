@@ -19,9 +19,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -29,10 +34,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import pub.hackers.android.ui.components.CompactTopBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -65,6 +75,53 @@ fun PostDetailScreen(
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
+    // Navigate back after successful deletion
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            onNavigateBack()
+        }
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text(stringResource(R.string.delete_post_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_post_confirm)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        viewModel.deletePost()
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.delete_post),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (uiState.deleteError != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeleteError() },
+            title = { Text(stringResource(R.string.action_error)) },
+            text = { Text(uiState.deleteError ?: "") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.dismissDeleteError() }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
+        )
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -76,6 +133,14 @@ fun PostDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    if (uiState.canDelete) {
+                        PostDetailActionMenu(
+                            isDeleting = uiState.isDeleting,
+                            onDelete = { showDeleteConfirmation = true }
                         )
                     }
                 }
@@ -126,6 +191,49 @@ fun PostDetailScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PostDetailActionMenu(
+    isDeleting: Boolean,
+    onDelete: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = "More actions"
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = stringResource(R.string.delete_post),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                },
+                onClick = {
+                    expanded = false
+                    onDelete()
+                },
+                enabled = !isDeleting
+            )
         }
     }
 }
