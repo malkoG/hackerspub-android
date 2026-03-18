@@ -180,7 +180,7 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text(stringResource(R.string.about)) },
-                supportingContent = { Text("${stringResource(R.string.version)} 1.0.0") },
+                supportingContent = { Text("${stringResource(R.string.version)} ${uiState.appVersion}") },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Filled.Info,

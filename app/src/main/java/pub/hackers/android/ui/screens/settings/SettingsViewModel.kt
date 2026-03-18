@@ -21,6 +21,7 @@ data class SettingsUiState(
     val userName: String? = null,
     val userHandle: String? = null,
     val userAvatar: String? = null,
+    val appVersion: String = "",
     val isSignedOut: Boolean = false,
     val message: String? = null
 )
@@ -38,6 +39,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         loadUserInfo()
+        loadAppVersion()
     }
 
     private fun loadUserInfo() {
@@ -53,6 +55,17 @@ class SettingsViewModel @Inject constructor(
                     userAvatar = avatar
                 )
             }
+        }
+    }
+
+    private fun loadAppVersion() {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val version = packageInfo.versionName ?: "Unknown"
+            val versionCode = packageInfo.longVersionCode
+            _uiState.update { it.copy(appVersion = "$version ($versionCode)") }
+        } catch (_: Exception) {
+            _uiState.update { it.copy(appVersion = "Unknown") }
         }
     }
 
