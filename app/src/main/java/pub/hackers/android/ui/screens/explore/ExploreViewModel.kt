@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Post
+import java.time.Instant
 import javax.inject.Inject
 
 enum class ExploreTab {
@@ -35,8 +36,18 @@ class ExploreViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
 
+    private var lastLoadTime: Instant? = null
+    private val staleThresholdSeconds = 60L
+
     init {
         loadTimeline()
+    }
+
+    fun refreshIfStale() {
+        val last = lastLoadTime ?: return
+        if (Instant.now().epochSecond - last.epochSecond > staleThresholdSeconds) {
+            refresh()
+        }
     }
 
     fun selectTab(tab: ExploreTab) {
@@ -58,12 +69,13 @@ class ExploreViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val result = when (_uiState.value.selectedTab) {
-                ExploreTab.LOCAL -> repository.getLocalTimeline()
-                ExploreTab.GLOBAL -> repository.getPublicTimeline()
+                ExploreTab.LOCAL -> repository.getLocalTimeline(refresh = true)
+                ExploreTab.GLOBAL -> repository.getPublicTimeline(refresh = true)
             }
 
             result
                 .onSuccess { data ->
+                    lastLoadTime = Instant.now()
                     _uiState.update {
                         it.copy(
                             posts = data.posts,
@@ -95,6 +107,7 @@ class ExploreViewModel @Inject constructor(
 
             result
                 .onSuccess { data ->
+                    lastLoadTime = Instant.now()
                     _uiState.update {
                         it.copy(
                             posts = data.posts,
