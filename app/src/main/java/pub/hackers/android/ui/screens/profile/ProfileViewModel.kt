@@ -238,4 +238,48 @@ class ProfileViewModel @Inject constructor(
     fun dismissActionError() {
         _uiState.update { it.copy(actionError = null) }
     }
+
+    fun sharePost(postId: String) {
+        viewModelScope.launch {
+            repository.sharePost(postId)
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(
+                            posts = state.posts.map { post ->
+                                if (post.id == postId || post.sharedPost?.id == postId) {
+                                    post.copy(
+                                        viewerHasShared = true,
+                                        engagementStats = post.engagementStats.copy(
+                                            shares = post.engagementStats.shares + 1
+                                        )
+                                    )
+                                } else post
+                            }
+                        )
+                    }
+                }
+        }
+    }
+
+    fun unsharePost(postId: String) {
+        viewModelScope.launch {
+            repository.unsharePost(postId)
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(
+                            posts = state.posts.map { post ->
+                                if (post.id == postId || post.sharedPost?.id == postId) {
+                                    post.copy(
+                                        viewerHasShared = false,
+                                        engagementStats = post.engagementStats.copy(
+                                            shares = maxOf(0, post.engagementStats.shares - 1)
+                                        )
+                                    )
+                                } else post
+                            }
+                        )
+                    }
+                }
+        }
+    }
 }

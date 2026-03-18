@@ -69,6 +69,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onPostClick: (String) -> Unit,
     onProfileClick: (String) -> Unit = {},
+    onReplyClick: (String) -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -174,6 +175,15 @@ fun ProfileScreen(
                                     post = post,
                                     onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
                                     onProfileClick = onProfileClick,
+                                    onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
+                                    onShareClick = {
+                                        val targetId = post.sharedPost?.id ?: post.id
+                                        if (post.viewerHasShared) {
+                                            viewModel.unsharePost(targetId)
+                                        } else {
+                                            viewModel.sharePost(targetId)
+                                        }
+                                    },
                                     onQuotedPostClick = onPostClick
                                 )
                                 HorizontalDivider(thickness = 0.5.dp)
