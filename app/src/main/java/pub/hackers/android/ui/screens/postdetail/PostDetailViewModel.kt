@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.local.SessionManager
 import pub.hackers.android.data.repository.HackersPubRepository
+import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import javax.inject.Inject
@@ -27,7 +28,13 @@ data class PostDetailUiState(
     val deleteError: String? = null,
     val isDeleted: Boolean = false,
     val isReacting: Boolean = false,
-    val showReactionPicker: Boolean = false
+    val showReactionPicker: Boolean = false,
+    val showSharesSheet: Boolean = false,
+    val shareActors: List<Actor> = emptyList(),
+    val isLoadingShares: Boolean = false,
+    val showQuotesSheet: Boolean = false,
+    val quotePosts: List<Post> = emptyList(),
+    val isLoadingQuotes: Boolean = false
 )
 
 @HiltViewModel
@@ -142,6 +149,44 @@ class PostDetailViewModel @Inject constructor(
 
     fun toggleReactionPicker() {
         _uiState.update { it.copy(showReactionPicker = !it.showReactionPicker) }
+    }
+
+    fun showSharesSheet() {
+        _uiState.update { it.copy(showSharesSheet = true, isLoadingShares = true) }
+        viewModelScope.launch {
+            repository.getPostShares(postId)
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(shareActors = result.actors, isLoadingShares = false)
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingShares = false) }
+                }
+        }
+    }
+
+    fun dismissSharesSheet() {
+        _uiState.update { it.copy(showSharesSheet = false) }
+    }
+
+    fun showQuotesSheet() {
+        _uiState.update { it.copy(showQuotesSheet = true, isLoadingQuotes = true) }
+        viewModelScope.launch {
+            repository.getPostQuotes(postId)
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(quotePosts = result.posts, isLoadingQuotes = false)
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingQuotes = false) }
+                }
+        }
+    }
+
+    fun dismissQuotesSheet() {
+        _uiState.update { it.copy(showQuotesSheet = false) }
     }
 
     fun toggleReaction(emoji: String) {

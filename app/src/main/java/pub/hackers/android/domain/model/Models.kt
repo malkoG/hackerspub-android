@@ -164,6 +164,18 @@ data class PostDetailResult(
     val repliesEndCursor: String?
 )
 
+data class SharesResult(
+    val actors: List<Actor>,
+    val hasNextPage: Boolean,
+    val endCursor: String?
+)
+
+data class QuotesResult(
+    val posts: List<Post>,
+    val hasNextPage: Boolean,
+    val endCursor: String?
+)
+
 data class ProfileResult(
     val actor: Actor,
     val bio: String?,

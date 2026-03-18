@@ -420,6 +420,50 @@ query SearchActorsByHandle($prefix: String!, $limit: Int = 10) {
     }
 }
 
+query PostShares($id: ID!, $after: String) {
+    node(id: $id) {
+        ... on Post {
+            shares(first: 20, after: $after) {
+                edges {
+                    cursor
+                    node {
+                        id
+                        actor {
+                            ...ActorFields
+                        }
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    }
+}
+
+query PostQuotes($id: ID!, $after: String) {
+    node(id: $id) {
+        ... on Post {
+            quotes(first: 20, after: $after) {
+                edges {
+                    cursor
+                    node {
+                        ...PostFields
+                        sharedPost {
+                            ...SharedPostFields
+                        }
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    }
+}
+
 mutation FollowActor($actorId: ID!) {
     followActor(input: { actorId: $actorId }) {
         ... on FollowActorPayload {

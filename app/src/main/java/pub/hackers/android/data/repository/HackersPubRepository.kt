@@ -16,6 +16,8 @@ import pub.hackers.android.graphql.LocalTimelineQuery
 import pub.hackers.android.graphql.LoginByUsernameMutation
 import pub.hackers.android.graphql.NotificationsQuery
 import pub.hackers.android.graphql.PersonalTimelineQuery
+import pub.hackers.android.graphql.PostQuotesQuery
+import pub.hackers.android.graphql.PostSharesQuery
 import pub.hackers.android.graphql.PostDetailQuery
 import pub.hackers.android.graphql.PublicTimelineQuery
 import pub.hackers.android.graphql.RemoveFollowerMutation
@@ -599,6 +601,60 @@ class HackersPubRepository @Inject constructor(
                         Result.failure(Exception("Not authenticated"))
                     else -> Result.failure(Exception("Unknown error"))
                 }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getPostShares(postId: String, after: String? = null): Result<SharesResult> {
+        return try {
+            val response = apolloClient.query(
+                PostSharesQuery(postId, Optional.presentIfNotNull(after))
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val shares = response.data?.node?.onPost?.shares
+                    ?: return Result.failure(Exception("Post not found"))
+
+                Result.success(
+                    SharesResult(
+                        actors = shares.edges.map { edge ->
+                            edge.node.actor.actorFields.toActor()
+                        },
+                        hasNextPage = shares.pageInfo.hasNextPage,
+                        endCursor = shares.pageInfo.endCursor
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getPostQuotes(postId: String, after: String? = null): Result<QuotesResult> {
+        return try {
+            val response = apolloClient.query(
+                PostQuotesQuery(postId, Optional.presentIfNotNull(after))
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val quotes = response.data?.node?.onPost?.quotes
+                    ?: return Result.failure(Exception("Post not found"))
+
+                Result.success(
+                    QuotesResult(
+                        posts = quotes.edges.mapNotNull { edge ->
+                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                        },
+                        hasNextPage = quotes.pageInfo.hasNextPage,
+                        endCursor = quotes.pageInfo.endCursor
+                    )
+                )
             }
         } catch (e: Exception) {
             Result.failure(e)

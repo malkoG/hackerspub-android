@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.screens.postdetail
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -104,6 +106,42 @@ fun PostDetailScreen(
                 isSubmitting = uiState.isReacting,
                 onEmojiSelect = { viewModel.toggleReaction(it) },
                 onClose = { viewModel.toggleReactionPicker() }
+            )
+        }
+    }
+
+    // Shares bottom sheet
+    if (uiState.showSharesSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissSharesSheet() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            SharesSheet(
+                actors = uiState.shareActors,
+                isLoading = uiState.isLoadingShares,
+                onProfileClick = { handle ->
+                    viewModel.dismissSharesSheet()
+                    onProfileClick(handle)
+                },
+                onClose = { viewModel.dismissSharesSheet() }
+            )
+        }
+    }
+
+    // Quotes bottom sheet
+    if (uiState.showQuotesSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissQuotesSheet() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            QuotesSheet(
+                posts = uiState.quotePosts,
+                isLoading = uiState.isLoadingQuotes,
+                onPostClick = { id ->
+                    viewModel.dismissQuotesSheet()
+                    onPostClick(id)
+                },
+                onClose = { viewModel.dismissQuotesSheet() }
             )
         }
     }
@@ -214,7 +252,9 @@ fun PostDetailScreen(
                         },
                         onReactionClick = { emoji -> viewModel.toggleReaction(emoji) },
                         onReactionPickerClick = { viewModel.toggleReactionPicker() },
-                        onQuoteClick = { onQuoteClick(postId) }
+                        onQuoteClick = { onQuoteClick(postId) },
+                        onSharesClick = { viewModel.showSharesSheet() },
+                        onQuotesClick = { viewModel.showQuotesSheet() }
                     )
                 }
             }
@@ -275,7 +315,9 @@ private fun PostDetailContent(
     onShareClick: () -> Unit,
     onReactionClick: (String) -> Unit,
     onReactionPickerClick: () -> Unit,
-    onQuoteClick: () -> Unit
+    onQuoteClick: () -> Unit,
+    onSharesClick: () -> Unit,
+    onQuotesClick: () -> Unit
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
         .withZone(ZoneId.systemDefault())
@@ -367,24 +409,30 @@ private fun PostDetailContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
                         text = "${post.engagementStats.replies} ${stringResource(R.string.replies)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = "${post.engagementStats.shares} ${stringResource(R.string.shares)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { onSharesClick() }
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = "${post.engagementStats.reactions} ${stringResource(R.string.reactions)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${post.engagementStats.quotes} ${stringResource(R.string.quotes)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { onQuotesClick() }
                     )
                 }
 
@@ -490,6 +538,156 @@ private fun PostDetailContent(
                     onQuotedPostClick = onPostClick
                 )
                 HorizontalDivider(thickness = 0.5.dp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SharesSheet(
+    actors: List<pub.hackers.android.domain.model.Actor>,
+    isLoading: Boolean,
+    onProfileClick: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.shares),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (actors.isEmpty()) {
+            Text(
+                text = "No shares yet",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+        } else {
+            actors.forEach { actor ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onProfileClick(actor.handle) }
+                        .padding(vertical = 8.dp)
+                ) {
+                    AsyncImage(
+                        model = actor.avatarUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = actor.name ?: actor.handle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "@${actor.handle}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuotesSheet(
+    posts: List<Post>,
+    isLoading: Boolean,
+    onPostClick: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.quotes),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (posts.isEmpty()) {
+            Text(
+                text = "No quotes yet",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+        } else {
+            posts.forEach { post ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPostClick(post.id) }
+                        .padding(vertical = 8.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AsyncImage(
+                            model = post.actor.avatarUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = post.actor.name ?: post.actor.handle,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "@${post.actor.handle}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    HtmlContent(
+                        html = post.content,
+                        maxLines = 3,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
             }
         }
     }
