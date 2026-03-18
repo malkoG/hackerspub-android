@@ -287,6 +287,7 @@ fun PostDetailScreen(
                             onLoadMoreReplies = { viewModel.loadMoreReplies() },
                             onProfileClick = onProfileClick,
                             onPostClick = onPostClick,
+                            onReplyClick = { onReplyClick(postId) },
                             onShareClick = {
                                 showShareConfirmation = true
                             },
@@ -369,6 +370,7 @@ private fun PostDetailContent(
     onProfileClick: (String) -> Unit,
     onPostClick: (String) -> Unit,
     onShareClick: () -> Unit,
+    onReplyClick: () -> Unit,
     onReactionClick: (String) -> Unit,
     onReactionPickerClick: () -> Unit,
     onQuoteClick: () -> Unit,
@@ -594,6 +596,13 @@ private fun PostDetailContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row {
+                    IconButton(onClick = onReplyClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Reply,
+                            contentDescription = stringResource(R.string.reply),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     IconButton(onClick = onShareClick) {
                         Icon(
                             imageVector = Icons.Filled.Repeat,
