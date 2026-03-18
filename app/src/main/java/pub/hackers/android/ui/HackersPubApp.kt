@@ -327,6 +327,9 @@ fun HackersPubApp(
                     },
                     onReplyClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(replyTo = postId))
+                    },
+                    onQuoteClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
                     }
                 )
             }
