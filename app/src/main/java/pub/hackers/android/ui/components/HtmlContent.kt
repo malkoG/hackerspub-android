@@ -107,6 +107,7 @@ private fun parseHtmlToAnnotatedString(
         var hasContent = false
         var isBold = false
         var isItalic = false
+        var isStrikethrough = false
         var isCode = false
         var isPreformatted = false
         var listDepth = 0
@@ -133,11 +134,12 @@ private fun parseHtmlToAnnotatedString(
                         val inlineStyle = SpanStyle(
                             fontWeight = if (isBold) FontWeight.Bold else null,
                             fontStyle = if (isItalic) FontStyle.Italic else null,
+                            textDecoration = if (isStrikethrough) TextDecoration.LineThrough else null,
                             fontFamily = if (isCode || isPreformatted) FontFamily.Monospace else null,
                             background = if (isCode && !isPreformatted) Color(0x20808080) else Color.Unspecified
                         )
 
-                        if (isBold || isItalic || isCode || isPreformatted) {
+                        if (isBold || isItalic || isStrikethrough || isCode || isPreformatted) {
                             withStyle(inlineStyle) {
                                 appendStyledText(this, styledText, currentLinkType, linkColor, mentionBg)
                             }
@@ -171,6 +173,15 @@ private fun parseHtmlToAnnotatedString(
                         }
                         "em", "i" -> {
                             isItalic = true
+                        }
+                        "del", "s", "strike" -> {
+                            isStrikethrough = true
+                        }
+                        "hr" -> {
+                            if (hasContent) append("\n")
+                            append("──────────")
+                            append("\n")
+                            hasContent = true
                         }
                         "code" -> {
                             isCode = true
@@ -239,6 +250,9 @@ private fun parseHtmlToAnnotatedString(
                         }
                         "em", "i" -> {
                             isItalic = false
+                        }
+                        "del", "s", "strike" -> {
+                            isStrikethrough = false
                         }
                         "code" -> {
                             isCode = false
