@@ -158,6 +158,15 @@ fun PostCard(
                 onMentionClick = onProfileClick
             )
 
+            if (displayPost.content.length > 500) {
+                Text(
+                    text = stringResource(R.string.read_more),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
             if (displayPost.media.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 MediaGrid(media = displayPost.media)
