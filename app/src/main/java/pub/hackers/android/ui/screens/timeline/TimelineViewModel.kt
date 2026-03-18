@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Post
+import java.time.Instant
 import javax.inject.Inject
 
 data class TimelineUiState(
@@ -30,16 +31,27 @@ class TimelineViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TimelineUiState())
     val uiState: StateFlow<TimelineUiState> = _uiState.asStateFlow()
 
+    private var lastLoadTime: Instant? = null
+    private val staleThresholdSeconds = 60L
+
     init {
         loadTimeline()
+    }
+
+    fun refreshIfStale() {
+        val last = lastLoadTime ?: return
+        if (Instant.now().epochSecond - last.epochSecond > staleThresholdSeconds) {
+            refresh()
+        }
     }
 
     private fun loadTimeline() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            repository.getPersonalTimeline()
+            repository.getPersonalTimeline(refresh = true)
                 .onSuccess { result ->
+                    lastLoadTime = Instant.now()
                     _uiState.update {
                         it.copy(
                             posts = result.posts,
@@ -66,6 +78,7 @@ class TimelineViewModel @Inject constructor(
 
             repository.getPersonalTimeline(refresh = true)
                 .onSuccess { result ->
+                    lastLoadTime = Instant.now()
                     _uiState.update {
                         it.copy(
                             posts = result.posts,
