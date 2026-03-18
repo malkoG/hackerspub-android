@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
@@ -53,6 +54,7 @@ fun PostCard(
     onReplyClick: (() -> Unit)? = null,
     onShareClick: (() -> Unit)? = null,
     onQuoteClick: (() -> Unit)? = null,
+    onReactionClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -221,7 +223,8 @@ fun PostCard(
                 post = displayPost,
                 onReplyClick = onReplyClick,
                 onShareClick = onShareClick,
-                onQuoteClick = onQuoteClick
+                onQuoteClick = onQuoteClick,
+                onReactionClick = onReactionClick
             )
         }
     }
@@ -232,7 +235,8 @@ private fun EngagementBar(
     post: Post,
     onReplyClick: (() -> Unit)?,
     onShareClick: (() -> Unit)?,
-    onQuoteClick: (() -> Unit)? = null
+    onQuoteClick: (() -> Unit)? = null,
+    onReactionClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -254,10 +258,11 @@ private fun EngagementBar(
         )
 
         EngagementButton(
-            icon = Icons.Outlined.Favorite,
+            icon = if (post.reactionGroups.any { it.viewerHasReacted }) Icons.Filled.Favorite else Icons.Outlined.Favorite,
             count = post.engagementStats.reactions,
             contentDescription = stringResource(R.string.reactions),
-            onClick = null
+            onClick = onReactionClick,
+            isActive = post.reactionGroups.any { it.viewerHasReacted }
         )
 
         EngagementButton(

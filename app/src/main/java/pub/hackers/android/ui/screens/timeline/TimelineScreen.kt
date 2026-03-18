@@ -135,6 +135,7 @@ fun TimelineScreen(
                                         }
                                     },
                                     onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                    onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
                                     onQuotedPostClick = onPostClick
                                 )
                                 HorizontalDivider(thickness = 0.5.dp)

@@ -166,6 +166,7 @@ fun ExploreScreen(
                                         onQuoteClick = if (isLoggedIn) {
                                             { onQuoteClick(post.sharedPost?.id ?: post.id) }
                                         } else null,
+                                        onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
                                         onQuotedPostClick = onPostClick
                                     )
                                     HorizontalDivider(thickness = 0.5.dp)
