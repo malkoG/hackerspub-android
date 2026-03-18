@@ -1,9 +1,13 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package pub.hackers.android.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -163,6 +167,51 @@ fun PostCard(
                     onClick = { onQuotedPostClick?.invoke(displayPost.quotedPost!!.id) },
                     onProfileClick = onProfileClick
                 )
+            }
+
+            if (displayPost.reactionGroups.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    displayPost.reactionGroups.forEach { group ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = if (group.viewerHasReacted)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (group.emoji != null) {
+                                    Text(
+                                        text = group.emoji,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                } else if (group.customEmoji != null) {
+                                    AsyncImage(
+                                        model = group.customEmoji.imageUrl,
+                                        contentDescription = group.customEmoji.name,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = group.count.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (group.viewerHasReacted)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

@@ -33,6 +33,7 @@ data class Post(
     val content: String,
     val excerpt: String,
     val url: String?,
+    val iri: String? = null,
     val viewerHasShared: Boolean,
     val actor: Actor,
     val media: List<Media>,
@@ -41,7 +42,8 @@ data class Post(
     val sharedPost: Post? = null,
     val replyTarget: Post? = null,
     val quotedPost: Post? = null,
-    val visibility: PostVisibility = PostVisibility.PUBLIC
+    val visibility: PostVisibility = PostVisibility.PUBLIC,
+    val reactionGroups: List<ReactionGroup> = emptyList()
 )
 
 enum class PostVisibility {

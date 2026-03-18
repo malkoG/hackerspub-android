@@ -29,6 +29,7 @@ fragment PostFields on Post {
     content
     excerpt
     url
+    iri
     viewerHasShared
     actor {
         ...ActorFields
@@ -49,6 +50,27 @@ fragment PostFields on Post {
     quotedPost {
         ...SharedPostFields
     }
+    reactionGroups {
+        __typename
+        ... on EmojiReactionGroup {
+            emoji
+            reactors(first: 20) {
+                totalCount
+                viewerHasReacted
+            }
+        }
+        ... on CustomEmojiReactionGroup {
+            customEmoji {
+                id
+                name
+                imageUrl
+            }
+            reactors(first: 20) {
+                totalCount
+                viewerHasReacted
+            }
+        }
+    }
 }
 
 fragment SharedPostFields on Post {
@@ -60,6 +82,7 @@ fragment SharedPostFields on Post {
     content
     excerpt
     url
+    iri
     viewerHasShared
     actor {
         ...ActorFields

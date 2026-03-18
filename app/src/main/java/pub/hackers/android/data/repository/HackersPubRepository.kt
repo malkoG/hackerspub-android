@@ -745,6 +745,7 @@ class HackersPubRepository @Inject constructor(
             content = content.toString(),
             excerpt = excerpt,
             url = url?.toString(),
+            iri = iri?.toString(),
             viewerHasShared = viewerHasShared,
             actor = actor.actorFields.toActor(),
             media = media.map { it.mediaFields.toMedia() },
@@ -753,7 +754,30 @@ class HackersPubRepository @Inject constructor(
             sharedPost = sharedPost,
             replyTarget = replyTarget,
             quotedPost = quotedPost?.sharedPostFields?.toPost(),
-            visibility = visibility
+            visibility = visibility,
+            reactionGroups = reactionGroups.mapNotNull { group ->
+                when {
+                    group.onEmojiReactionGroup != null -> ReactionGroup(
+                        emoji = group.onEmojiReactionGroup.emoji,
+                        customEmoji = null,
+                        count = group.onEmojiReactionGroup.reactors.totalCount,
+                        reactors = emptyList(),
+                        viewerHasReacted = group.onEmojiReactionGroup.reactors.viewerHasReacted
+                    )
+                    group.onCustomEmojiReactionGroup != null -> ReactionGroup(
+                        emoji = null,
+                        customEmoji = CustomEmoji(
+                            id = group.onCustomEmojiReactionGroup.customEmoji.id,
+                            name = group.onCustomEmojiReactionGroup.customEmoji.name,
+                            imageUrl = group.onCustomEmojiReactionGroup.customEmoji.imageUrl
+                        ),
+                        count = group.onCustomEmojiReactionGroup.reactors.totalCount,
+                        reactors = emptyList(),
+                        viewerHasReacted = group.onCustomEmojiReactionGroup.reactors.viewerHasReacted
+                    )
+                    else -> null
+                }
+            }
         )
     }
 
@@ -767,6 +791,7 @@ class HackersPubRepository @Inject constructor(
             content = content.toString(),
             excerpt = excerpt,
             url = url?.toString(),
+            iri = iri?.toString(),
             viewerHasShared = viewerHasShared,
             actor = actor.actorFields.toActor(),
             media = media.map { it.mediaFields.toMedia() },
