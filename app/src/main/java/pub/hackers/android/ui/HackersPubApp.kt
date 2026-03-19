@@ -1,10 +1,6 @@
 package pub.hackers.android.ui
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
@@ -16,11 +12,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,9 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -40,6 +30,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import pub.hackers.android.R
 import androidx.compose.runtime.CompositionLocalProvider
+import pub.hackers.android.ui.components.BottomNavBar
+import pub.hackers.android.ui.components.BottomNavItem
 import pub.hackers.android.ui.components.LocalFontScale
 import pub.hackers.android.ui.components.ProvideInAppBrowserUriHandler
 import pub.hackers.android.ui.screens.auth.SignInScreen
@@ -139,47 +131,77 @@ fun HackersPubApp(
     CompositionLocalProvider(LocalFontScale provides (fontSizePercent / 100f)) {
 
     val bottomNavItems = if (isLoggedIn) {
-        listOf(Screen.Timeline, Screen.Notifications, Screen.Explore, Screen.Search, Screen.Settings)
+        listOf(
+            BottomNavItem(
+                route = Screen.Timeline.route,
+                label = stringResource(R.string.nav_timeline),
+                icon = Icons.Outlined.Home,
+                selectedIcon = Icons.Filled.Home,
+            ),
+            BottomNavItem(
+                route = Screen.Explore.route,
+                label = stringResource(R.string.nav_explore),
+                icon = Icons.Outlined.Explore,
+                selectedIcon = Icons.Filled.Explore,
+            ),
+            BottomNavItem(
+                route = Screen.Notifications.route,
+                label = stringResource(R.string.nav_notifications),
+                icon = Icons.Outlined.Notifications,
+                selectedIcon = Icons.Filled.Notifications,
+                hasNotificationDot = false, // TODO: wire up unread notification state
+            ),
+            BottomNavItem(
+                route = Screen.Search.route,
+                label = stringResource(R.string.nav_search),
+                icon = Icons.Outlined.Search,
+                selectedIcon = Icons.Filled.Search,
+            ),
+        )
     } else {
-        listOf(Screen.Explore, Screen.Search, Screen.Settings)
+        listOf(
+            BottomNavItem(
+                route = Screen.Explore.route,
+                label = stringResource(R.string.nav_explore),
+                icon = Icons.Outlined.Explore,
+                selectedIcon = Icons.Filled.Explore,
+            ),
+            BottomNavItem(
+                route = Screen.Search.route,
+                label = stringResource(R.string.nav_search),
+                icon = Icons.Outlined.Search,
+                selectedIcon = Icons.Filled.Search,
+            ),
+            BottomNavItem(
+                route = Screen.Settings.route,
+                label = stringResource(R.string.nav_settings),
+                icon = Icons.Outlined.Settings,
+                selectedIcon = Icons.Filled.Settings,
+            ),
+        )
     }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val showBottomBar = bottomNavItems.any { it.route == currentDestination?.route }
+    val currentRoute = currentDestination?.route
+    val showBottomBar = bottomNavItems.any { it.route == currentRoute }
 
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .height(56.dp),
-                    windowInsets = WindowInsets(0)
-                ) {
-                    bottomNavItems.forEach { screen ->
-                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    if (selected) screen.selectedIcon else screen.unselectedIcon,
-                                    contentDescription = stringResource(screen.titleResId)
-                                )
-                            },
-                            label = null,
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                BottomNavBar(
+                    items = bottomNavItems,
+                    selectedRoute = currentRoute ?: "",
+                    onItemSelected = { item ->
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
-                        )
-                    }
-                }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
             }
         }
     ) { innerPadding ->
