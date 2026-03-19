@@ -270,8 +270,15 @@ private fun NotificationItem(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val actorDisplayName = actor?.name ?: actor?.handle ?: "Someone"
+                        val allActors = notification.actors
+                        val actorLabel = when {
+                            allActors.size == 2 -> "$actorDisplayName and ${allActors[1].name ?: allActors[1].handle}"
+                            allActors.size > 2 -> "$actorDisplayName and ${allActors.size - 1} others"
+                            else -> actorDisplayName
+                        }
                         Text(
-                            text = actor?.name ?: actor?.handle ?: "Someone",
+                            text = actorLabel,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
