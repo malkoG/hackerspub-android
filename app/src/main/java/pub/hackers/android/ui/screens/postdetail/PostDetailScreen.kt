@@ -228,7 +228,7 @@ fun PostDetailScreen(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             CompactTopBar(
-                title = "Post",
+                title = if (uiState.post?.typename == "Article") "Article" else "Post",
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -468,13 +468,19 @@ private fun PostDetailContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val isArticle = post.typename == "Article"
+
                 post.name?.let { title ->
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = if (isArticle) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(if (isArticle) 12.dp else 8.dp))
+                    if (isArticle) {
+                        HorizontalDivider()
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
 
                 HtmlContent(
