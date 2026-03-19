@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import android.content.Intent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -23,6 +24,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import pub.hackers.android.ui.components.CompactTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -56,6 +58,7 @@ fun ExploreScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -182,6 +185,18 @@ fun ExploreScreen(
                                             { onQuoteClick(post.sharedPost?.id ?: post.id) }
                                         } else null,
                                         onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                        onExternalShareClick = {
+                                            val displayPost = post.sharedPost ?: post
+                                            val shareUrl = displayPost.url ?: displayPost.iri
+                                            if (shareUrl != null) {
+                                                val sendIntent = Intent().apply {
+                                                    action = Intent.ACTION_SEND
+                                                    putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                                    type = "text/plain"
+                                                }
+                                                context.startActivity(Intent.createChooser(sendIntent, null))
+                                            }
+                                        },
                                         onQuotedPostClick = onPostClick
                                     )
                                     HorizontalDivider(thickness = 0.5.dp)
