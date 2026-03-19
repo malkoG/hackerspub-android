@@ -23,6 +23,7 @@ data class SettingsUiState(
     val userHandle: String? = null,
     val userAvatar: String? = null,
     val appVersion: String = "",
+    val cacheSize: String = "",
     val isSignedOut: Boolean = false,
     val message: String? = null,
     val confirmBeforeDelete: Boolean = true,
@@ -46,6 +47,7 @@ class SettingsViewModel @Inject constructor(
         loadUserInfo()
         loadAppVersion()
         loadPreferences()
+        calculateCacheSize()
     }
 
     private fun loadUserInfo() {
@@ -118,10 +120,40 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun calculateCacheSize() {
+        viewModelScope.launch {
+            val cacheDir = context.cacheDir
+            val size = getDirSize(cacheDir)
+            _uiState.update { it.copy(cacheSize = formatBytes(size)) }
+        }
+    }
+
+    private fun getDirSize(dir: java.io.File): Long {
+        var size = 0L
+        if (dir.isDirectory) {
+            dir.listFiles()?.forEach { file ->
+                size += if (file.isDirectory) getDirSize(file) else file.length()
+            }
+        }
+        return size
+    }
+
+    private fun formatBytes(bytes: Long): String {
+        return when {
+            bytes < 1024 -> "$bytes B"
+            bytes < 1024 * 1024 -> String.format("%.1f KB", bytes / 1024.0)
+            bytes < 1024 * 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024))
+            else -> String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024))
+        }
+    }
+
     fun clearCache() {
         viewModelScope.launch {
             try {
                 apolloClient.apolloStore.clearAll()
+                // Also clear file cache
+                context.cacheDir.listFiles()?.forEach { it.deleteRecursively() }
+                calculateCacheSize()
                 _uiState.update { it.copy(message = "Cache cleared") }
             } catch (e: Exception) {
                 _uiState.update { it.copy(message = "Failed to clear cache") }

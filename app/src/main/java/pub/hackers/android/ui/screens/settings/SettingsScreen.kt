@@ -174,6 +174,11 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text(stringResource(R.string.clear_cache)) },
+                supportingContent = {
+                    if (uiState.cacheSize.isNotEmpty()) {
+                        Text(uiState.cacheSize)
+                    }
+                },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Filled.Delete,
