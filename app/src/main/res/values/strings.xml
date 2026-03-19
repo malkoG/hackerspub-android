@@ -75,6 +75,8 @@
     <string name="settings_engagement">Engagement</string>
     <string name="settings_confirm_before_delete">Confirm before deleting</string>
     <string name="settings_confirm_before_share">Confirm before sharing</string>
+    <string name="settings_links">Links</string>
+    <string name="settings_use_in_app_browser">Use in-app browser</string>
     <string name="settings_timeline">Timeline</string>
     <string name="settings_timeline_max_length">Post preview length</string>
     <string name="settings_timeline_unlimited">Unlimited</string>

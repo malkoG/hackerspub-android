@@ -28,7 +28,8 @@ data class SettingsUiState(
     val message: String? = null,
     val confirmBeforeDelete: Boolean = true,
     val confirmBeforeShare: Boolean = false,
-    val timelineMaxLength: Int = 0
+    val timelineMaxLength: Int = 0,
+    val useInAppBrowser: Boolean = true
 )
 
 @HiltViewModel
@@ -82,12 +83,14 @@ class SettingsViewModel @Inject constructor(
             val confirmDelete = preferencesManager.confirmBeforeDelete.first()
             val confirmShare = preferencesManager.confirmBeforeShare.first()
             val maxLength = preferencesManager.timelineMaxLength.first()
+            val inAppBrowser = preferencesManager.useInAppBrowser.first()
 
             _uiState.update {
                 it.copy(
                     confirmBeforeDelete = confirmDelete,
                     confirmBeforeShare = confirmShare,
-                    timelineMaxLength = maxLength
+                    timelineMaxLength = maxLength,
+                    useInAppBrowser = inAppBrowser
                 )
             }
         }
@@ -106,6 +109,11 @@ class SettingsViewModel @Inject constructor(
     fun setTimelineMaxLength(value: Int) {
         _uiState.update { it.copy(timelineMaxLength = value) }
         viewModelScope.launch { preferencesManager.setTimelineMaxLength(value) }
+    }
+
+    fun setUseInAppBrowser(value: Boolean) {
+        _uiState.update { it.copy(useInAppBrowser = value) }
+        viewModelScope.launch { preferencesManager.setUseInAppBrowser(value) }
     }
 
     fun signOut() {

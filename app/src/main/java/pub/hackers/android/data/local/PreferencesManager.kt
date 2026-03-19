@@ -24,6 +24,7 @@ class PreferencesManager @Inject constructor(
         private val CONFIRM_BEFORE_DELETE = booleanPreferencesKey("confirm_before_delete")
         private val CONFIRM_BEFORE_SHARE = booleanPreferencesKey("confirm_before_share")
         private val TIMELINE_MAX_LENGTH = intPreferencesKey("timeline_max_length")
+        private val USE_IN_APP_BROWSER = booleanPreferencesKey("use_in_app_browser")
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches")
         private const val MAX_RECENT_SEARCHES = 10
     }
@@ -38,6 +39,16 @@ class PreferencesManager @Inject constructor(
 
     val timelineMaxLength: Flow<Int> = context.preferencesDataStore.data.map { prefs ->
         prefs[TIMELINE_MAX_LENGTH] ?: 0 // 0 = unlimited
+    }
+
+    val useInAppBrowser: Flow<Boolean> = context.preferencesDataStore.data.map { prefs ->
+        prefs[USE_IN_APP_BROWSER] ?: true
+    }
+
+    suspend fun setUseInAppBrowser(value: Boolean) {
+        context.preferencesDataStore.edit { prefs ->
+            prefs[USE_IN_APP_BROWSER] = value
+        }
     }
 
     suspend fun setConfirmBeforeDelete(value: Boolean) {

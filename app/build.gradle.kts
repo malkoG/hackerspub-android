@@ -82,5 +82,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.coroutines.android)
 
+    implementation("androidx.browser:browser:1.8.0")
+
     debugImplementation(libs.androidx.ui.tooling)
 }

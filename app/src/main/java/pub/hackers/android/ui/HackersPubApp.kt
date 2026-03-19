@@ -38,6 +38,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import pub.hackers.android.R
+import pub.hackers.android.ui.components.ProvideInAppBrowserUriHandler
 import pub.hackers.android.ui.screens.auth.SignInScreen
 import pub.hackers.android.ui.screens.compose.ComposeScreen
 import pub.hackers.android.ui.screens.explore.ExploreScreen
@@ -113,6 +114,8 @@ fun HackersPubApp(
 ) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState(initial = false)
+
+    ProvideInAppBrowserUriHandler(preferencesManager = viewModel.preferencesManager) {
 
     val bottomNavItems = if (isLoggedIn) {
         listOf(Screen.Timeline, Screen.Notifications, Screen.Explore, Screen.Search, Screen.Settings)
@@ -347,4 +350,5 @@ fun HackersPubApp(
             }
         }
     }
+    } // ProvideInAppBrowserUriHandler
 }

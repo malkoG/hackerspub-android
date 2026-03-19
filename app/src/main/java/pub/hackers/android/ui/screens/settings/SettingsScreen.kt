@@ -234,6 +234,27 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
+            // Links section
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.settings_links),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_use_in_app_browser)) },
+                trailingContent = {
+                    Switch(
+                        checked = uiState.useInAppBrowser,
+                        onCheckedChange = { viewModel.setUseInAppBrowser(it) }
+                    )
+                }
+            )
+
+            HorizontalDivider()
+
             // Timeline section
             Spacer(modifier = Modifier.height(8.dp))
             Text(
