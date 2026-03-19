@@ -188,6 +188,9 @@ fun HackersPubApp(
                     },
                     onProfileClick = { handle ->
                         navController.navigate(DetailScreen.Profile.createRoute(handle))
+                    },
+                    onComposeClick = {
+                        navController.navigate(DetailScreen.Compose.createRoute())
                     }
                 )
             }

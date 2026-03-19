@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -66,6 +68,7 @@ import java.time.Instant
 fun NotificationsScreen(
     onPostClick: (String) -> Unit,
     onProfileClick: (String) -> Unit,
+    onComposeClick: () -> Unit = {},
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -99,6 +102,14 @@ fun NotificationsScreen(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             CompactTopBar(title = stringResource(R.string.nav_notifications))
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onComposeClick) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.compose)
+                )
+            }
         }
     ) { paddingValues ->
         Box(
