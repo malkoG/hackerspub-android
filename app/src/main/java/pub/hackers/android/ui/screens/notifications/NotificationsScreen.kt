@@ -300,6 +300,12 @@ private fun NotificationItem(
                 }
             }
 
+            val shouldHavePost = notification is Notification.Mention ||
+                notification is Notification.Reply ||
+                notification is Notification.Quote ||
+                notification is Notification.Share ||
+                notification is Notification.React
+
             if (post != null) {
                 Spacer(modifier = Modifier.size(8.dp))
                 HtmlContent(
@@ -307,6 +313,14 @@ private fun NotificationItem(
                     maxLines = 3,
                     modifier = Modifier.fillMaxWidth(),
                     onMentionClick = onProfileClick
+                )
+            } else if (shouldHavePost) {
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = stringResource(R.string.notification_post_unavailable),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                 )
             }
         }

@@ -49,6 +49,7 @@
     <string name="notification_share">shared your post</string>
     <string name="notification_react">reacted to your post</string>
     <string name="no_notifications">No notifications</string>
+    <string name="notification_post_unavailable">(Post unavailable)</string>
 
     <!-- Search -->
     <string name="search_hint">Search posts or users</string>
