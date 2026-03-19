@@ -178,6 +178,12 @@ fun ComposeScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             } else if (uiState.replyTargetPost != null) {
+                Text(
+                    text = "${stringResource(R.string.replying_to)} @${uiState.replyTargetPost!!.actor.handle}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
                 ReplyTargetPreview(
                     post = uiState.replyTargetPost!!,
                     modifier = Modifier.alpha(0.6f)
