@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import android.content.Intent
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -119,6 +120,24 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
+                    if (uiState.actor != null) {
+                        IconButton(onClick = {
+                            val profileHandle = uiState.actor!!.handle
+                            val normalizedHandle = if (profileHandle.startsWith("@")) profileHandle else "@$profileHandle"
+                            val profileUrl = "https://hackers.pub/$normalizedHandle"
+                            val sendIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, profileUrl)
+                                type = "text/plain"
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, null))
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = stringResource(R.string.share)
+                            )
+                        }
+                    }
                     if (!uiState.isViewer && uiState.actor != null) {
                         ProfileActionMenu(
                             followsViewer = uiState.followsViewer,
