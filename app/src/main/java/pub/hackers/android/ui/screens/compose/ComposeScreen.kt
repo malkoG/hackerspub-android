@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,9 +43,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -98,6 +102,7 @@ fun ComposeScreen(
     var textFieldBounds by remember { mutableStateOf(Rect.Zero) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val scrollState = rememberScrollState()
+    val focusRequester = remember { FocusRequester() }
     val density = LocalDensity.current
     val popupHeight = with(density) { 200.dp.toPx() } // Estimated popup height
 
@@ -208,6 +213,10 @@ fun ComposeScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { focusRequester.requestFocus() }
                             .padding(16.dp)
                             .verticalScroll(scrollState)
                     ) {
@@ -231,7 +240,9 @@ fun ComposeScreen(
                                     Rect.Zero
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester),
                             enabled = !uiState.isPosting,
                             textStyle = typography.bodyLarge.copy(
                                 color = colors.textBody
