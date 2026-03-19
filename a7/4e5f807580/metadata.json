@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a74e5f807580",
+  "strategy": "manual-commit",
+  "branch": "chore/fdroid-deployment",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/fdroid-release.yml",
+    "app/build.gradle.kts",
+    "fastlane/metadata/android/en-US/changelogs/1.txt",
+    "fastlane/metadata/android/en-US/full_description.txt",
+    "fastlane/metadata/android/en-US/short_description.txt",
+    "fastlane/metadata/android/en-US/title.txt",
+    "metadata/pub.hackers.android.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a7/4e5f807580/0/metadata.json",
+      "transcript": "/a7/4e5f807580/0/full.jsonl",
+      "context": "/a7/4e5f807580/0/context.md",
+      "content_hash": "/a7/4e5f807580/0/content_hash.txt",
+      "prompt": "/a7/4e5f807580/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 19,
+    "cache_creation_tokens": 22473,
+    "cache_read_tokens": 396066,
+    "output_tokens": 4494,
+    "api_call_count": 16
+  }
+}
