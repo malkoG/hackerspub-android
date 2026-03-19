@@ -52,6 +52,8 @@ import pub.hackers.android.ui.components.PostCard
 fun SearchScreen(
     onPostClick: (String) -> Unit,
     onProfileClick: (String) -> Unit,
+    onReplyClick: (String) -> Unit = {},
+    onQuoteClick: (String) -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -187,6 +189,21 @@ fun SearchScreen(
                                     post = post,
                                     onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
                                     onProfileClick = onProfileClick,
+                                    onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
+                                    onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                    onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                    onExternalShareClick = {
+                                        val displayPost = post.sharedPost ?: post
+                                        val shareUrl = displayPost.url ?: displayPost.iri
+                                        if (shareUrl != null) {
+                                            val sendIntent = Intent().apply {
+                                                action = Intent.ACTION_SEND
+                                                putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                                type = "text/plain"
+                                            }
+                                            context.startActivity(Intent.createChooser(sendIntent, null))
+                                        }
+                                    },
                                     onQuotedPostClick = onPostClick
                                 )
                                 HorizontalDivider(thickness = 0.5.dp)

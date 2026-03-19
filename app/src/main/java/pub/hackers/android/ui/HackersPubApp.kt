@@ -223,6 +223,12 @@ fun HackersPubApp(
                     },
                     onProfileClick = { handle ->
                         navController.navigate(DetailScreen.Profile.createRoute(handle))
+                    },
+                    onReplyClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(replyTo = postId))
+                    },
+                    onQuoteClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
                     }
                 )
             }
