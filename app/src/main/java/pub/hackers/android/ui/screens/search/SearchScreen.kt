@@ -1,7 +1,9 @@
 package pub.hackers.android.ui.screens.search
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,12 +30,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import pub.hackers.android.ui.components.CompactTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -118,7 +122,7 @@ fun SearchScreen(
                     }
                     uiState.hasSearched && uiState.posts.isEmpty() && uiState.actors.isEmpty() && uiState.resolvedObjectUrl == null -> {
                         ErrorMessage(
-                            message = stringResource(R.string.no_results),
+                            message = stringResource(R.string.no_results) + "\n" + stringResource(R.string.no_results_description),
                             icon = Icons.Filled.Search
                         )
                     }
@@ -151,6 +155,14 @@ fun SearchScreen(
                             }
 
                             if (uiState.actors.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.search_accounts),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                    )
+                                }
                                 items(
                                     items = uiState.actors,
                                     key = { "actor-${it.id}" }
@@ -185,6 +197,16 @@ fun SearchScreen(
                                 }
                             }
 
+                            if (uiState.posts.isNotEmpty() && (uiState.actors.isNotEmpty() || uiState.resolvedObjectUrl != null)) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.search_posts),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                    )
+                                }
+                            }
                             items(
                                 items = uiState.posts,
                                 key = { it.id }
@@ -217,6 +239,24 @@ fun SearchScreen(
                     else -> {
                         if (uiState.recentSearches.isNotEmpty()) {
                             LazyColumn {
+                                item {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.search_recent),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        TextButton(onClick = { viewModel.clearRecentSearches() }) {
+                                            Text(stringResource(R.string.search_clear_recent))
+                                        }
+                                    }
+                                }
                                 items(
                                     items = uiState.recentSearches,
                                     key = { "recent-$it" }

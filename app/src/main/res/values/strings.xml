@@ -53,7 +53,11 @@
     <string name="search_hint">Search posts or users</string>
     <string name="search_posts">Posts</string>
     <string name="search_users">Users</string>
+    <string name="search_accounts">Accounts</string>
+    <string name="search_recent">Recent Searches</string>
+    <string name="search_clear_recent">Clear</string>
     <string name="no_results">No results found</string>
+    <string name="no_results_description">Try a different search term</string>
 
     <!-- Post -->
     <string name="replies">Replies</string>
