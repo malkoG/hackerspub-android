@@ -21,8 +21,8 @@
     <string name="account_not_found">Account not found</string>
 
     <!-- Timeline -->
-    <string name="local_timeline">Local</string>
-    <string name="global_timeline">Global</string>
+    <string name="local_timeline">Hackers\' Pub</string>
+    <string name="global_timeline">Fediverse</string>
     <string name="personal_timeline">Home</string>
     <string name="no_posts">No posts yet</string>
     <string name="load_more">Load more</string>
@@ -48,7 +48,7 @@
     <string name="notification_quote">quoted your post</string>
     <string name="notification_share">shared your post</string>
     <string name="notification_react">reacted to your post</string>
-    <string name="no_notifications">No notifications</string>
+    <string name="no_notifications">No Notifications\nWhen you receive notifications, they\'ll appear here</string>
     <string name="notification_post_unavailable">(Post unavailable)</string>
 
     <!-- Search -->
