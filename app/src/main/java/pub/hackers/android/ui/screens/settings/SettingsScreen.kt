@@ -23,6 +23,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -200,6 +201,56 @@ fun SettingsScreen(
                     )
                 }
             )
+
+            HorizontalDivider()
+
+            // Typography section
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.settings_typography),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            ListItem(
+                headlineContent = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_font_size),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "${uiState.fontSizePercent}%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                supportingContent = {
+                    Slider(
+                        value = uiState.fontSizePercent.toFloat(),
+                        onValueChange = { viewModel.setFontSizePercent(it.toInt()) },
+                        valueRange = 75f..200f,
+                        steps = 24
+                    )
+                }
+            )
+
+            if (uiState.fontSizePercent != 100) {
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.settings_font_size_reset),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    modifier = Modifier.clickable { viewModel.setFontSizePercent(100) }
+                )
+            }
 
             HorizontalDivider()
 

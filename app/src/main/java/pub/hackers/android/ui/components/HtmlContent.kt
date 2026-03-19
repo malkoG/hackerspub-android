@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +21,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import java.net.URI
 
+val LocalFontScale = compositionLocalOf { 1f }
+
 private enum class LinkType {
     MENTION, HASHTAG, REGULAR
 }
@@ -32,6 +35,7 @@ fun HtmlContent(
     html: String,
     maxLines: Int = Int.MAX_VALUE,
     modifier: Modifier = Modifier,
+    fontScale: Float = 1f,
     onMentionClick: ((handle: String) -> Unit)? = null,
     onLinkClick: ((url: String) -> Unit)? = null
 ) {
@@ -45,9 +49,15 @@ fun HtmlContent(
         parseHtmlToAnnotatedString(html, linkColor, mentionBg)
     }
 
+    val effectiveFontScale = if (fontScale != 1f) fontScale else LocalFontScale.current
+    val baseStyle = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+    val scaledStyle = if (effectiveFontScale != 1f) {
+        baseStyle.copy(fontSize = baseStyle.fontSize * effectiveFontScale)
+    } else baseStyle
+
     ClickableText(
         text = annotatedString,
-        style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+        style = scaledStyle,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

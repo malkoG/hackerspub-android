@@ -25,6 +25,7 @@ class PreferencesManager @Inject constructor(
         private val CONFIRM_BEFORE_SHARE = booleanPreferencesKey("confirm_before_share")
         private val TIMELINE_MAX_LENGTH = intPreferencesKey("timeline_max_length")
         private val USE_IN_APP_BROWSER = booleanPreferencesKey("use_in_app_browser")
+        private val FONT_SIZE_MULTIPLIER = intPreferencesKey("font_size_multiplier") // stored as percentage (100 = 1.0x)
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches")
         private const val MAX_RECENT_SEARCHES = 10
     }
@@ -48,6 +49,16 @@ class PreferencesManager @Inject constructor(
     suspend fun setUseInAppBrowser(value: Boolean) {
         context.preferencesDataStore.edit { prefs ->
             prefs[USE_IN_APP_BROWSER] = value
+        }
+    }
+
+    val fontSizePercent: Flow<Int> = context.preferencesDataStore.data.map { prefs ->
+        prefs[FONT_SIZE_MULTIPLIER] ?: 100
+    }
+
+    suspend fun setFontSizePercent(value: Int) {
+        context.preferencesDataStore.edit { prefs ->
+            prefs[FONT_SIZE_MULTIPLIER] = value.coerceIn(75, 200)
         }
     }
 

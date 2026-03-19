@@ -38,6 +38,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import pub.hackers.android.R
+import androidx.compose.runtime.CompositionLocalProvider
+import pub.hackers.android.ui.components.LocalFontScale
 import pub.hackers.android.ui.components.ProvideInAppBrowserUriHandler
 import pub.hackers.android.ui.screens.auth.SignInScreen
 import pub.hackers.android.ui.screens.compose.ComposeScreen
@@ -115,7 +117,10 @@ fun HackersPubApp(
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState(initial = false)
 
+    val fontSizePercent by viewModel.preferencesManager.fontSizePercent.collectAsState(initial = 100)
+
     ProvideInAppBrowserUriHandler(preferencesManager = viewModel.preferencesManager) {
+    CompositionLocalProvider(LocalFontScale provides (fontSizePercent / 100f)) {
 
     val bottomNavItems = if (isLoggedIn) {
         listOf(Screen.Timeline, Screen.Notifications, Screen.Explore, Screen.Search, Screen.Settings)
@@ -350,5 +355,6 @@ fun HackersPubApp(
             }
         }
     }
+    } // CompositionLocalProvider
     } // ProvideInAppBrowserUriHandler
 }

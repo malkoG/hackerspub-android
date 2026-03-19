@@ -29,7 +29,8 @@ data class SettingsUiState(
     val confirmBeforeDelete: Boolean = true,
     val confirmBeforeShare: Boolean = false,
     val timelineMaxLength: Int = 0,
-    val useInAppBrowser: Boolean = true
+    val useInAppBrowser: Boolean = true,
+    val fontSizePercent: Int = 100
 )
 
 @HiltViewModel
@@ -84,13 +85,15 @@ class SettingsViewModel @Inject constructor(
             val confirmShare = preferencesManager.confirmBeforeShare.first()
             val maxLength = preferencesManager.timelineMaxLength.first()
             val inAppBrowser = preferencesManager.useInAppBrowser.first()
+            val fontSize = preferencesManager.fontSizePercent.first()
 
             _uiState.update {
                 it.copy(
                     confirmBeforeDelete = confirmDelete,
                     confirmBeforeShare = confirmShare,
                     timelineMaxLength = maxLength,
-                    useInAppBrowser = inAppBrowser
+                    useInAppBrowser = inAppBrowser,
+                    fontSizePercent = fontSize
                 )
             }
         }
@@ -114,6 +117,11 @@ class SettingsViewModel @Inject constructor(
     fun setUseInAppBrowser(value: Boolean) {
         _uiState.update { it.copy(useInAppBrowser = value) }
         viewModelScope.launch { preferencesManager.setUseInAppBrowser(value) }
+    }
+
+    fun setFontSizePercent(value: Int) {
+        _uiState.update { it.copy(fontSizePercent = value) }
+        viewModelScope.launch { preferencesManager.setFontSizePercent(value) }
     }
 
     fun signOut() {
