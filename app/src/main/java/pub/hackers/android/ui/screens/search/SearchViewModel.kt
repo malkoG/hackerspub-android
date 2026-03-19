@@ -76,9 +76,14 @@ class SearchViewModel @Inject constructor(
             // Always search posts too
             repository.searchPosts(query)
                 .onSuccess { posts ->
+                    // Deduplicate: remove actors whose IDs appear in post authors
+                    val postActorIds = posts.map { it.actor.id }.toSet()
+                    val dedupedActors = _uiState.value.actors.filter { it.id !in postActorIds }
+
                     _uiState.update {
                         it.copy(
                             posts = posts,
+                            actors = dedupedActors,
                             isLoading = false
                         )
                     }
