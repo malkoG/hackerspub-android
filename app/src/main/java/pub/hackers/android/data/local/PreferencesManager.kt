@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +24,8 @@ class PreferencesManager @Inject constructor(
         private val CONFIRM_BEFORE_DELETE = booleanPreferencesKey("confirm_before_delete")
         private val CONFIRM_BEFORE_SHARE = booleanPreferencesKey("confirm_before_share")
         private val TIMELINE_MAX_LENGTH = intPreferencesKey("timeline_max_length")
+        private val RECENT_SEARCHES = stringPreferencesKey("recent_searches")
+        private const val MAX_RECENT_SEARCHES = 10
     }
 
     val confirmBeforeDelete: Flow<Boolean> = context.preferencesDataStore.data.map { prefs ->
@@ -52,6 +55,37 @@ class PreferencesManager @Inject constructor(
     suspend fun setTimelineMaxLength(value: Int) {
         context.preferencesDataStore.edit { prefs ->
             prefs[TIMELINE_MAX_LENGTH] = value
+        }
+    }
+
+    val recentSearches: Flow<List<String>> = context.preferencesDataStore.data.map { prefs ->
+        val raw = prefs[RECENT_SEARCHES] ?: ""
+        if (raw.isEmpty()) emptyList() else raw.split("\u0000")
+    }
+
+    suspend fun addRecentSearch(query: String) {
+        context.preferencesDataStore.edit { prefs ->
+            val raw = prefs[RECENT_SEARCHES] ?: ""
+            val existing = if (raw.isEmpty()) mutableListOf() else raw.split("\u0000").toMutableList()
+            existing.remove(query)
+            existing.add(0, query)
+            val trimmed = existing.take(MAX_RECENT_SEARCHES)
+            prefs[RECENT_SEARCHES] = trimmed.joinToString("\u0000")
+        }
+    }
+
+    suspend fun removeRecentSearch(query: String) {
+        context.preferencesDataStore.edit { prefs ->
+            val raw = prefs[RECENT_SEARCHES] ?: ""
+            val existing = if (raw.isEmpty()) mutableListOf() else raw.split("\u0000").toMutableList()
+            existing.remove(query)
+            prefs[RECENT_SEARCHES] = existing.joinToString("\u0000")
+        }
+    }
+
+    suspend fun clearRecentSearches() {
+        context.preferencesDataStore.edit { prefs ->
+            prefs[RECENT_SEARCHES] = ""
         }
     }
 }

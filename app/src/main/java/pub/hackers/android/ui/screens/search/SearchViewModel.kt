@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
@@ -20,16 +21,26 @@ data class SearchUiState(
     val isLoading: Boolean = false,
     val hasSearched: Boolean = false,
     val error: String? = null,
-    val resolvedObjectUrl: String? = null
+    val resolvedObjectUrl: String? = null,
+    val recentSearches: List<String> = emptyList()
 )
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val repository: HackersPubRepository
+    private val repository: HackersPubRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            preferencesManager.recentSearches.collect { searches ->
+                _uiState.update { it.copy(recentSearches = searches) }
+            }
+        }
+    }
 
     fun updateQuery(query: String) {
         _uiState.update { it.copy(query = query) }
@@ -41,6 +52,9 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, hasSearched = true, resolvedObjectUrl = null, actors = emptyList()) }
+
+            // Save to recent searches
+            preferencesManager.addRecentSearch(query)
 
             // Try searchObject first for URL/handle resolution
             repository.searchObject(query)
@@ -86,7 +100,24 @@ class SearchViewModel @Inject constructor(
 
     fun clearSearch() {
         _uiState.update {
-            SearchUiState()
+            SearchUiState(recentSearches = it.recentSearches)
         }
+    }
+
+    fun removeRecentSearch(query: String) {
+        viewModelScope.launch {
+            preferencesManager.removeRecentSearch(query)
+        }
+    }
+
+    fun clearRecentSearches() {
+        viewModelScope.launch {
+            preferencesManager.clearRecentSearches()
+        }
+    }
+
+    fun selectRecentSearch(query: String) {
+        _uiState.update { it.copy(query = query) }
+        search()
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.History
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -211,16 +212,46 @@ fun SearchScreen(
                         }
                     }
                     else -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(32.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.search_hint),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        if (uiState.recentSearches.isNotEmpty()) {
+                            LazyColumn {
+                                items(
+                                    items = uiState.recentSearches,
+                                    key = { "recent-$it" }
+                                ) { query ->
+                                    ListItem(
+                                        headlineContent = { Text(query) },
+                                        leadingContent = {
+                                            Icon(
+                                                imageVector = Icons.Filled.History,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        },
+                                        trailingContent = {
+                                            IconButton(onClick = { viewModel.removeRecentSearch(query) }) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Clear,
+                                                    contentDescription = "Remove",
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.clickable { viewModel.selectRecentSearch(query) }
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(32.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.search_hint),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
