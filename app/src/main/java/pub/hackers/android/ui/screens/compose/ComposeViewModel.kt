@@ -162,7 +162,8 @@ class ComposeViewModel @Inject constructor(
                 " " // Add space after mention if at end
             }
 
-            val insertedHandle = "@${actor.handle} "
+            val normalizedHandle = actor.handle.removePrefix("@")
+            val insertedHandle = "@$normalizedHandle "
             val newContent = "$beforeMention$insertedHandle${afterMention.trimStart()}"
             val newCursorPosition = beforeMention.length + insertedHandle.length
 
@@ -229,17 +230,17 @@ class ComposeViewModel @Inject constructor(
     private fun buildMentionPrefix(post: Post): String {
         val mentions = mutableSetOf<String>()
 
-        // Add the post author
-        mentions.add(post.actor.handle)
+        // Add the post author (normalize by removing leading @)
+        mentions.add(post.actor.handle.removePrefix("@"))
 
-        // Add existing mentions from the post
-        mentions.addAll(post.mentions)
+        // Add existing mentions from the post (normalize)
+        mentions.addAll(post.mentions.map { it.removePrefix("@") })
 
-        // Remove viewer's own handle if present
-        viewerHandle?.let { mentions.remove(it) }
+        // Remove viewer's own handle if present (normalize for comparison)
+        viewerHandle?.let { mentions.remove(it.removePrefix("@")) }
 
         return if (mentions.isNotEmpty()) {
-            mentions.joinToString(" ") { "@$it" } + " "
+            mentions.joinToString(" ") { "@${it.removePrefix("@")}" } + " "
         } else {
             ""
         }
