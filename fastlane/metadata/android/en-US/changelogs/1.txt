@@ -1,1 +1,1 @@
-Initial release of the Hackers' Pub Android client.
+Initial release.

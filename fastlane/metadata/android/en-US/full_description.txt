@@ -1,10 +1,1 @@
-Hackers' Pub is a federated community platform for software engineers, built on ActivityPub. This Android client lets you browse timelines, interact with posts, explore content, and participate in the fediverse from your mobile device.
-
-Features include:
-* Browse your home timeline
-* Explore trending posts and topics
-* View and interact with posts
-* Search for content and users
-* Compose and publish posts
-* View user profiles
-* Receive notifications
+Hackers' Pub is a fediverse-powered platform built for software developers and tech enthusiasts. Browse posts, follow authors, and engage with the community through your Android device. Powered by ActivityPub, Hackers' Pub connects you to the wider fediverse, letting you interact with users across federated platforms. Stay up to date with the latest discussions, articles, and insights from the developer community.

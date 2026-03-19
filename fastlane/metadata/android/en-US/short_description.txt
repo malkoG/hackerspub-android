@@ -1,1 +1,1 @@
-A client for Hackers' Pub, a federated community for software engineers
+A fediverse-powered community for software developers.
