@@ -77,6 +77,9 @@
     <string name="version">Version</string>
     <string name="clear_cache">Clear Cache</string>
     <string name="cache_cleared">Cache cleared</string>
+    <string name="clear_cache_confirm_title">Clear Cache</string>
+    <string name="clear_cache_confirm_message">This will clear all cached data. Your timelines will be refreshed.</string>
+    <string name="clear_cache_confirm_action">Clear</string>
     <string name="settings_engagement">Engagement</string>
     <string name="settings_confirm_before_delete">Confirm before deleting</string>
     <string name="settings_confirm_before_share">Confirm before sharing</string>

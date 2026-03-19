@@ -62,6 +62,7 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSignOutDialog by remember { mutableStateOf(false) }
+    var showClearCacheDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSignedOut) {
         if (uiState.isSignedOut) {
@@ -74,6 +75,29 @@ fun SettingsScreen(
             snackbarHostState.showSnackbar(it)
             viewModel.clearMessage()
         }
+    }
+
+    if (showClearCacheDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearCacheDialog = false },
+            title = { Text(stringResource(R.string.clear_cache_confirm_title)) },
+            text = { Text(stringResource(R.string.clear_cache_confirm_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearCacheDialog = false
+                        viewModel.clearCache()
+                    }
+                ) {
+                    Text(stringResource(R.string.clear_cache_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearCacheDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     if (showSignOutDialog) {
@@ -186,7 +210,7 @@ fun SettingsScreen(
                         contentDescription = null
                     )
                 },
-                modifier = Modifier.clickable { viewModel.clearCache() }
+                modifier = Modifier.clickable { showClearCacheDialog = true }
             )
 
             HorizontalDivider()
