@@ -1,11 +1,16 @@
-@file:OptIn(ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 
 package pub.hackers.android.ui.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -29,6 +34,8 @@ import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +51,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
 import java.time.Duration
@@ -456,14 +468,13 @@ fun QuotedPostPreview(
 fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
     when (media.size) {
         1 -> {
-            AsyncImage(
-                model = media[0].url,
-                contentDescription = media[0].alt,
+            MediaImage(
+                url = media[0].url,
+                alt = media[0].alt,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(12.dp))
             )
         }
         2 -> {
@@ -471,14 +482,13 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 media.forEach { item ->
-                    AsyncImage(
-                        model = item.url,
-                        contentDescription = item.alt,
+                    MediaImage(
+                        url = item.url,
+                        alt = item.alt,
                         modifier = Modifier
                             .weight(1f)
                             .height(150.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
+                            .clip(RoundedCornerShape(12.dp))
                     )
                 }
             }
@@ -491,14 +501,13 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     media.take(2).forEach { item ->
-                        AsyncImage(
-                            model = item.url,
-                            contentDescription = item.alt,
+                        MediaImage(
+                            url = item.url,
+                            alt = item.alt,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(100.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            contentScale = ContentScale.Crop
+                                .clip(RoundedCornerShape(12.dp))
                         )
                     }
                 }
@@ -507,14 +516,13 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         media.drop(2).take(2).forEach { item ->
-                            AsyncImage(
-                                model = item.url,
-                                contentDescription = item.alt,
+                            MediaImage(
+                                url = item.url,
+                                alt = item.alt,
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(100.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Crop
+                                    .clip(RoundedCornerShape(12.dp))
                             )
                         }
                     }
@@ -524,6 +532,57 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
     }
 }
 
+@Composable
+private fun MediaImage(
+    url: String,
+    alt: String?,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var showMenu by remember { mutableStateOf(false) }
+
+    Box {
+        AsyncImage(
+            model = url,
+            contentDescription = alt,
+            modifier = modifier.combinedClickable(
+                onClick = {
+                    // Open image in browser/viewer
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(intent)
+                },
+                onLongClick = { showMenu = true }
+            ),
+            contentScale = ContentScale.Crop
+        )
+
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.share)) },
+                onClick = {
+                    showMenu = false
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, url)
+                        type = "text/plain"
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.open_in_browser)) },
+                onClick = {
+                    showMenu = false
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(intent)
+                }
+            )
+        }
+    }
+}
 
 private fun formatRelativeTime(instant: Instant): String {
     val now = Instant.now()

@@ -71,6 +71,7 @@
     <string name="reply">Reply</string>
     <string name="replying_to">Replying to</string>
     <string name="read_more">Read more</string>
+    <string name="open_in_browser">Open in browser</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
