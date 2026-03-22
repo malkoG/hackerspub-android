@@ -58,6 +58,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,8 +88,20 @@ import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
+import android.text.Html
+import androidx.compose.material.icons.outlined.Translate
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.languageid.LanguageIdentification
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -408,6 +421,15 @@ private fun PostDetailContent(
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val translationFailedText = stringResource(R.string.translation_failed)
+
+    var translatedContent by remember(post.id) { mutableStateOf<String?>(null) }
+    var translationError by remember(post.id) { mutableStateOf<String?>(null) }
+    var isTranslating by remember(post.id) { mutableStateOf(false) }
+    var showTranslated by remember(post.id) { mutableStateOf(false) }
+
     val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
         .withZone(ZoneId.systemDefault())
 
@@ -498,11 +520,38 @@ private fun PostDetailContent(
                     }
                 }
 
-                HtmlContent(
-                    html = post.content,
-                    modifier = Modifier.fillMaxWidth(),
-                    onMentionClick = onProfileClick
-                )
+                if (showTranslated && translatedContent != null) {
+                    Text(
+                        text = translatedContent!!,
+                        style = typography.bodyLarge,
+                        color = colors.textBody,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    HtmlContent(
+                        html = post.content,
+                        modifier = Modifier.fillMaxWidth(),
+                        onMentionClick = onProfileClick
+                    )
+                }
+
+                if (isTranslating) {
+                    Text(
+                        text = stringResource(R.string.translating),
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                if (translationError != null) {
+                    Text(
+                        text = translationError!!,
+                        style = typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
 
                 if (post.media.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -686,6 +735,47 @@ private fun PostDetailContent(
                             imageVector = Icons.Outlined.FormatQuote,
                             contentDescription = stringResource(R.string.quotes),
                             tint = colors.textSecondary
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            if (isTranslating) return@IconButton
+                            if (showTranslated) {
+                                showTranslated = false
+                                return@IconButton
+                            }
+                            translatedContent?.let {
+                                showTranslated = true
+                                return@IconButton
+                            }
+                            val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                .getLocales(context.resources.configuration)
+                                .get(0)?.language ?: Locale.getDefault().language
+                            scope.launch {
+                                isTranslating = true
+                                translationError = null
+                                try {
+                                    val translated = translateDetailContent(
+                                        html = post.content,
+                                        targetLanguageTag = targetLanguageTag
+                                    )
+                                    translatedContent = translated
+                                    showTranslated = true
+                                } catch (_: Exception) {
+                                    translationError = translationFailedText
+                                } finally {
+                                    isTranslating = false
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = if (showTranslated)
+                                stringResource(R.string.show_original)
+                            else
+                                stringResource(R.string.translate),
+                            tint = if (showTranslated) colors.accent else colors.textSecondary
                         )
                     }
                     IconButton(onClick = onExternalShareClick) {
@@ -964,5 +1054,36 @@ private fun ReplyTargetPreview(
             Spacer(modifier = Modifier.height(8.dp))
             MediaGrid(media = post.media)
         }
+    }
+}
+
+private suspend fun translateDetailContent(
+    html: String,
+    targetLanguageTag: String
+): String = withContext(Dispatchers.IO) {
+    val plainText = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY).toString().trim()
+    if (plainText.isBlank()) return@withContext ""
+
+    val languageIdentifier = LanguageIdentification.getClient()
+    val detectedTag = languageIdentifier.identifyLanguage(plainText).await()
+    val sourceLanguage = TranslateLanguage.fromLanguageTag(detectedTag)
+    val targetLanguage = TranslateLanguage.fromLanguageTag(targetLanguageTag)
+
+    if (sourceLanguage == null || targetLanguage == null || sourceLanguage == targetLanguage) {
+        languageIdentifier.close()
+        return@withContext plainText
+    }
+
+    val options = TranslatorOptions.Builder()
+        .setSourceLanguage(sourceLanguage)
+        .setTargetLanguage(targetLanguage)
+        .build()
+    val translator = Translation.getClient(options)
+    try {
+        translator.downloadModelIfNeeded(DownloadConditions.Builder().build()).await()
+        translator.translate(plainText).await()
+    } finally {
+        translator.close()
+        languageIdentifier.close()
     }
 }

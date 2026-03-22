@@ -4,6 +4,7 @@ package pub.hackers.android.ui.components
 
 import android.content.Intent
 import android.net.Uri
+import android.text.Html
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -29,9 +30,10 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -40,21 +42,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.languageid.LanguageIdentification
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.ui.theme.AppShapes
@@ -62,6 +74,7 @@ import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
 import java.time.Duration
 import java.time.Instant
+import java.util.Locale
 
 @Composable
 fun PostCard(
@@ -121,6 +134,14 @@ private fun NoteCard(
     val isRepost = post.sharedPost != null
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+    val context = LocalContext.current
+    val translationFailedText = stringResource(R.string.translation_failed)
+    val scope = rememberCoroutineScope()
+
+    var translatedContent by remember(displayPost.id) { mutableStateOf<String?>(null) }
+    var translationError by remember(displayPost.id) { mutableStateOf<String?>(null) }
+    var isTranslating by remember(displayPost.id) { mutableStateOf(false) }
+    var showTranslated by remember(displayPost.id) { mutableStateOf(false) }
 
     // Step 1: Replace Card with plain Column
     Column(
@@ -226,13 +247,40 @@ private fun NoteCard(
                 }
                 val isTruncated = contentMaxLength > 0 && displayPost.content.length > contentMaxLength
 
-                HtmlContent(
-                    html = truncatedContent,
-                    maxLines = if (contentMaxLength > 0) Int.MAX_VALUE else 10,
-                    modifier = Modifier.fillMaxWidth(),
-                    onMentionClick = onProfileClick,
-                    onTextClick = onClick
-                )
+                if (showTranslated && translatedContent != null) {
+                    Text(
+                        text = translatedContent!!,
+                        style = typography.bodyLarge,
+                        color = colors.textBody,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    HtmlContent(
+                        html = truncatedContent,
+                        maxLines = if (contentMaxLength > 0) Int.MAX_VALUE else 10,
+                        modifier = Modifier.fillMaxWidth(),
+                        onMentionClick = onProfileClick,
+                        onTextClick = onClick
+                    )
+                }
+
+                if (isTranslating) {
+                    Text(
+                        text = stringResource(R.string.translating),
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                if (translationError != null) {
+                    Text(
+                        text = translationError!!,
+                        style = typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
 
                 if (isTruncated || (contentMaxLength == 0 && displayPost.content.length > 500)) {
                     Text(
@@ -314,7 +362,42 @@ private fun NoteCard(
                     onShareClick = onShareClick,
                     onQuoteClick = onQuoteClick,
                     onReactionClick = onReactionClick,
-                    onExternalShareClick = onExternalShareClick
+                    onExternalShareClick = onExternalShareClick,
+                    onTranslateClick = {
+                        if (isTranslating) return@EngagementBar
+
+                        if (showTranslated) {
+                            showTranslated = false
+                            return@EngagementBar
+                        }
+
+                        translatedContent?.let {
+                            showTranslated = true
+                            return@EngagementBar
+                        }
+
+                        val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                            .getLocales(context.resources.configuration)
+                            .get(0)?.language ?: Locale.getDefault().language
+                        scope.launch {
+                            isTranslating = true
+                            translationError = null
+                            try {
+                                val translated = translateHtmlContent(
+                                    html = displayPost.content,
+                                    targetLanguageTag = targetLanguageTag
+                                )
+                                translatedContent = translated
+                                showTranslated = true
+                            } catch (_: Exception) {
+                                translationError = translationFailedText
+                            } finally {
+                                isTranslating = false
+                            }
+                        }
+                    },
+                    isTranslating = isTranslating,
+                    isTranslated = showTranslated
                 )
             }
         }
@@ -329,7 +412,10 @@ private fun EngagementBar(
     onShareClick: (() -> Unit)?,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
-    onExternalShareClick: (() -> Unit)? = null
+    onExternalShareClick: (() -> Unit)? = null,
+    onTranslateClick: (() -> Unit)? = null,
+    isTranslating: Boolean = false,
+    isTranslated: Boolean = false
 ) {
     val colors = LocalAppColors.current
     val isReplied = post.engagementStats.replies > 0 && post.replyTarget != null
@@ -378,6 +464,20 @@ private fun EngagementBar(
             onClick = onQuoteClick,
             activeColor = colors.accent,
             isActive = false
+        )
+
+        // Translate
+        EngagementButton(
+            icon = Icons.Outlined.Translate,
+            count = 0,
+            contentDescription = if (isTranslated) {
+                stringResource(R.string.show_original)
+            } else {
+                stringResource(R.string.translate)
+            },
+            onClick = if (isTranslating) null else onTranslateClick,
+            activeColor = colors.accent,
+            isActive = isTranslated
         )
 
         // External share — always textSecondary
@@ -669,5 +769,43 @@ private fun formatCount(count: Int): String {
         count < 1000 -> count.toString()
         count < 1_000_000 -> String.format("%.1fK", count / 1000.0)
         else -> String.format("%.1fM", count / 1_000_000.0)
+    }
+}
+
+private suspend fun translateHtmlContent(
+    html: String,
+    targetLanguageTag: String
+): String = withContext(Dispatchers.IO) {
+    val plainText = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY)
+        .toString()
+        .trim()
+
+    if (plainText.isBlank()) {
+        return@withContext ""
+    }
+
+    val languageIdentifier = LanguageIdentification.getClient()
+    val detectedLanguageTag = languageIdentifier.identifyLanguage(plainText).await()
+    val sourceLanguage = TranslateLanguage.fromLanguageTag(detectedLanguageTag)
+    val targetLanguage = TranslateLanguage.fromLanguageTag(targetLanguageTag)
+
+    if (sourceLanguage == null || targetLanguage == null || sourceLanguage == targetLanguage) {
+        languageIdentifier.close()
+        return@withContext plainText
+    }
+
+    val translatorOptions = TranslatorOptions.Builder()
+        .setSourceLanguage(sourceLanguage)
+        .setTargetLanguage(targetLanguage)
+        .build()
+
+    val translator = Translation.getClient(translatorOptions)
+
+    try {
+        translator.downloadModelIfNeeded(DownloadConditions.Builder().build()).await()
+        translator.translate(plainText).await()
+    } finally {
+        translator.close()
+        languageIdentifier.close()
     }
 }
