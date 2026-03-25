@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "15f913d51ebe",
+  "strategy": "manual-commit",
+  "branch": "feature/notification-center",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/fdroid-release.yml",
+    "app/src/main/java/pub/hackers/android/ui/screens/auth/SignInScreen.kt",
+    "docs/superpowers/specs/2026-03-25-notification-polling-design.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/15/f913d51ebe/0/metadata.json",
+      "transcript": "/15/f913d51ebe/0/full.jsonl",
+      "context": "/15/f913d51ebe/0/context.md",
+      "content_hash": "/15/f913d51ebe/0/content_hash.txt",
+      "prompt": "/15/f913d51ebe/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 25572,
+    "cache_read_tokens": 1175497,
+    "output_tokens": 9033,
+    "api_call_count": 29
+  }
+}
