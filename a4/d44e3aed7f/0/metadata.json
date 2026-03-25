@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a4d44e3aed7f",
+  "session_id": "4f472d1d-7105-4713-90e7-3a0c184dc2dd",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T01:17:51.606904Z",
+  "branch": "feature/notification-center",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/fdroid-release.yml",
+    "app/proguard-rules.pro",
+    "app/src/main/java/pub/hackers/android/MainActivity.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/auth/SignInScreen.kt",
+    "docs/superpowers/plans/2026-03-25-notification-polling.md",
+    "docs/superpowers/specs/2026-03-25-notification-polling-design.md"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "96a21706-78f1-4dab-a84d-f71696c2930c",
+  "checkpoint_transcript_start": 814,
+  "transcript_lines_at_start": 814,
+  "token_usage": {
+    "input_tokens": 43,
+    "cache_creation_tokens": 127386,
+    "cache_read_tokens": 4823981,
+    "output_tokens": 14870,
+    "api_call_count": 40
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T01:17:50.327467Z",
+    "agent_lines": 0,
+    "human_added": 412,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 412,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/4f472d1d-7105-4713-90e7-3a0c184dc2dd.jsonl"
+}
