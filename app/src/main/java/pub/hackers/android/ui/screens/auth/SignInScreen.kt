@@ -250,7 +250,7 @@ private fun VerificationStep(
             cursorColor = colors.accent,
         ),
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number,
+            keyboardType = KeyboardType.Ascii,
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(onDone = { onSubmit() }),
