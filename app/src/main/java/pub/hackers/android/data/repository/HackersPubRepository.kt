@@ -859,28 +859,28 @@ class HackersPubRepository @Inject constructor(
                 uuid = uuid.toString(),
                 created = created,
                 actors = actors,
-                post = onMentionNotification.post?.postFields?.toPost()
+                post = onMentionNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
             onReplyNotification != null -> Notification.Reply(
                 id = id,
                 uuid = uuid.toString(),
                 created = created,
                 actors = actors,
-                post = onReplyNotification.post?.postFields?.toPost()
+                post = onReplyNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
             onQuoteNotification != null -> Notification.Quote(
                 id = id,
                 uuid = uuid.toString(),
                 created = created,
                 actors = actors,
-                post = onQuoteNotification.post?.postFields?.toPost()
+                post = onQuoteNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
             onShareNotification != null -> Notification.Share(
                 id = id,
                 uuid = uuid.toString(),
                 created = created,
                 actors = actors,
-                post = onShareNotification.post?.postFields?.toPost()
+                post = onShareNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
             onReactNotification != null -> Notification.React(
                 id = id,
@@ -895,7 +895,7 @@ class HackersPubRepository @Inject constructor(
                         imageUrl = it.imageUrl
                     )
                 },
-                post = onReactNotification.post?.postFields?.toPost()
+                post = onReactNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
             else -> null
         }

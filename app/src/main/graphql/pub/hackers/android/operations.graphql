@@ -190,17 +190,20 @@ query Notifications($after: String) {
                     }
                     ... on MentionNotification {
                         post {
-                            ...PostFields
+                            id
+                            content
                         }
                     }
                     ... on ReplyNotification {
                         post {
-                            ...PostFields
+                            id
+                            content
                         }
                     }
                     ... on QuoteNotification {
                         post {
-                            ...PostFields
+                            id
+                            content
                         }
                     }
                     ... on ReactNotification {
@@ -211,12 +214,14 @@ query Notifications($after: String) {
                             imageUrl
                         }
                         post {
-                            ...PostFields
+                            id
+                            content
                         }
                     }
                     ... on ShareNotification {
                         post {
-                            ...PostFields
+                            id
+                            content
                         }
                     }
                 }

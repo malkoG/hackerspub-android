@@ -50,6 +50,11 @@ enum class PostVisibility {
     PUBLIC, UNLISTED, FOLLOWERS, DIRECT, NONE
 }
 
+data class NotificationPost(
+    val id: String,
+    val content: String
+)
+
 sealed class Notification {
     abstract val id: String
     abstract val uuid: String
@@ -68,7 +73,7 @@ sealed class Notification {
         override val uuid: String,
         override val created: Instant,
         override val actors: List<Actor>,
-        val post: Post?
+        val post: NotificationPost?
     ) : Notification()
 
     data class Reply(
@@ -76,7 +81,7 @@ sealed class Notification {
         override val uuid: String,
         override val created: Instant,
         override val actors: List<Actor>,
-        val post: Post?
+        val post: NotificationPost?
     ) : Notification()
 
     data class Quote(
@@ -84,7 +89,7 @@ sealed class Notification {
         override val uuid: String,
         override val created: Instant,
         override val actors: List<Actor>,
-        val post: Post?
+        val post: NotificationPost?
     ) : Notification()
 
     data class Share(
@@ -92,7 +97,7 @@ sealed class Notification {
         override val uuid: String,
         override val created: Instant,
         override val actors: List<Actor>,
-        val post: Post?
+        val post: NotificationPost?
     ) : Notification()
 
     data class React(
@@ -102,7 +107,7 @@ sealed class Notification {
         override val actors: List<Actor>,
         val emoji: String?,
         val customEmoji: CustomEmoji?,
-        val post: Post?
+        val post: NotificationPost?
     ) : Notification()
 }
 
