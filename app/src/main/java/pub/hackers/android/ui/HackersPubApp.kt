@@ -119,11 +119,19 @@ fun HackersPubApp(
     val isLoggedIn by viewModel.isLoggedIn.collectAsState(initial = false)
 
     val fontSizePercent by viewModel.preferencesManager.fontSizePercent.collectAsState(initial = 100)
+    val hasUnread by viewModel.hasUnread.collectAsState()
 
     // Handle deep link for verification
     LaunchedEffect(deepLinkData) {
         deepLinkData?.let {
             navController.navigate("signin?token=${it.token}&code=${it.code}")
+        }
+    }
+
+    // Enqueue notification polling when user logs in
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            viewModel.enqueueNotificationPolling()
         }
     }
 
@@ -149,7 +157,7 @@ fun HackersPubApp(
                 label = stringResource(R.string.nav_notifications),
                 icon = Icons.Outlined.Notifications,
                 selectedIcon = Icons.Filled.Notifications,
-                hasNotificationDot = false, // TODO: wire up unread notification state
+                hasNotificationDot = hasUnread,
             ),
             BottomNavItem(
                 route = Screen.Search.route,
