@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pub.hackers.android.data.local.NotificationStateManager
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Notification
 import java.time.Instant
@@ -25,7 +26,8 @@ data class NotificationsUiState(
 
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
-    private val repository: HackersPubRepository
+    private val repository: HackersPubRepository,
+    private val notificationStateManager: NotificationStateManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NotificationsUiState())
@@ -49,14 +51,15 @@ class NotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            repository.getNotifications()
-                .onSuccess { result ->
+            val result = repository.getNotifications()
+            result
+                .onSuccess { notificationsResult ->
                     lastLoadTime = Instant.now()
                     _uiState.update {
                         it.copy(
-                            notifications = result.notifications,
-                            hasNextPage = result.hasNextPage,
-                            endCursor = result.endCursor,
+                            notifications = notificationsResult.notifications,
+                            hasNextPage = notificationsResult.hasNextPage,
+                            endCursor = notificationsResult.endCursor,
                             isLoading = false
                         )
                     }
@@ -69,6 +72,9 @@ class NotificationsViewModel @Inject constructor(
                         )
                     }
                 }
+            if (result.isSuccess) {
+                notificationStateManager.markAsSeen()
+            }
         }
     }
 
@@ -76,14 +82,15 @@ class NotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
 
-            repository.getNotifications(refresh = true)
-                .onSuccess { result ->
+            val result = repository.getNotifications(refresh = true)
+            result
+                .onSuccess { notificationsResult ->
                     lastLoadTime = Instant.now()
                     _uiState.update {
                         it.copy(
-                            notifications = result.notifications,
-                            hasNextPage = result.hasNextPage,
-                            endCursor = result.endCursor,
+                            notifications = notificationsResult.notifications,
+                            hasNextPage = notificationsResult.hasNextPage,
+                            endCursor = notificationsResult.endCursor,
                             isRefreshing = false
                         )
                     }
@@ -96,6 +103,9 @@ class NotificationsViewModel @Inject constructor(
                         )
                     }
                 }
+            if (result.isSuccess) {
+                notificationStateManager.markAsSeen()
+            }
         }
     }
 
