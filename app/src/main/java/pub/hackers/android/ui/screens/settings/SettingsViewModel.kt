@@ -1,7 +1,11 @@
 package pub.hackers.android.ui.screens.settings
 
+import android.app.NotificationManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.work.WorkManager
+import pub.hackers.android.data.local.NotificationStateManager
+import pub.hackers.android.ui.AppViewModel
 import androidx.lifecycle.viewModelScope
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.cache.normalized.apolloStore
@@ -39,6 +43,8 @@ class SettingsViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager,
     private val repository: HackersPubRepository,
     private val apolloClient: ApolloClient,
+    private val notificationStateManager: NotificationStateManager,
+    private val workManager: WorkManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -130,6 +136,10 @@ class SettingsViewModel @Inject constructor(
             if (sessionId != null) {
                 repository.revokeSession(sessionId)
             }
+            workManager.cancelUniqueWork(AppViewModel.NOTIFICATION_WORK_NAME)
+            notificationStateManager.clear()
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancelAll()
             sessionManager.clearSession()
             apolloClient.apolloStore.clearAll()
             _uiState.update { it.copy(isSignedOut = true) }
