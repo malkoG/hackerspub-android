@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "aef55d097266",
+  "session_id": "4f472d1d-7105-4713-90e7-3a0c184dc2dd",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-25T00:25:24.603908Z",
+  "branch": "chore/appbundle-release",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/fdroid-release.yml"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "8152ebe5-8869-40cc-bdef-4cc75f860e66",
+  "token_usage": {
+    "input_tokens": 176,
+    "cache_creation_tokens": 18406,
+    "cache_read_tokens": 279754,
+    "output_tokens": 2357,
+    "api_call_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-25T00:25:24.540779Z",
+    "agent_lines": 6,
+    "human_added": 57,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 63,
+    "agent_percentage": 9.523809523809524
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/4f472d1d-7105-4713-90e7-3a0c184dc2dd.jsonl"
+}
