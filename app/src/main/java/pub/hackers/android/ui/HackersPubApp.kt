@@ -14,9 +14,13 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -142,6 +146,26 @@ fun HackersPubApp(
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             viewModel.enqueueNotificationPolling()
+            viewModel.startForegroundPolling()
+        } else {
+            viewModel.stopForegroundPolling()
+        }
+    }
+
+    // Start/stop foreground polling based on app lifecycle
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, isLoggedIn) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (!isLoggedIn) return@LifecycleEventObserver
+            when (event) {
+                Lifecycle.Event.ON_START -> viewModel.startForegroundPolling()
+                Lifecycle.Event.ON_STOP -> viewModel.stopForegroundPolling()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
