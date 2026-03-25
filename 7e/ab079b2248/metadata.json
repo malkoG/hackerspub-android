@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "7eab079b2248",
+  "strategy": "manual-commit",
+  "branch": "feature/notification-center",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/AppViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7e/ab079b2248/0/metadata.json",
+      "transcript": "/7e/ab079b2248/0/full.jsonl",
+      "context": "/7e/ab079b2248/0/context.md",
+      "content_hash": "/7e/ab079b2248/0/content_hash.txt",
+      "prompt": "/7e/ab079b2248/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 17,
+    "cache_creation_tokens": 6822,
+    "cache_read_tokens": 1522524,
+    "output_tokens": 3979,
+    "api_call_count": 11
+  }
+}
