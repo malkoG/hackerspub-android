@@ -279,7 +279,7 @@ fun PostDetailScreen(
             if (uiState.post != null && isLoggedIn) {
                 FloatingActionButton(
                     onClick = { onReplyClick(postId) },
-                    containerColor = colors.accent,
+                    containerColor = colors.composeAccent,
                     contentColor = Color.White
                 ) {
                     Icon(
@@ -489,8 +489,9 @@ private fun PostDetailContent(
                     Column(
                         modifier = Modifier.clickable { onProfileClick(post.actor.handle) }
                     ) {
-                        Text(
-                            text = post.actor.name ?: post.actor.handle,
+                        pub.hackers.android.ui.components.RichDisplayName(
+                            name = post.actor.name,
+                            fallback = post.actor.handle,
                             style = typography.bodyLargeSemiBold,
                             color = colors.textPrimary
                         )
@@ -891,10 +892,10 @@ private fun SharesSheet(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(
-                            text = actor.name ?: actor.handle,
-                            style = typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
+                        pub.hackers.android.ui.components.RichDisplayName(
+                            name = actor.name,
+                            fallback = actor.handle,
+                            style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = colors.textPrimary
                         )
                         Text(
@@ -966,11 +967,12 @@ private fun QuotesSheet(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text(
-                                text = post.actor.name ?: post.actor.handle,
-                                style = typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colors.textPrimary
+                            pub.hackers.android.ui.components.RichDisplayName(
+                                name = post.actor.name,
+                                fallback = post.actor.handle,
+                                style = typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = colors.textPrimary,
+                                emojiHeight = 14.dp
                             )
                             Text(
                                 text = "@${post.actor.handle}",
@@ -1026,11 +1028,11 @@ private fun ReplyTargetPreview(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column {
-                Text(
-                    text = post.actor.name ?: post.actor.handle,
+                pub.hackers.android.ui.components.RichDisplayName(
+                    name = post.actor.name,
+                    fallback = post.actor.handle,
                     style = typography.bodyLargeSemiBold,
-                    color = colors.textPrimary,
-                    maxLines = 1
+                    color = colors.textPrimary
                 )
                 Text(
                     text = "@${post.actor.handle}",

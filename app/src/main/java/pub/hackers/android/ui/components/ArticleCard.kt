@@ -72,10 +72,12 @@ fun ArticleCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${post.actor.name ?: post.actor.handle} ${stringResource(R.string.share)}d",
+                        RichDisplayName(
+                            name = post.actor.name?.let { "$it ${stringResource(R.string.share)}d" },
+                            fallback = "${post.actor.handle} ${stringResource(R.string.share)}d",
                             style = typography.caption,
-                            color = colors.textSecondary
+                            color = colors.textSecondary,
+                            emojiHeight = 14.dp
                         )
                     }
                 }
@@ -100,12 +102,11 @@ fun ArticleCard(
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = displayPost.actor.name ?: displayPost.actor.handle,
+                            RichDisplayName(
+                                name = displayPost.actor.name,
+                                fallback = displayPost.actor.handle,
                                 style = typography.bodyLargeSemiBold,
                                 color = colors.textPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier
                                     .weight(1f, fill = false)
                                     .clickable { onProfileClick(displayPost.actor.handle) }

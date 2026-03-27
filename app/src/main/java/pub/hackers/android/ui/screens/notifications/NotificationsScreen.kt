@@ -237,12 +237,11 @@ private fun NotificationItem(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = actor?.name ?: actor?.handle ?: "Someone",
+                        pub.hackers.android.ui.components.RichDisplayName(
+                            name = actor?.name,
+                            fallback = actor?.handle ?: "Someone",
                             style = typography.bodyLargeSemiBold,
                             color = colors.textPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f, fill = false)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -265,7 +264,8 @@ private fun NotificationItem(
                 HtmlContent(
                     html = post.content,
                     maxLines = 3,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onTextClick = { onPostClick(post.id) }
                 )
             }
         }

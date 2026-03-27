@@ -96,12 +96,11 @@ private fun MentionSuggestionItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = actor.name ?: actor.handle.substringBefore("@"),
+            RichDisplayName(
+                name = actor.name,
+                fallback = actor.handle.substringBefore("@"),
                 style = LocalAppTypography.current.bodyLargeSemiBold,
-                color = LocalAppColors.current.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                color = LocalAppColors.current.textPrimary
             )
             Text(
                 text = "@${actor.handle}",

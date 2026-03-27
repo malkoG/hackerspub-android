@@ -349,11 +349,12 @@ private fun ProfileHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            text = name ?: handle,
+        pub.hackers.android.ui.components.RichDisplayName(
+            name = name,
+            fallback = handle,
             style = typography.titleMedium,
             color = colors.textPrimary,
-            textAlign = TextAlign.Center
+            emojiHeight = 22.dp
         )
 
         Spacer(modifier = Modifier.height(2.dp))

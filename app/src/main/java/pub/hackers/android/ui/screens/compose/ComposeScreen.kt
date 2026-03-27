@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,12 +19,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -41,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -107,6 +113,23 @@ fun ComposeScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
     val popupHeight = with(density) { 200.dp.toPx() } // Estimated popup height
+    val coroutineScope = rememberCoroutineScope()
+
+    // Auto-scroll to keep cursor visible when text overflows
+    LaunchedEffect(cursorRect) {
+        if (cursorRect != Rect.Zero) {
+            val cursorBottom = cursorRect.bottom.toInt()
+            val cursorTop = cursorRect.top.toInt()
+            val viewportTop = scrollState.value
+            val viewportBottom = viewportTop + scrollState.viewportSize
+
+            if (cursorBottom > viewportBottom) {
+                scrollState.animateScrollTo(cursorBottom - scrollState.viewportSize)
+            } else if (cursorTop < viewportTop) {
+                scrollState.animateScrollTo(cursorTop)
+            }
+        }
+    }
 
     // Sync TextFieldValue with ViewModel state changes (e.g., when mention is selected)
     LaunchedEffect(uiState.content, uiState.cursorPosition) {
@@ -144,37 +167,28 @@ fun ComposeScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            LargeTitleHeader(
-                title = if (replyToId != null) stringResource(R.string.reply) else stringResource(R.string.compose),
-                leadingContent = {
-                    TextButton(onClick = onNavigateBack) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            style = typography.bodyLarge,
-                            color = colors.accent
-                        )
-                    }
-                },
-                trailingContent = {
-                    Button(
-                        onClick = { viewModel.post() },
-                        enabled = postEnabled,
-                        shape = RoundedCornerShape(AppShapes.pillRadius),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colors.accent,
-                            contentColor = Color.White,
-                            disabledContainerColor = colors.accent,
-                            disabledContentColor = Color.White,
-                        ),
-                        modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.post),
-                            color = Color.White
-                        )
-                    }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 8.dp)
+            ) {
+                IconButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.cancel),
+                        tint = colors.textPrimary
+                    )
                 }
-            )
+                Text(
+                    text = if (replyToId != null) stringResource(R.string.reply) else stringResource(R.string.compose),
+                    style = typography.titleLarge,
+                    color = colors.textPrimary,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -182,8 +196,13 @@ fun ComposeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .imePadding()
         ) {
+         Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp)
+         ) {
             // Reply target preview
             if (uiState.isLoadingReplyTarget) {
                 CircularProgressIndicator(
@@ -252,7 +271,7 @@ fun ComposeScreen(
                             textStyle = typography.bodyLarge.copy(
                                 color = colors.textBody
                             ),
-                            cursorBrush = SolidColor(colors.accent),
+                            cursorBrush = SolidColor(colors.composeAccent),
                             decorationBox = { innerTextField ->
                                 Box {
                                     if (textFieldValue.text.isEmpty()) {
@@ -303,14 +322,25 @@ fun ComposeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+         }
+            // Close inner content Column
 
+            // Visibility toolbar pinned above keyboard
+            HorizontalDivider(color = colors.divider)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
+                Spacer(modifier = Modifier.weight(1f))
+
                 TextButton(
-                    onClick = { showVisibilityMenu = true }
+                    onClick = { showVisibilityMenu = true },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = 8.dp,
+                        vertical = 4.dp
+                    )
                 ) {
                     Icon(
                         imageVector = when (uiState.visibility) {
@@ -319,18 +349,19 @@ fun ComposeScreen(
                             PostVisibility.FOLLOWERS -> Icons.Outlined.Group
                             else -> Icons.Filled.Public
                         },
-                        contentDescription = null,
-                        tint = colors.textSecondary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = when (uiState.visibility) {
+                        contentDescription = when (uiState.visibility) {
                             PostVisibility.PUBLIC -> stringResource(R.string.visibility_public)
                             PostVisibility.UNLISTED -> stringResource(R.string.visibility_unlisted)
                             PostVisibility.FOLLOWERS -> stringResource(R.string.visibility_followers)
                             else -> stringResource(R.string.visibility_public)
                         },
-                        color = colors.textSecondary
+                        tint = colors.textSecondary
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                        modifier = Modifier.size(18.dp)
                     )
 
                     DropdownMenu(
@@ -396,6 +427,24 @@ fun ComposeScreen(
                         )
                     }
                 }
+
+                Button(
+                    onClick = { viewModel.post() },
+                    enabled = postEnabled,
+                    shape = RoundedCornerShape(AppShapes.pillRadius),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.composeAccent,
+                        contentColor = Color.White,
+                        disabledContainerColor = colors.composeAccent,
+                        disabledContentColor = Color.White,
+                    ),
+                    modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.post),
+                        color = Color.White
+                    )
+                }
             }
         }
     }
@@ -430,12 +479,12 @@ private fun ReplyTargetPreview(
             Spacer(modifier = Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = post.actor.name ?: post.actor.handle,
+                pub.hackers.android.ui.components.RichDisplayName(
+                    name = post.actor.name,
+                    fallback = post.actor.handle,
                     style = typography.labelMedium,
                     color = colors.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    emojiHeight = 14.dp
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 HtmlContent(

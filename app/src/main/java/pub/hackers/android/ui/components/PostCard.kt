@@ -33,6 +33,9 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -69,6 +72,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
+import pub.hackers.android.domain.model.PostVisibility
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
@@ -166,10 +170,12 @@ private fun NoteCard(
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${post.actor.name ?: post.actor.handle} ${stringResource(R.string.share)}d",
+                RichDisplayName(
+                    name = post.actor.name?.let { "$it ${stringResource(R.string.share)}d" },
+                    fallback = "${post.actor.handle} ${stringResource(R.string.share)}d",
                     style = typography.caption,
-                    color = colors.textSecondary
+                    color = colors.textSecondary,
+                    emojiHeight = 14.dp
                 )
             }
         }
@@ -191,23 +197,35 @@ private fun NoteCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                // Step 2: Author row — name + timestamp only (handle removed)
+                // Author row — name left, visibility icon + timestamp right
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = displayPost.actor.name ?: displayPost.actor.handle,
+                    RichDisplayName(
+                        name = displayPost.actor.name,
+                        fallback = displayPost.actor.handle,
                         style = typography.bodyLargeSemiBold,
                         color = colors.textPrimary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
-                            .weight(1f, fill = false)
+                            .weight(1f)
                             .clickable { onProfileClick(displayPost.actor.handle) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = when (displayPost.visibility) {
+                            PostVisibility.PUBLIC -> Icons.Filled.Public
+                            PostVisibility.UNLISTED -> Icons.Outlined.Lock
+                            PostVisibility.FOLLOWERS -> Icons.Outlined.Group
+                            PostVisibility.DIRECT -> Icons.Outlined.Lock
+                            else -> Icons.Filled.Public
+                        },
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                        modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "\u00B7 ${formatRelativeTime(displayPost.published)}",
+                        text = formatRelativeTime(displayPost.published),
                         style = typography.labelMedium,
                         color = colors.textSecondary
                     )
@@ -570,12 +588,11 @@ fun QuotedPostPreview(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Text(
-                text = post.actor.name ?: post.actor.handle,
+            RichDisplayName(
+                name = post.actor.name,
+                fallback = post.actor.handle,
                 style = typography.bodyLargeSemiBold,
                 color = colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .weight(1f, fill = false)
                     .clickable { onProfileClick(post.actor.handle) }

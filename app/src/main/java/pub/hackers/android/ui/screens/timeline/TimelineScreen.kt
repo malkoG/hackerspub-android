@@ -26,6 +26,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +53,7 @@ fun TimelineScreen(
     onComposeClick: (String?) -> Unit,
     onQuoteClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit,
+    postedAt: Long = 0L,
     userAvatarUrl: String? = null,
     viewModel: TimelineViewModel = hiltViewModel()
 ) {
@@ -58,6 +61,17 @@ fun TimelineScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
+
+    LaunchedEffect(postedAt) {
+        if (postedAt > 0L) {
+            viewModel.refresh()
+            // Wait for refresh to start then complete
+            viewModel.uiState
+                .dropWhile { !it.isRefreshing }
+                .first { !it.isRefreshing }
+            listState.scrollToItem(0)
+        }
+    }
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -107,7 +121,7 @@ fun TimelineScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onComposeClick(null) },
-                containerColor = colors.accent,
+                containerColor = colors.composeAccent,
                 contentColor = androidx.compose.ui.graphics.Color.White
             ) {
                 Icon(

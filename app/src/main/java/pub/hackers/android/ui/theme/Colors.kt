@@ -15,6 +15,7 @@ data class AppColorScheme(
     val accentMuted: Color,
     val divider: Color,
     val buttonOutline: Color,
+    val composeAccent: Color,
     val reaction: Color,
     val share: Color,
 )
@@ -29,6 +30,7 @@ val LightAppColors = AppColorScheme(
     accentMuted = Color(0xFF78716C),
     divider = Color(0xFFF2F2F7),
     buttonOutline = Color(0xFFD6D3D1),
+    composeAccent = Color(0xFFEF4444),
     reaction = Color(0xFFE8453C),
     share = Color(0xFF34D399),
 )
@@ -43,6 +45,7 @@ val DarkAppColors = AppColorScheme(
     accentMuted = Color(0xFFA8A29E),
     divider = Color(0xFF262626),
     buttonOutline = Color(0xFF525252),
+    composeAccent = Color(0xFFF87171),
     reaction = Color(0xFFE8453C),
     share = Color(0xFF34D399),
 )
