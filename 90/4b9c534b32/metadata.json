@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "904b9c534b32",
+  "strategy": "manual-commit",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/90/4b9c534b32/0/metadata.json",
+      "transcript": "/90/4b9c534b32/0/full.jsonl",
+      "context": "/90/4b9c534b32/0/context.md",
+      "content_hash": "/90/4b9c534b32/0/content_hash.txt",
+      "prompt": "/90/4b9c534b32/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 40,
+    "cache_creation_tokens": 17896,
+    "cache_read_tokens": 3260581,
+    "output_tokens": 7322,
+    "api_call_count": 35
+  }
+}
