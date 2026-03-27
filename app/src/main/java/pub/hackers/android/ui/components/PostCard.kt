@@ -36,7 +36,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -371,6 +370,48 @@ private fun NoteCard(
                     )
                 }
 
+                // Inline translate link
+                if (!isTranslating && translationError == null) {
+                    Text(
+                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(R.string.translate),
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable {
+                                if (showTranslated) {
+                                    showTranslated = false
+                                    return@clickable
+                                }
+
+                                translatedContent?.let {
+                                    showTranslated = true
+                                    return@clickable
+                                }
+
+                                val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                    .getLocales(context.resources.configuration)
+                                    .get(0)?.language ?: Locale.getDefault().language
+                                scope.launch {
+                                    isTranslating = true
+                                    translationError = null
+                                    try {
+                                        val translated = translateHtmlContent(
+                                            html = displayPost.content,
+                                            targetLanguageTag = targetLanguageTag
+                                        )
+                                        translatedContent = translated
+                                        showTranslated = true
+                                    } catch (_: Exception) {
+                                        translationError = translationFailedText
+                                    } finally {
+                                        isTranslating = false
+                                    }
+                                }
+                            }
+                    )
+                }
+
                 if (isTruncated || (contentMaxLength == 0 && displayPost.content.length > 500)) {
                     Text(
                         text = stringResource(R.string.read_more),
@@ -460,42 +501,7 @@ private fun NoteCard(
                     onShareClick = onShareClick,
                     onQuoteClick = onQuoteClick,
                     onReactionClick = onReactionClick,
-                    onExternalShareClick = onExternalShareClick,
-                    onTranslateClick = {
-                        if (isTranslating) return@EngagementBar
-
-                        if (showTranslated) {
-                            showTranslated = false
-                            return@EngagementBar
-                        }
-
-                        translatedContent?.let {
-                            showTranslated = true
-                            return@EngagementBar
-                        }
-
-                        val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                            .getLocales(context.resources.configuration)
-                            .get(0)?.language ?: Locale.getDefault().language
-                        scope.launch {
-                            isTranslating = true
-                            translationError = null
-                            try {
-                                val translated = translateHtmlContent(
-                                    html = displayPost.content,
-                                    targetLanguageTag = targetLanguageTag
-                                )
-                                translatedContent = translated
-                                showTranslated = true
-                            } catch (_: Exception) {
-                                translationError = translationFailedText
-                            } finally {
-                                isTranslating = false
-                            }
-                        }
-                    },
-                    isTranslating = isTranslating,
-                    isTranslated = showTranslated
+                    onExternalShareClick = onExternalShareClick
                 )
             }
         }
@@ -510,10 +516,7 @@ private fun EngagementBar(
     onShareClick: (() -> Unit)?,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
-    onExternalShareClick: (() -> Unit)? = null,
-    onTranslateClick: (() -> Unit)? = null,
-    isTranslating: Boolean = false,
-    isTranslated: Boolean = false
+    onExternalShareClick: (() -> Unit)? = null
 ) {
     val colors = LocalAppColors.current
     val isReplied = post.engagementStats.replies > 0 && post.replyTarget != null
@@ -562,20 +565,6 @@ private fun EngagementBar(
             onClick = onQuoteClick,
             activeColor = colors.accent,
             isActive = false
-        )
-
-        // Translate
-        EngagementButton(
-            icon = Icons.Outlined.Translate,
-            count = 0,
-            contentDescription = if (isTranslated) {
-                stringResource(R.string.show_original)
-            } else {
-                stringResource(R.string.translate)
-            },
-            onClick = if (isTranslating) null else onTranslateClick,
-            activeColor = colors.accent,
-            isActive = isTranslated
         )
 
         // External share — always textSecondary
