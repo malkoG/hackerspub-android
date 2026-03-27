@@ -158,6 +158,10 @@ query PersonalTimeline($after: String) {
     personalTimeline(first: 20, after: $after) {
         edges {
             cursor
+            lastSharer {
+                ...ActorFields
+            }
+            sharersCount
             node {
                 ...PostFields
                 visibility

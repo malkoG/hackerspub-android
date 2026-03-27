@@ -136,7 +136,7 @@ private fun NoteCard(
     modifier: Modifier = Modifier
 ) {
     val displayPost = post.sharedPost ?: post
-    val isRepost = post.sharedPost != null
+    val isRepost = post.lastSharer != null
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
     val context = LocalContext.current
@@ -155,15 +155,17 @@ private fun NoteCard(
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // Step 7: Repost indicator
-        if (isRepost) {
+        // Repost indicator
+        if (isRepost && post.lastSharer != null) {
+            val sharer = post.lastSharer!!
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(start = 54.dp, bottom = 8.dp)
+                    .clickable { onProfileClick(sharer.handle) }
             ) {
                 AsyncImage(
-                    model = post.actor.avatarUrl,
+                    model = sharer.avatarUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(AppShapes.avatarRepost)
@@ -171,12 +173,29 @@ private fun NoteCard(
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                RichDisplayName(
-                    name = post.actor.name?.let { "$it ${stringResource(R.string.share)}d" },
-                    fallback = "${post.actor.handle} ${stringResource(R.string.share)}d",
+                if (sharer.name != null) {
+                    RichDisplayName(
+                        name = sharer.name,
+                        fallback = sharer.handle,
+                        style = typography.caption.copy(fontWeight = FontWeight.SemiBold),
+                        color = colors.textSecondary,
+                        emojiHeight = 14.dp
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                }
+                Text(
+                    text = sharer.handle,
                     style = typography.caption,
                     color = colors.textSecondary,
-                    emojiHeight = 14.dp
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.share) + "d",
+                    style = typography.caption,
+                    color = colors.textSecondary
                 )
             }
         }

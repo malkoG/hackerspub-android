@@ -57,6 +57,8 @@ data class Post(
     val link: PostLink? = null,
     val engagementStats: EngagementStats,
     val mentions: List<String>,
+    val lastSharer: Actor? = null,
+    val sharersCount: Int = 0,
     val sharedPost: Post? = null,
     val replyTarget: Post? = null,
     val quotedPost: Post? = null,

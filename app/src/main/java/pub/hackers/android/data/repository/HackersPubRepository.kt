@@ -111,7 +111,9 @@ class HackersPubRepository @Inject constructor(
                             edge.node.postFields.toPost(
                                 sharedPost = edge.node.sharedPost?.sharedPostFields?.toPost(),
                                 replyTarget = edge.node.replyTarget?.postFields?.toPost(),
-                                visibility = edge.node.visibility.toPostVisibility()
+                                visibility = edge.node.visibility.toPostVisibility(),
+                                lastSharer = edge.lastSharer?.actorFields?.toActor(),
+                                sharersCount = edge.sharersCount
                             )
                         } ?: emptyList(),
                         hasNextPage = data?.pageInfo?.hasNextPage ?: false,
@@ -753,7 +755,9 @@ class HackersPubRepository @Inject constructor(
     private fun PostFields.toPost(
         sharedPost: Post? = null,
         replyTarget: Post? = null,
-        visibility: PostVisibility = PostVisibility.PUBLIC
+        visibility: PostVisibility = PostVisibility.PUBLIC,
+        lastSharer: Actor? = null,
+        sharersCount: Int = 0
     ): Post {
         return Post(
             id = id,
@@ -788,6 +792,8 @@ class HackersPubRepository @Inject constructor(
             },
             engagementStats = engagementStats.engagementStatsFields.toEngagementStats(),
             mentions = mentions.edges.map { it.node.handle },
+            lastSharer = lastSharer,
+            sharersCount = sharersCount,
             sharedPost = sharedPost,
             replyTarget = replyTarget,
             quotedPost = quotedPost?.sharedPostFields?.toPost(),
