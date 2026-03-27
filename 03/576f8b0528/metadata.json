@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "03576f8b0528",
+  "strategy": "manual-commit",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/03/576f8b0528/0/metadata.json",
+      "transcript": "/03/576f8b0528/0/full.jsonl",
+      "context": "/03/576f8b0528/0/context.md",
+      "content_hash": "/03/576f8b0528/0/content_hash.txt",
+      "prompt": "/03/576f8b0528/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 27,
+    "cache_creation_tokens": 18378,
+    "cache_read_tokens": 2507309,
+    "output_tokens": 3685,
+    "api_call_count": 22
+  }
+}
