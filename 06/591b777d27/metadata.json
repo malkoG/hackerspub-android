@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "06591b777d27",
+  "strategy": "manual-commit",
+  "branch": "fix/post-card-refinement",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/06/591b777d27/0/metadata.json",
+      "transcript": "/06/591b777d27/0/full.jsonl",
+      "context": "/06/591b777d27/0/context.md",
+      "content_hash": "/06/591b777d27/0/content_hash.txt",
+      "prompt": "/06/591b777d27/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 21986,
+    "cache_read_tokens": 8290782,
+    "output_tokens": 6997,
+    "api_call_count": 41
+  }
+}

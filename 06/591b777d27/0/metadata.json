@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "06591b777d27",
+  "session_id": "046da0d2-8438-44e5-80ad-7df520dc12ce",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-27T05:20:28.265226Z",
+  "branch": "fix/post-card-refinement",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "07b91161-8c84-48a0-a3bb-4b7482a56c7d",
+  "checkpoint_transcript_start": 2451,
+  "transcript_lines_at_start": 2451,
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 21986,
+    "cache_read_tokens": 8290782,
+    "output_tokens": 6997,
+    "api_call_count": 41
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-27T05:20:26.366901Z",
+    "agent_lines": 47,
+    "human_added": 174,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 221,
+    "agent_percentage": 21.266968325791854
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/046da0d2-8438-44e5-80ad-7df520dc12ce.jsonl"
+}
