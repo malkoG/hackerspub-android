@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "ec341905ae62",
+  "session_id": "046da0d2-8438-44e5-80ad-7df520dc12ce",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-27T04:47:09.298638Z",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/ArticleCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/MentionAutocomplete.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/RichDisplayName.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "e42fff9f-19c8-478a-85ad-6c67c6f42caa",
+  "checkpoint_transcript_start": 1408,
+  "transcript_lines_at_start": 1408,
+  "token_usage": {
+    "input_tokens": 52,
+    "cache_creation_tokens": 18803,
+    "cache_read_tokens": 6828149,
+    "output_tokens": 10361,
+    "api_call_count": 47
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-27T04:47:07.860705Z",
+    "agent_lines": 211,
+    "human_added": 116,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 327,
+    "agent_percentage": 64.52599388379205
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/046da0d2-8438-44e5-80ad-7df520dc12ce.jsonl"
+}

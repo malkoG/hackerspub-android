@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "ec341905ae62",
+  "strategy": "manual-commit",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/ArticleCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/MentionAutocomplete.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/RichDisplayName.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ec/341905ae62/0/metadata.json",
+      "transcript": "/ec/341905ae62/0/full.jsonl",
+      "context": "/ec/341905ae62/0/context.md",
+      "content_hash": "/ec/341905ae62/0/content_hash.txt",
+      "prompt": "/ec/341905ae62/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 52,
+    "cache_creation_tokens": 18803,
+    "cache_read_tokens": 6828149,
+    "output_tokens": 10361,
+    "api_call_count": 47
+  }
+}
