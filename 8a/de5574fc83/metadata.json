@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "8ade5574fc83",
+  "strategy": "manual-commit",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8a/de5574fc83/0/metadata.json",
+      "transcript": "/8a/de5574fc83/0/full.jsonl",
+      "context": "/8a/de5574fc83/0/context.md",
+      "content_hash": "/8a/de5574fc83/0/content_hash.txt",
+      "prompt": "/8a/de5574fc83/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 65,
+    "cache_creation_tokens": 18320,
+    "cache_read_tokens": 9785669,
+    "output_tokens": 7380,
+    "api_call_count": 60
+  }
+}
