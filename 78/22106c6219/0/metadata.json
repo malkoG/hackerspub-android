@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "7822106c6219",
+  "session_id": "046da0d2-8438-44e5-80ad-7df520dc12ce",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-27T05:35:00.848278Z",
+  "branch": "fix/post-card-refinement",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/ArticleCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/LinkPreviewCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/MentionAutocomplete.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/RichDisplayName.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/settings/SettingsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/theme/Colors.kt",
+    "color-preview.html"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "29747fa3-8730-4136-a5c0-deb114f7b0e9",
+  "checkpoint_transcript_start": 2714,
+  "transcript_lines_at_start": 2714,
+  "token_usage": {
+    "input_tokens": 33,
+    "cache_creation_tokens": 18199,
+    "cache_read_tokens": 6708468,
+    "output_tokens": 7697,
+    "api_call_count": 30
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-27T05:34:58.757997Z",
+    "agent_lines": 263,
+    "human_added": 58,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 321,
+    "agent_percentage": 81.93146417445483
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/046da0d2-8438-44e5-80ad-7df520dc12ce.jsonl"
+}

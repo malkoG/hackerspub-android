@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "7822106c6219",
+  "strategy": "manual-commit",
+  "branch": "fix/post-card-refinement",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/ArticleCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/LinkPreviewCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/MentionAutocomplete.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/RichDisplayName.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/settings/SettingsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/theme/Colors.kt",
+    "color-preview.html"
+  ],
+  "sessions": [
+    {
+      "metadata": "/78/22106c6219/0/metadata.json",
+      "transcript": "/78/22106c6219/0/full.jsonl",
+      "context": "/78/22106c6219/0/context.md",
+      "content_hash": "/78/22106c6219/0/content_hash.txt",
+      "prompt": "/78/22106c6219/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 33,
+    "cache_creation_tokens": 18199,
+    "cache_read_tokens": 6708468,
+    "output_tokens": 7697,
+    "api_call_count": 30
+  }
+}

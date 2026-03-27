@@ -1,0 +1,783 @@
+Could you change compose button's theme color? also for compose screen please
+
+---
+
+Could you display it with html?
+
+---
+
+Bring me visual companion
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For compose screen, I want you to display also visibility control over the keyboard button. I mean, top safe area
+
+---
+
+[Request interrupted by user]
+
+---
+
+Upper keyboard area.
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+When vertically overflowed, scroll also should follow
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For visibility control, we have too much bottom padding
+
+---
+
+Still same.
+
+---
+
+[Request interrupted by user]
+
+---
+
+padding for on keyboard input
+
+---
+
+Still same. Is it because of bottom virtual button's area?
+
+---
+
+Still have extra bottom padding
+
+---
+
+Cool. It works. commit
+
+---
+
+1. For `Post` button, move to bottom area.
+2. For visibility control, display icon only along with chevron.
+3. For cancel, display only X button. and then compose title should be centered
+
+---
+
+After posting done, force refresh timeline
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `staged only.` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `staged only.` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For post card, move posted timestamp to right aligned, and left to that display visivility icon
+
+---
+
+When refresh is done, force scroll to top
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Still not scrolled.
+
+---
+
+Still not
+
+---
+
+[Request interrupted by user]
+
+---
+
+Or scroll itself is wrong?
+
+---
+
+Still not
+
+---
+
+Still not scrolled to top
+
+---
+
+[Request interrupted by user]
+
+---
+
+It should be scrolled after refresh
+
+---
+
+Visibility is still not available for PostCard, and for some cards we have right padding bigger
+
+---
+
+Is it right aligned?
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For PostCard sometimes for display name, we have image tag. <img />. So we will need separate parser. For rendering this, we just can resize by height. Could you implement parser for such usage, and enhance displaying?
+
+For overflow, you can cutoff by character size
+
+---
+
+Could you also update the profile?
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Navigate to PostDetailScreen when click on notification card for post
+
+---
+
+Okay, its about clicking on body
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+EOF
+)"
+```
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+I said upsteram main
+
+---
+
+Display handle right to displayname for postcard
+
+---
+
+Hmmmmm timestamp/visibility should be aligned to right.
+
+---
+
+I still see right padding
+
+---
+
+Still same
+
+---
+
+handle area is more important prioirty
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For overall notation, it should be `{handle}`, not `@{handle}`
+It also happens in reply, auto completion
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For Timeline view, if we have inReplyTo id, we also should display the replyTarget, and it should be faded view
+
+---
+
+Is there loop bug? If we have such things, how about merge those things?
+
+---
+
+[Request interrupted by user]
+
+---
+
+It crashes
+
+---
+
+It did not still show threaded view
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+If we don't have image attachment for postcard, and but url exists, we need to show preview of the first occurence url. For this, See ../hackerspub implementation.
+
+It should show, og:head, og:description, thumbnail, meta:fediverse, ...
+
+---
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
