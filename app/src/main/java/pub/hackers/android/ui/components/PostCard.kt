@@ -33,6 +33,9 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -69,6 +72,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
+import pub.hackers.android.domain.model.PostVisibility
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
@@ -191,7 +195,7 @@ private fun NoteCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                // Step 2: Author row — name + timestamp only (handle removed)
+                // Author row — name left, visibility icon + timestamp right
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -202,12 +206,25 @@ private fun NoteCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
-                            .weight(1f, fill = false)
+                            .weight(1f)
                             .clickable { onProfileClick(displayPost.actor.handle) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = when (displayPost.visibility) {
+                            PostVisibility.PUBLIC -> Icons.Filled.Public
+                            PostVisibility.UNLISTED -> Icons.Outlined.Lock
+                            PostVisibility.FOLLOWERS -> Icons.Outlined.Group
+                            PostVisibility.DIRECT -> Icons.Outlined.Lock
+                            else -> Icons.Filled.Public
+                        },
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                        modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "\u00B7 ${formatRelativeTime(displayPost.published)}",
+                        text = formatRelativeTime(displayPost.published),
                         style = typography.labelMedium,
                         color = colors.textSecondary
                     )
