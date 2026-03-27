@@ -185,3 +185,31 @@ Create a commit with auto-generated message from staged changes.
 
 Still not scrolled.
 
+### Prompt 25
+
+Still not
+
+### Prompt 26
+
+[Request interrupted by user]
+
+### Prompt 27
+
+Or scroll itself is wrong?
+
+### Prompt 28
+
+Still not
+
+### Prompt 29
+
+Still not scrolled to top
+
+### Prompt 30
+
+[Request interrupted by user]
+
+### Prompt 31
+
+It should be scrolled after refresh
+

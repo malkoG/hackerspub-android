@@ -303,3 +303,31 @@ EOF
 ---
 
 Still not scrolled.
+
+---
+
+Still not
+
+---
+
+[Request interrupted by user]
+
+---
+
+Or scroll itself is wrong?
+
+---
+
+Still not
+
+---
+
+Still not scrolled to top
+
+---
+
+[Request interrupted by user]
+
+---
+
+It should be scrolled after refresh
