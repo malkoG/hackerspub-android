@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -182,8 +184,13 @@ fun ComposeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .imePadding()
         ) {
+         Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp)
+         ) {
             // Reply target preview
             if (uiState.isLoadingReplyTarget) {
                 CircularProgressIndicator(
@@ -303,11 +310,16 @@ fun ComposeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+         }
+            // Close inner content Column
 
+            // Visibility toolbar pinned above keyboard
+            HorizontalDivider(color = colors.divider)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
             ) {
                 TextButton(
                     onClick = { showVisibilityMenu = true }
