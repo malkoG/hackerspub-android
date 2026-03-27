@@ -2,6 +2,7 @@ package pub.hackers.android.ui.components
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,15 +55,16 @@ fun LinkPreviewCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = colors.divider,
+                shape = RoundedCornerShape(AppShapes.mediaRadius)
+            )
             .clip(RoundedCornerShape(AppShapes.mediaRadius))
             .clickable {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
                 context.startActivity(intent)
             }
-            .then(
-                Modifier
-                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
-            )
     ) {
         if (link.image != null && isWideImage) {
             // Wide image: full width on top

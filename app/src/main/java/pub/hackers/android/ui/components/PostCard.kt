@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -154,51 +155,6 @@ private fun NoteCard(
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // Repost indicator
-        if (isRepost && post.lastSharer != null) {
-            val sharer = post.lastSharer!!
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(start = 54.dp, bottom = 8.dp)
-                    .clickable { onProfileClick(sharer.handle) }
-            ) {
-                AsyncImage(
-                    model = sharer.avatarUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(AppShapes.avatarRepost)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                if (sharer.name != null) {
-                    RichDisplayName(
-                        name = sharer.name,
-                        fallback = sharer.handle,
-                        style = typography.caption.copy(fontWeight = FontWeight.SemiBold),
-                        color = colors.textSecondary,
-                        emojiHeight = 14.dp
-                    )
-                    Spacer(modifier = Modifier.width(2.dp))
-                }
-                Text(
-                    text = sharer.handle,
-                    style = typography.caption,
-                    color = colors.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.share) + "d",
-                    style = typography.caption,
-                    color = colors.textSecondary
-                )
-            }
-        }
-
         // Reply target preview (faded)
         if (displayPost.replyTarget != null) {
             Row(
@@ -232,6 +188,49 @@ private fun NoteCard(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+            }
+        }
+
+        // Repost indicator
+        if (isRepost && post.lastSharer != null) {
+            val sharer = post.lastSharer!!
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(start = 54.dp, bottom = 8.dp)
+                    .clickable { onProfileClick(sharer.handle) }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Repeat,
+                    contentDescription = null,
+                    tint = colors.share,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                if (sharer.name != null) {
+                    RichDisplayName(
+                        name = sharer.name,
+                        fallback = sharer.handle,
+                        style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                        color = colors.textSecondary,
+                        emojiHeight = 14.dp
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                }
+                Text(
+                    text = sharer.handle,
+                    style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                    color = colors.textSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.share) + "d",
+                    style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                    color = colors.textSecondary
+                )
             }
         }
 
