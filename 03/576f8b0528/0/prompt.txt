@@ -299,3 +299,7 @@ EOF
 - Keep first line under 50 characters
 - Don't commit if there are no staged changes
 - Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Still not scrolled.

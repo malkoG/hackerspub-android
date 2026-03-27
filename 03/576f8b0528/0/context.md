@@ -181,3 +181,7 @@ Create a commit with auto-generated message from staged changes.
 3. Generate commit message:
    - If `` is prov...
 
+### Prompt 24
+
+Still not scrolled.
+
