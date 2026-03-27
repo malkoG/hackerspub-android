@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "d6aa685098b6",
+  "session_id": "046da0d2-8438-44e5-80ad-7df520dc12ce",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-27T04:16:31.903129Z",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "9f4d9c3d-f2d7-4a99-9a94-7c0bf778f016",
+  "checkpoint_transcript_start": 501,
+  "transcript_lines_at_start": 501,
+  "token_usage": {
+    "input_tokens": 53,
+    "cache_creation_tokens": 15510,
+    "cache_read_tokens": 3117792,
+    "output_tokens": 8856,
+    "api_call_count": 41
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-27T04:16:31.18419Z",
+    "agent_lines": 9,
+    "human_added": 232,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 241,
+    "agent_percentage": 3.7344398340248963
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/046da0d2-8438-44e5-80ad-7df520dc12ce.jsonl"
+}
