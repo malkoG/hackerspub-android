@@ -255,8 +255,12 @@ fun HackersPubApp(
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding)
         ) {
-            composable(Screen.Timeline.route) {
+            composable(Screen.Timeline.route) { backStackEntry ->
+                val postedTimestamp by backStackEntry.savedStateHandle
+                    .getStateFlow<Long>("postedAt", 0L)
+                    .collectAsState()
                 TimelineScreen(
+                    postedAt = postedTimestamp,
                     onPostClick = { postId ->
                         navController.navigate(DetailScreen.PostDetail.createRoute(postId))
                     },
@@ -390,6 +394,9 @@ fun HackersPubApp(
                     replyToId = replyTo,
                     quotedPostId = quoteOf,
                     onPostSuccess = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("postedAt", System.currentTimeMillis())
                         navController.popBackStack()
                     },
                     onNavigateBack = {
