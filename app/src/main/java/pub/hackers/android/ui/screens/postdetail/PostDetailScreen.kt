@@ -279,7 +279,7 @@ fun PostDetailScreen(
             if (uiState.post != null && isLoggedIn) {
                 FloatingActionButton(
                     onClick = { onReplyClick(postId) },
-                    containerColor = colors.accent,
+                    containerColor = colors.composeAccent,
                     contentColor = Color.White
                 ) {
                     Icon(

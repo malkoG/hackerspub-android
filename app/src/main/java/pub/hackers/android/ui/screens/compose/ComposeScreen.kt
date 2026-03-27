@@ -151,7 +151,7 @@ fun ComposeScreen(
                         Text(
                             text = stringResource(R.string.cancel),
                             style = typography.bodyLarge,
-                            color = colors.accent
+                            color = colors.composeAccent
                         )
                     }
                 },
@@ -161,9 +161,9 @@ fun ComposeScreen(
                         enabled = postEnabled,
                         shape = RoundedCornerShape(AppShapes.pillRadius),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = colors.accent,
+                            containerColor = colors.composeAccent,
                             contentColor = Color.White,
-                            disabledContainerColor = colors.accent,
+                            disabledContainerColor = colors.composeAccent,
                             disabledContentColor = Color.White,
                         ),
                         modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
@@ -252,7 +252,7 @@ fun ComposeScreen(
                             textStyle = typography.bodyLarge.copy(
                                 color = colors.textBody
                             ),
-                            cursorBrush = SolidColor(colors.accent),
+                            cursorBrush = SolidColor(colors.composeAccent),
                             decorationBox = { innerTextField ->
                                 Box {
                                     if (textFieldValue.text.isEmpty()) {
