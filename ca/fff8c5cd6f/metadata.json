@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "cafff8c5cd6f",
+  "strategy": "manual-commit",
+  "branch": "fix/refine-compose-ux-flow",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ca/fff8c5cd6f/0/metadata.json",
+      "transcript": "/ca/fff8c5cd6f/0/full.jsonl",
+      "context": "/ca/fff8c5cd6f/0/context.md",
+      "content_hash": "/ca/fff8c5cd6f/0/content_hash.txt",
+      "prompt": "/ca/fff8c5cd6f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 17,
+    "cache_creation_tokens": 6050,
+    "cache_read_tokens": 1584987,
+    "output_tokens": 2269,
+    "api_call_count": 12
+  }
+}
