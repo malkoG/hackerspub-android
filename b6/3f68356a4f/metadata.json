@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "b63f68356a4f",
+  "strategy": "manual-commit",
+  "branch": "fix/postcard-image-thumbnail",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b6/3f68356a4f/0/metadata.json",
+      "transcript": "/b6/3f68356a4f/0/full.jsonl",
+      "context": "/b6/3f68356a4f/0/context.md",
+      "content_hash": "/b6/3f68356a4f/0/content_hash.txt",
+      "prompt": "/b6/3f68356a4f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 39,
+    "cache_creation_tokens": 13096,
+    "cache_read_tokens": 9435506,
+    "output_tokens": 5679,
+    "api_call_count": 31
+  }
+}
