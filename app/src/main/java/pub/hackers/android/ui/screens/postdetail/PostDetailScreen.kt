@@ -496,7 +496,7 @@ private fun PostDetailContent(
                             color = colors.textPrimary
                         )
                         Text(
-                            text = "@${post.actor.handle}",
+                            text = post.actor.handle,
                             style = typography.labelMedium,
                             color = colors.textSecondary
                         )
@@ -899,7 +899,7 @@ private fun SharesSheet(
                             color = colors.textPrimary
                         )
                         Text(
-                            text = "@${actor.handle}",
+                            text = actor.handle,
                             style = typography.labelMedium,
                             color = colors.textSecondary
                         )
@@ -975,7 +975,7 @@ private fun QuotesSheet(
                                 emojiHeight = 14.dp
                             )
                             Text(
-                                text = "@${post.actor.handle}",
+                                text = post.actor.handle,
                                 style = typography.labelSmall,
                                 color = colors.textSecondary
                             )
@@ -1035,7 +1035,7 @@ private fun ReplyTargetPreview(
                     color = colors.textPrimary
                 )
                 Text(
-                    text = "@${post.actor.handle}",
+                    text = post.actor.handle,
                     style = typography.labelMedium,
                     color = colors.textSecondary,
                     maxLines = 1

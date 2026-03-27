@@ -217,7 +217,7 @@ private fun NoteCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "@${displayPost.actor.handle}",
+                            text = displayPost.actor.handle,
                             style = typography.labelMedium,
                             color = colors.textSecondary,
                             maxLines = 1,
@@ -616,7 +616,7 @@ fun QuotedPostPreview(
             Spacer(modifier = Modifier.width(4.dp))
 
             Text(
-                text = "@${post.actor.handle}",
+                text = post.actor.handle,
                 style = typography.labelMedium,
                 color = colors.textSecondary,
                 maxLines = 1,

@@ -360,7 +360,7 @@ private fun ProfileHeader(
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
-            text = "@$handle",
+            text = handle,
             style = typography.bodyMedium,
             color = colors.textSecondary,
             textAlign = TextAlign.Center

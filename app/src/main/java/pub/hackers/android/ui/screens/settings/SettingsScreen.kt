@@ -134,7 +134,7 @@ fun SettingsScreen(
                             color = colors.textPrimary
                         )
                         Text(
-                            text = "@${uiState.userHandle ?: ""}",
+                            text = uiState.userHandle ?: "",
                             style = typography.bodyMedium,
                             color = colors.textSecondary
                         )

@@ -120,7 +120,7 @@ fun ArticleCard(
                         }
 
                         Text(
-                            text = "@${displayPost.actor.handle}",
+                            text = displayPost.actor.handle,
                             style = typography.labelMedium,
                             color = colors.textSecondary,
                             maxLines = 1,
