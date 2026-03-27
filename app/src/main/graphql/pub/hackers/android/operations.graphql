@@ -37,6 +37,22 @@ fragment PostFields on Post {
     media {
         ...MediaFields
     }
+    link {
+        title
+        description
+        url
+        siteName
+        author
+        image {
+            url
+            alt
+            width
+            height
+        }
+        creator {
+            ...ActorFields
+        }
+    }
     engagementStats {
         ...EngagementStatsFields
     }
@@ -142,8 +158,16 @@ query PersonalTimeline($after: String) {
     personalTimeline(first: 20, after: $after) {
         edges {
             cursor
+            lastSharer {
+                ...ActorFields
+            }
+            sharersCount
             node {
                 ...PostFields
+                visibility
+                replyTarget {
+                    ...PostFields
+                }
                 sharedPost {
                     ...SharedPostFields
                 }

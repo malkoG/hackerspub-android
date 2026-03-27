@@ -36,7 +36,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -48,11 +47,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -135,7 +136,7 @@ private fun NoteCard(
     modifier: Modifier = Modifier
 ) {
     val displayPost = post.sharedPost ?: post
-    val isRepost = post.sharedPost != null
+    val isRepost = post.lastSharer != null
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
     val context = LocalContext.current
@@ -154,28 +155,81 @@ private fun NoteCard(
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // Step 7: Repost indicator
-        if (isRepost) {
+        // Reply target preview (faded)
+        if (displayPost.replyTarget != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(0.5f)
+                    .padding(bottom = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                AsyncImage(
+                    model = displayPost.replyTarget!!.actor.avatarUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(AppShapes.avatarRepost)
+                        .clip(CircleShape)
+                        .clickable { onProfileClick(displayPost.replyTarget!!.actor.handle) },
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    RichDisplayName(
+                        name = displayPost.replyTarget!!.actor.name,
+                        fallback = displayPost.replyTarget!!.actor.handle,
+                        style = typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = colors.textPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    HtmlContent(
+                        html = displayPost.replyTarget!!.content,
+                        maxLines = 2,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+
+        // Repost indicator
+        if (isRepost && post.lastSharer != null) {
+            val sharer = post.lastSharer!!
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(start = 54.dp, bottom = 8.dp)
+                    .clickable { onProfileClick(sharer.handle) }
             ) {
-                AsyncImage(
-                    model = post.actor.avatarUrl,
+                Icon(
+                    imageVector = Icons.Filled.Repeat,
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(AppShapes.avatarRepost)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+                    tint = colors.share,
+                    modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                RichDisplayName(
-                    name = post.actor.name?.let { "$it ${stringResource(R.string.share)}d" },
-                    fallback = "${post.actor.handle} ${stringResource(R.string.share)}d",
-                    style = typography.caption,
+                if (sharer.name != null) {
+                    RichDisplayName(
+                        name = sharer.name,
+                        fallback = sharer.handle,
+                        style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                        color = colors.textSecondary,
+                        emojiHeight = 14.dp
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                }
+                Text(
+                    text = sharer.handle,
+                    style = typography.caption.copy(fontStyle = FontStyle.Italic),
                     color = colors.textSecondary,
-                    emojiHeight = 14.dp
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.share) + "d",
+                    style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                    color = colors.textSecondary
                 )
             }
         }
@@ -199,17 +253,32 @@ private fun NoteCard(
             Column(modifier = Modifier.weight(1f)) {
                 // Author row — name left, visibility icon + timestamp right
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    RichDisplayName(
-                        name = displayPost.actor.name,
-                        fallback = displayPost.actor.handle,
-                        style = typography.bodyLargeSemiBold,
-                        color = colors.textPrimary,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onProfileClick(displayPost.actor.handle) }
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        RichDisplayName(
+                            name = displayPost.actor.name,
+                            fallback = displayPost.actor.handle,
+                            style = typography.bodyLargeSemiBold,
+                            color = colors.textPrimary,
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .clickable { onProfileClick(displayPost.actor.handle) }
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = displayPost.actor.handle,
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(2f, fill = false)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = when (displayPost.visibility) {
@@ -300,6 +369,48 @@ private fun NoteCard(
                     )
                 }
 
+                // Inline translate link
+                if (!isTranslating && translationError == null) {
+                    Text(
+                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(R.string.translate),
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable {
+                                if (showTranslated) {
+                                    showTranslated = false
+                                    return@clickable
+                                }
+
+                                translatedContent?.let {
+                                    showTranslated = true
+                                    return@clickable
+                                }
+
+                                val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                    .getLocales(context.resources.configuration)
+                                    .get(0)?.language ?: Locale.getDefault().language
+                                scope.launch {
+                                    isTranslating = true
+                                    translationError = null
+                                    try {
+                                        val translated = translateHtmlContent(
+                                            html = displayPost.content,
+                                            targetLanguageTag = targetLanguageTag
+                                        )
+                                        translatedContent = translated
+                                        showTranslated = true
+                                    } catch (_: Exception) {
+                                        translationError = translationFailedText
+                                    } finally {
+                                        isTranslating = false
+                                    }
+                                }
+                            }
+                    )
+                }
+
                 if (isTruncated || (contentMaxLength == 0 && displayPost.content.length > 500)) {
                     Text(
                         text = stringResource(R.string.read_more),
@@ -313,6 +424,15 @@ private fun NoteCard(
                 if (displayPost.media.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     MediaGrid(media = displayPost.media)
+                }
+
+                // Link preview (only when no media and no quoted post)
+                if (displayPost.media.isEmpty() && displayPost.quotedPost == null && displayPost.link != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinkPreviewCard(
+                        link = displayPost.link!!,
+                        onProfileClick = onProfileClick
+                    )
                 }
 
                 // Quoted post
@@ -380,42 +500,7 @@ private fun NoteCard(
                     onShareClick = onShareClick,
                     onQuoteClick = onQuoteClick,
                     onReactionClick = onReactionClick,
-                    onExternalShareClick = onExternalShareClick,
-                    onTranslateClick = {
-                        if (isTranslating) return@EngagementBar
-
-                        if (showTranslated) {
-                            showTranslated = false
-                            return@EngagementBar
-                        }
-
-                        translatedContent?.let {
-                            showTranslated = true
-                            return@EngagementBar
-                        }
-
-                        val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                            .getLocales(context.resources.configuration)
-                            .get(0)?.language ?: Locale.getDefault().language
-                        scope.launch {
-                            isTranslating = true
-                            translationError = null
-                            try {
-                                val translated = translateHtmlContent(
-                                    html = displayPost.content,
-                                    targetLanguageTag = targetLanguageTag
-                                )
-                                translatedContent = translated
-                                showTranslated = true
-                            } catch (_: Exception) {
-                                translationError = translationFailedText
-                            } finally {
-                                isTranslating = false
-                            }
-                        }
-                    },
-                    isTranslating = isTranslating,
-                    isTranslated = showTranslated
+                    onExternalShareClick = onExternalShareClick
                 )
             }
         }
@@ -430,10 +515,7 @@ private fun EngagementBar(
     onShareClick: (() -> Unit)?,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
-    onExternalShareClick: (() -> Unit)? = null,
-    onTranslateClick: (() -> Unit)? = null,
-    isTranslating: Boolean = false,
-    isTranslated: Boolean = false
+    onExternalShareClick: (() -> Unit)? = null
 ) {
     val colors = LocalAppColors.current
     val isReplied = post.engagementStats.replies > 0 && post.replyTarget != null
@@ -482,20 +564,6 @@ private fun EngagementBar(
             onClick = onQuoteClick,
             activeColor = colors.accent,
             isActive = false
-        )
-
-        // Translate
-        EngagementButton(
-            icon = Icons.Outlined.Translate,
-            count = 0,
-            contentDescription = if (isTranslated) {
-                stringResource(R.string.show_original)
-            } else {
-                stringResource(R.string.translate)
-            },
-            onClick = if (isTranslating) null else onTranslateClick,
-            activeColor = colors.accent,
-            isActive = isTranslated
         )
 
         // External share — always textSecondary
@@ -601,7 +669,7 @@ fun QuotedPostPreview(
             Spacer(modifier = Modifier.width(4.dp))
 
             Text(
-                text = "@${post.actor.handle}",
+                text = post.actor.handle,
                 style = typography.labelMedium,
                 color = colors.textSecondary,
                 maxLines = 1,

@@ -103,7 +103,7 @@ private fun MentionSuggestionItem(
                 color = LocalAppColors.current.textPrimary
             )
             Text(
-                text = "@${actor.handle}",
+                text = actor.handle,
                 style = LocalAppTypography.current.labelMedium,
                 color = LocalAppColors.current.textSecondary,
                 maxLines = 1,
