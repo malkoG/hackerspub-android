@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "96a1b97f4fd9",
+  "session_id": "36776aad-86d0-4a47-9612-2adc251b3e67",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-09T21:29:17.089667Z",
+  "branch": "chore/assetlinks",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/AndroidManifest.xml",
+    "docs/.well-known/assetlinks.json"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "f7a6ac7e-bc87-4569-bbdb-2c4202864798",
+  "token_usage": {
+    "input_tokens": 31,
+    "cache_creation_tokens": 24240,
+    "cache_read_tokens": 580607,
+    "output_tokens": 8755,
+    "api_call_count": 22
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-09T21:29:16.973544Z",
+    "agent_lines": 18,
+    "human_added": 118,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 136,
+    "agent_percentage": 13.23529411764706
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/36776aad-86d0-4a47-9612-2adc251b3e67.jsonl"
+}

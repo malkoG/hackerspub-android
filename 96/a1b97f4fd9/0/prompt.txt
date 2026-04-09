@@ -1,0 +1,108 @@
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/load-plan
+
+# Load Plan
+
+Load a previously saved plan from `~/.planvault/` for the current project or by mnemonic name.
+
+**Arguments**: `hackerspub passkey. And then regarding to weblinks, How can I manage assetlinks json?` (optional mnemonic name of the plan to load)
+
+## Instructions
+
+1. **Run the load script**:
+   ```bash
+   bash <skill-dir>/scripts/load-plan.sh "<mnemonic-or-empty>"
+   ```
+
+2. **Parse the output**:
+
+   - `NO_PLANS` — No plans saved yet. Suggest `/save-plan`.
+   - `SINGLE\t<mnemonic>` — One plan found for this project. Re-run with that mnemonic to load it.
+   - `MULTIPLE` followed by `<mnemonic>\t<pwd>\t<description>\t<updated_at>` lines — Multiple plans found. Present as a list and ask the user which to load.
+   - `NO_MATCH` followed by plan lines — No plans for this project. Show all plans as fallback.
+   - `NOT_FOUND` — Mnemonic doesn't exist. List available plans.
+   - `FOUND\t<pwd>\t<description>\t<created_at>\t<updated_at>` followed by `---CONTENT---` and plan markdown — Present the plan content with metadata.
+   - `MISSING_FILE` — Index entry exists but plan file is missing. Suggest re-saving.
+
+3. **Present the plan**: Show the full markdown content and metadata (mnemonic, project path, dates).
+
+---
+
+I already have the keystore already. for fingerprint, Is it okay to manage it in public?
+
+---
+
+Okay. Lets generate assetlinks.json
+
+---
+
+Indeed.... This is the generated keystore credentials
+
+
+
+
+  # 1. Build signed APK
+  export KEYSTORE_FILE="$(pwd)/hackerspub-release.jks"
+  export STORE_PASSWORD="REDACTED"
+  export KEY_ALIAS="hackerspub"
+  export KEY_PASSWORD="$STORE_PASSWORD"
+
+  ./gradlew assembleRelease
+## Base 64 keystore (KEYSTORE_BASE64)
+
+
+```
+REDACTED
+
+```
+
+---
+
+Yes, please
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)

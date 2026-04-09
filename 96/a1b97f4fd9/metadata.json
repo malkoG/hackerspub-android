@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "96a1b97f4fd9",
+  "strategy": "manual-commit",
+  "branch": "chore/assetlinks",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/AndroidManifest.xml",
+    "docs/.well-known/assetlinks.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/96/a1b97f4fd9/0/metadata.json",
+      "transcript": "/96/a1b97f4fd9/0/full.jsonl",
+      "context": "/96/a1b97f4fd9/0/context.md",
+      "content_hash": "/96/a1b97f4fd9/0/content_hash.txt",
+      "prompt": "/96/a1b97f4fd9/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 31,
+    "cache_creation_tokens": 24240,
+    "cache_read_tokens": 580607,
+    "output_tokens": 8755,
+    "api_call_count": 22
+  }
+}
