@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.IconButton
@@ -160,6 +161,10 @@ fun ComposeScreen(
             snackbarHostState.showSnackbar(it)
             viewModel.clearError()
         }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
     }
 
     val postEnabled = uiState.content.isNotBlank() && !uiState.isPosting
@@ -322,6 +327,18 @@ fun ComposeScreen(
                 }
             }
 
+            // Quoted post preview
+            if (uiState.isLoadingQuotedPost) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            } else if (uiState.quotedPost != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                QuotedPostPreview(post = uiState.quotedPost!!)
+            }
          }
             // Close inner content Column
 
@@ -486,6 +503,65 @@ private fun ReplyTargetPreview(
                     color = colors.textSecondary,
                     emojiHeight = 14.dp
                 )
+                Spacer(modifier = Modifier.height(4.dp))
+                HtmlContent(
+                    html = post.content,
+                    maxLines = 3,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuotedPostPreview(
+    post: Post,
+    modifier: Modifier = Modifier
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.divider)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.FormatQuote,
+                contentDescription = null,
+                tint = colors.textSecondary,
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = post.actor.avatarUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    pub.hackers.android.ui.components.RichDisplayName(
+                        name = post.actor.name,
+                        fallback = post.actor.handle,
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        emojiHeight = 14.dp
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 HtmlContent(
                     html = post.content,

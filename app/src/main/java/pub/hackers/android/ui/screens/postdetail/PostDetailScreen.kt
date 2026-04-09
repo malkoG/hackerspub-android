@@ -2,6 +2,8 @@ package pub.hackers.android.ui.screens.postdetail
 
 import android.content.Intent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -81,7 +83,7 @@ import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.HtmlContent
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
-import pub.hackers.android.ui.components.MediaGrid
+import pub.hackers.android.ui.components.MediaImage
 import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.QuotedPostPreview
 import pub.hackers.android.ui.components.ReactionPicker
@@ -450,7 +452,9 @@ private fun PostDetailContent(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .clickable { onPostClick(post.replyTarget!!.id) }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Reply,
@@ -554,9 +558,48 @@ private fun PostDetailContent(
                     )
                 }
 
+                if (!isTranslating && translationError == null) {
+                    Text(
+                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(R.string.translate),
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable {
+                                if (showTranslated) {
+                                    showTranslated = false
+                                    return@clickable
+                                }
+                                translatedContent?.let {
+                                    showTranslated = true
+                                    return@clickable
+                                }
+                                val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                    .getLocales(context.resources.configuration)
+                                    .get(0)?.language ?: Locale.getDefault().language
+                                scope.launch {
+                                    isTranslating = true
+                                    translationError = null
+                                    try {
+                                        val translated = translateDetailContent(
+                                            html = post.content,
+                                            targetLanguageTag = targetLanguageTag
+                                        )
+                                        translatedContent = translated
+                                        showTranslated = true
+                                    } catch (_: Exception) {
+                                        translationError = translationFailedText
+                                    } finally {
+                                        isTranslating = false
+                                    }
+                                }
+                            }
+                    )
+                }
+
                 if (post.media.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    MediaGrid(media = post.media)
+                    MediaCarousel(media = post.media)
                 }
 
                 if (post.quotedPost != null) {
@@ -702,7 +745,10 @@ private fun PostDetailContent(
                 HorizontalDivider(color = colors.divider)
 
                 Row(
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     IconButton(onClick = onReplyClick) {
                         Icon(
@@ -736,47 +782,6 @@ private fun PostDetailContent(
                             imageVector = Icons.Outlined.FormatQuote,
                             contentDescription = stringResource(R.string.quotes),
                             tint = colors.textSecondary
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            if (isTranslating) return@IconButton
-                            if (showTranslated) {
-                                showTranslated = false
-                                return@IconButton
-                            }
-                            translatedContent?.let {
-                                showTranslated = true
-                                return@IconButton
-                            }
-                            val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                                .getLocales(context.resources.configuration)
-                                .get(0)?.language ?: Locale.getDefault().language
-                            scope.launch {
-                                isTranslating = true
-                                translationError = null
-                                try {
-                                    val translated = translateDetailContent(
-                                        html = post.content,
-                                        targetLanguageTag = targetLanguageTag
-                                    )
-                                    translatedContent = translated
-                                    showTranslated = true
-                                } catch (_: Exception) {
-                                    translationError = translationFailedText
-                                } finally {
-                                    isTranslating = false
-                                }
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Translate,
-                            contentDescription = if (showTranslated)
-                                stringResource(R.string.show_original)
-                            else
-                                stringResource(R.string.translate),
-                            tint = if (showTranslated) colors.accent else colors.textSecondary
                         )
                     }
                     IconButton(onClick = onExternalShareClick) {
@@ -1049,13 +1054,62 @@ private fun ReplyTargetPreview(
             html = post.content,
             maxLines = 3,
             modifier = Modifier.fillMaxWidth(),
-            onMentionClick = onProfileClick
+            onMentionClick = onProfileClick,
+            onTextClick = onClick
         )
 
         if (post.media.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
-            MediaGrid(media = post.media)
+            MediaCarousel(media = post.media)
         }
+    }
+}
+
+@Composable
+private fun MediaCarousel(media: List<pub.hackers.android.domain.model.Media>) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    if (media.size == 1) {
+        MediaImage(
+            url = media[0].url,
+            alt = media[0].alt,
+            isVideo = media[0].isVideo,
+            thumbnailUrl = media[0].thumbnailUrl,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(AppShapes.mediaRadius))
+        )
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+        ) {
+            media.forEach { item ->
+                MediaImage(
+                    url = item.url,
+                    alt = item.alt,
+                    isVideo = item.isVideo,
+                    thumbnailUrl = item.thumbnailUrl,
+                    modifier = Modifier
+                        .height(250.dp)
+                        .width(300.dp)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
+            }
+        }
+    }
+
+    if (media.size > 1) {
+        Text(
+            text = "${media.size} images",
+            style = typography.labelSmall,
+            color = colors.textSecondary,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
 

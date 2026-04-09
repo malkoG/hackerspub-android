@@ -16,6 +16,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -225,6 +226,10 @@ private fun parseHtmlToAnnotatedString(
         val listStack = mutableListOf<ListContext>()
         var insideListItem = false
 
+        // Ruby state
+        var insideRt = false
+        var insideRp = false
+
         var hasContent = false
         var pos = 0
         val source = html.trim()
@@ -238,7 +243,7 @@ private fun parseHtmlToAnnotatedString(
                 val rawText = source.substring(pos, textEnd)
                 val decoded = decodeHtmlEntities(rawText)
 
-                if (!insideInvisibleSpan && decoded.isNotEmpty()) {
+                if (!insideInvisibleSpan && !insideRp && decoded.isNotEmpty()) {
                     if (preDepth > 0) {
                         // Preserve all whitespace in preformatted blocks
                         appendStyledText(this, decoded, currentLinkType, linkColor, mentionBg)
@@ -392,6 +397,21 @@ private fun parseHtmlToAnnotatedString(
                             }
                         }
 
+                        // Ruby annotations
+                        "ruby" -> {
+                            // No special action needed for opening <ruby>
+                        }
+                        "rt" -> {
+                            insideRt = true
+                            pushStyle(SpanStyle(
+                                fontSize = 0.6.em,
+                                baselineShift = BaselineShift.Superscript
+                            ))
+                        }
+                        "rp" -> {
+                            insideRp = true
+                        }
+
                         // Invisible spans
                         "span" -> {
                             val classes = attrs["class"] ?: ""
@@ -476,6 +496,19 @@ private fun parseHtmlToAnnotatedString(
                                 hasAnnotation = false
                             }
                             currentLinkType = null
+                        }
+
+                        "ruby" -> {
+                            // No special action needed for closing </ruby>
+                        }
+                        "rt" -> {
+                            if (insideRt) {
+                                pop()
+                                insideRt = false
+                            }
+                        }
+                        "rp" -> {
+                            insideRp = false
                         }
 
                         "span" -> {

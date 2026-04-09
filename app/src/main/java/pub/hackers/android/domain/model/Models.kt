@@ -14,8 +14,11 @@ data class Media(
     val thumbnailUrl: String?,
     val alt: String?,
     val height: Int?,
-    val width: Int?
-)
+    val width: Int?,
+    val mediaType: String? = null
+) {
+    val isVideo: Boolean get() = mediaType?.startsWith("video/") == true
+}
 
 data class EngagementStats(
     val replies: Int,

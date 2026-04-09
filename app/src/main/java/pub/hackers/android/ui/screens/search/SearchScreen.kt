@@ -160,7 +160,7 @@ fun SearchScreen(
                                     onProfileClick = onProfileClick,
                                     onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
                                     onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
-                                    onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                    onReactionClick = null,
                                     onExternalShareClick = {
                                         val displayPost = post.sharedPost ?: post
                                         val shareUrl = displayPost.url ?: displayPost.iri

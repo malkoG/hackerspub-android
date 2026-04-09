@@ -217,7 +217,8 @@ class ComposeViewModel @Inject constructor(
                         it.copy(
                             replyTargetPost = post,
                             isLoadingReplyTarget = false,
-                            content = mentionPrefix
+                            content = mentionPrefix,
+                            cursorPosition = mentionPrefix.length
                         )
                     }
                 }

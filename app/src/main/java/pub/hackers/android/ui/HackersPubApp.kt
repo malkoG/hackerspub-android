@@ -250,12 +250,19 @@ fun HackersPubApp(
                     items = bottomNavItems,
                     selectedRoute = currentBaseRoute ?: "",
                     onItemSelected = { item ->
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                        if (item.route == (currentBaseRoute ?: "")) {
+                            // Re-tap on current tab: signal scroll-to-top / refresh
+                            navController.currentBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("tabRetapped", System.currentTimeMillis())
+                        } else {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     },
                 )
@@ -273,8 +280,12 @@ fun HackersPubApp(
                 val postedTimestamp by backStackEntry.savedStateHandle
                     .getStateFlow<Long>("postedAt", 0L)
                     .collectAsState()
+                val tabRetapped by backStackEntry.savedStateHandle
+                    .getStateFlow<Long>("tabRetapped", 0L)
+                    .collectAsState()
                 TimelineScreen(
                     postedAt = postedTimestamp,
+                    tabRetapped = tabRetapped,
                     onPostClick = { postId ->
                         navController.navigate(DetailScreen.PostDetail.createRoute(postId))
                     },

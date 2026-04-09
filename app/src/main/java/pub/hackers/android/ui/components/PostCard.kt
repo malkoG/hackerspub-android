@@ -11,6 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +21,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +36,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -44,6 +57,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,6 +107,7 @@ fun PostCard(
     onShareClick: (() -> Unit)? = null,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
+    onReactionLongPress: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0,
@@ -113,6 +131,7 @@ fun PostCard(
             onShareClick = onShareClick,
             onQuoteClick = onQuoteClick,
             onReactionClick = onReactionClick,
+            onReactionLongPress = onReactionLongPress,
             onExternalShareClick = onExternalShareClick,
             onQuotedPostClick = onQuotedPostClick,
             contentMaxLength = contentMaxLength,
@@ -130,6 +149,7 @@ private fun NoteCard(
     onShareClick: (() -> Unit)? = null,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
+    onReactionLongPress: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0,
@@ -161,7 +181,10 @@ private fun NoteCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(0.5f)
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 8.dp)
+                    .clickable {
+                        onQuotedPostClick?.invoke(displayPost.replyTarget!!.id)
+                    },
                 verticalAlignment = Alignment.Top
             ) {
                 AsyncImage(
@@ -185,7 +208,10 @@ private fun NoteCard(
                     HtmlContent(
                         html = displayPost.replyTarget!!.content,
                         maxLines = 2,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        onTextClick = {
+                            onQuotedPostClick?.invoke(displayPost.replyTarget!!.id)
+                        }
                     )
                 }
             }
@@ -500,6 +526,7 @@ private fun NoteCard(
                     onShareClick = onShareClick,
                     onQuoteClick = onQuoteClick,
                     onReactionClick = onReactionClick,
+                    onReactionLongPress = onReactionLongPress,
                     onExternalShareClick = onExternalShareClick
                 )
             }
@@ -515,6 +542,7 @@ private fun EngagementBar(
     onShareClick: (() -> Unit)?,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
+    onReactionLongPress: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null
 ) {
     val colors = LocalAppColors.current
@@ -523,8 +551,10 @@ private fun EngagementBar(
     val isReacted = post.reactionGroups.any { it.viewerHasReacted }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset(x = (-14).dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         // Reply
         EngagementButton(
@@ -536,40 +566,29 @@ private fun EngagementBar(
             isActive = isReplied
         )
 
-        // Share/Repost
-        EngagementButton(
-            icon = if (isShared) Icons.Filled.Repeat else Icons.Outlined.Repeat,
+        // Share/Repost — tap to show repost/quote menu
+        ShareEngagementButton(
+            isShared = isShared,
             count = post.engagementStats.shares,
-            contentDescription = stringResource(R.string.shares),
-            onClick = onShareClick,
-            activeColor = colors.share,
-            isActive = isShared
+            onShareClick = onShareClick,
+            onQuoteClick = onQuoteClick
         )
 
-        // Heart/React
-        EngagementButton(
-            icon = if (isReacted) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+        // Heart/React — tap to toggle ❤️, long-press for emoji picker
+        ReactionEngagementButton(
+            isReacted = isReacted,
             count = post.engagementStats.reactions,
-            contentDescription = stringResource(R.string.reactions),
             onClick = onReactionClick,
-            activeColor = colors.reaction,
-            isActive = isReacted
+            onLongClick = onReactionLongPress
         )
 
-        // Quote
-        EngagementButton(
-            icon = Icons.Outlined.FormatQuote,
-            count = post.engagementStats.quotes,
-            contentDescription = stringResource(R.string.quotes),
-            onClick = onQuoteClick,
-            activeColor = colors.accent,
-            isActive = false
-        )
+        Spacer(modifier = Modifier.weight(1f))
 
-        // External share — always textSecondary
+        // External share — always textSecondary, offset back to align right edge
         if (onExternalShareClick != null) {
             IconButton(
-                onClick = onExternalShareClick
+                onClick = onExternalShareClick,
+                modifier = Modifier.offset(x = 14.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Share,
@@ -609,13 +628,128 @@ private fun EngagementButton(
                 modifier = Modifier.size(20.dp)
             )
         }
-        if (count > 0) {
+        Text(
+            text = formatCount(count),
+            style = typography.labelMedium,
+            color = tint
+        )
+    }
+}
+
+@Composable
+private fun ShareEngagementButton(
+    isShared: Boolean,
+    count: Int,
+    onShareClick: (() -> Unit)?,
+    onQuoteClick: (() -> Unit)? = null
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val tint = if (isShared) colors.share else colors.textSecondary
+    var showMenu by remember { mutableStateOf(false) }
+
+    Box {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .combinedClickable(
+                        onClick = { onShareClick?.invoke() },
+                        onLongClick = { if (onQuoteClick != null) showMenu = true }
+                    )
+            ) {
+                Icon(
+                    imageVector = if (isShared) Icons.Filled.Repeat else Icons.Outlined.Repeat,
+                    contentDescription = stringResource(R.string.shares),
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             Text(
                 text = formatCount(count),
                 style = typography.labelMedium,
                 color = tint
             )
         }
+
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.share)) },
+                onClick = {
+                    showMenu = false
+                    onShareClick?.invoke()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Repeat,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            )
+            if (onQuoteClick != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.quotes)) },
+                    onClick = {
+                        showMenu = false
+                        onQuoteClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.FormatQuote,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReactionEngagementButton(
+    isReacted: Boolean,
+    count: Int,
+    onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)? = null
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val tint = if (isReacted) colors.reaction else colors.textSecondary
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .combinedClickable(
+                    onClick = { onClick?.invoke() },
+                    onLongClick = { onLongClick?.invoke() }
+                )
+        ) {
+            Icon(
+                imageVector = if (isReacted) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                contentDescription = stringResource(R.string.reactions),
+                tint = tint,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Text(
+            text = formatCount(count),
+            style = typography.labelMedium,
+            color = tint
+        )
     }
 }
 
@@ -713,67 +847,98 @@ fun QuotedPostPreview(
     }
 }
 
+@Composable
+private fun GridMediaItem(item: pub.hackers.android.domain.model.Media, modifier: Modifier) {
+    MediaImage(
+        url = item.url,
+        alt = item.alt,
+        modifier = modifier,
+        isVideo = item.isVideo,
+        thumbnailUrl = item.thumbnailUrl
+    )
+}
+
 // Step 6: MediaGrid with 8dp radius
 @Composable
 fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
+    val gridHeight = 200.dp
+    val gap = 4.dp
+
     when (media.size) {
+        0 -> {}
         1 -> {
-            MediaImage(
-                url = media[0].url,
-                alt = media[0].alt,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
-            )
+            GridMediaItem(media[0], Modifier
+                .fillMaxWidth()
+                .height(gridHeight)
+                .clip(RoundedCornerShape(AppShapes.mediaRadius)))
         }
         2 -> {
+            // a | b
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                media.forEach { item ->
-                    MediaImage(
-                        url = item.url,
-                        alt = item.alt,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                    )
+                GridMediaItem(media[0], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                GridMediaItem(media[1], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+            }
+        }
+        3 -> {
+            // a | (b / c)
+            val halfHeight = (gridHeight - gap) / 2
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                GridMediaItem(media[0], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    GridMediaItem(media[1], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(media[2], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
                 }
             }
         }
         else -> {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            // (a / c) | (b / d+)
+            val remaining = media.size - 4
+            val halfHeight = (gridHeight - gap) / 2
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    media.take(2).forEach { item ->
-                        MediaImage(
-                            url = item.url,
-                            alt = item.alt,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(100.dp)
-                                .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                        )
-                    }
+                    GridMediaItem(media[0], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(media[2], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
                 }
-                if (media.size > 2) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    GridMediaItem(media[1], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
                     ) {
-                        media.drop(2).take(2).forEach { item ->
-                            MediaImage(
-                                url = item.url,
-                                alt = item.alt,
+                        GridMediaItem(media[3], Modifier.fillMaxSize())
+                        if (remaining > 0) {
+                            Box(
+                                contentAlignment = Alignment.Center,
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                            )
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                            ) {
+                                Text(
+                                    text = "+$remaining",
+                                    color = Color.White,
+                                    style = LocalAppTypography.current.titleLarge
+                                )
+                            }
                         }
                     }
                 }
@@ -783,60 +948,214 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
 }
 
 @Composable
-private fun MediaImage(
+fun MediaImage(
     url: String,
     alt: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isVideo: Boolean = false,
+    thumbnailUrl: String? = null
 ) {
     val colors = LocalAppColors.current
     val context = LocalContext.current
-    var showMenu by remember { mutableStateOf(false) }
+    var showPreview by remember { mutableStateOf(false) }
 
-    Box {
+    Box(modifier = modifier) {
         AsyncImage(
-            model = url,
+            model = if (isVideo) (thumbnailUrl ?: url) else url,
             contentDescription = alt,
-            modifier = modifier
+            modifier = Modifier
+                .fillMaxSize()
                 .border(
                     width = 1.dp,
                     color = colors.divider,
                     shape = RoundedCornerShape(AppShapes.mediaRadius)
                 )
-                .combinedClickable(
-                onClick = {
-                    // Open image in browser/viewer
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    context.startActivity(intent)
+                .clickable {
+                    if (isVideo) {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        intent.setDataAndType(Uri.parse(url), "video/*")
+                        context.startActivity(intent)
+                    } else {
+                        showPreview = true
+                    }
                 },
-                onLongClick = { showMenu = true }
-            ),
             contentScale = ContentScale.Crop
         )
 
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false }
+        if (isVideo) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Play video",
+                    tint = Color.White,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        }
+    }
+
+    if (showPreview) {
+        MediaPreviewDialog(
+            url = url,
+            alt = alt,
+            onDismiss = { showPreview = false }
+        )
+    }
+}
+
+@Composable
+private fun MediaPreviewDialog(
+    url: String,
+    alt: String?,
+    onDismiss: () -> Unit
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val context = LocalContext.current
+
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+    var showMenu by remember { mutableStateOf(false) }
+    val transformState = rememberTransformableState { zoomChange, panChange, _ ->
+        scale = (scale * zoomChange).coerceIn(1f, 5f)
+        if (scale > 1f) {
+            offsetX += panChange.x
+            offsetY += panChange.y
+        } else {
+            offsetX = 0f
+            offsetY = 0f
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { if (scale <= 1f) onDismiss() }
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.share)) },
-                onClick = {
-                    showMenu = false
-                    val sendIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, url)
-                        type = "text/plain"
-                    }
-                    context.startActivity(Intent.createChooser(sendIntent, null))
+            // Close button
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.cancel),
+                    tint = Color.White
+                )
+            }
+
+            // Zoomable image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+                    .padding(16.dp)
+            ) {
+                AsyncImage(
+                    model = url,
+                    contentDescription = alt,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = offsetX,
+                            translationY = offsetY
+                        )
+                        .transformable(state = transformState)
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = { showMenu = true }
+                        ),
+                    contentScale = ContentScale.Fit
+                )
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.download)) },
+                        onClick = {
+                            showMenu = false
+                            val request = android.app.DownloadManager.Request(Uri.parse(url))
+                                .setNotificationVisibility(
+                                    android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                                )
+                                .setDestinationInExternalPublicDir(
+                                    android.os.Environment.DIRECTORY_DOWNLOADS,
+                                    url.substringAfterLast('/')
+                                )
+                            val dm = context.getSystemService(android.content.Context.DOWNLOAD_SERVICE)
+                                as android.app.DownloadManager
+                            dm.enqueue(request)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Download,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.share)) },
+                        onClick = {
+                            showMenu = false
+                            val sendIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, url)
+                                type = "text/plain"
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, null))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = null
+                            )
+                        }
+                    )
                 }
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.open_in_browser)) },
-                onClick = {
-                    showMenu = false
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    context.startActivity(intent)
+            }
+
+            // Alt text
+            if (!alt.isNullOrBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Black.copy(alpha = 0.7f),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(start = 16.dp, end = 64.dp, top = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = alt,
+                        style = typography.bodyMedium,
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp)
+                    )
                 }
-            )
+            }
         }
     }
 }

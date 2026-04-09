@@ -172,7 +172,7 @@ class HackersPubRepository @Inject constructor(
         return try {
             val response = apolloClient.query(
                 PostDetailQuery(id, Optional.presentIfNotNull(repliesAfter))
-            ).execute()
+            ).fetchPolicy(FetchPolicy.NetworkOnly).execute()
 
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
@@ -858,7 +858,8 @@ class HackersPubRepository @Inject constructor(
             thumbnailUrl = thumbnailUrl,
             alt = alt,
             height = height,
-            width = width
+            width = width,
+            mediaType = type?.toString()
         )
     }
 

@@ -18,16 +18,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +47,7 @@ import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.PostCard
+import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.theme.LocalAppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,6 +59,7 @@ fun TimelineScreen(
     onQuoteClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit,
     postedAt: Long = 0L,
+    tabRetapped: Long = 0L,
     userAvatarUrl: String? = null,
     viewModel: TimelineViewModel = hiltViewModel()
 ) {
@@ -61,6 +67,7 @@ fun TimelineScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(postedAt) {
         if (postedAt > 0L) {
@@ -70,6 +77,16 @@ fun TimelineScreen(
                 .dropWhile { !it.isRefreshing }
                 .first { !it.isRefreshing }
             listState.scrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(tabRetapped) {
+        if (tabRetapped > 0L) {
+            if (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
+                viewModel.refresh()
+            } else {
+                listState.animateScrollToItem(0)
+            }
         }
     }
 
@@ -83,6 +100,26 @@ fun TimelineScreen(
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore && uiState.hasNextPage && !uiState.isLoadingMore) {
             viewModel.loadMore()
+        }
+    }
+
+    // Reaction picker bottom sheet
+    val pickerPostId = uiState.reactionPickerPostId
+    if (pickerPostId != null) {
+        val pickerPost = uiState.posts.find {
+            it.id == pickerPostId || it.sharedPost?.id == pickerPostId
+        }
+        val targetPost = pickerPost?.sharedPost ?: pickerPost
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.hideReactionPicker() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            ReactionPicker(
+                reactionGroups = targetPost?.reactionGroups ?: emptyList(),
+                isSubmitting = false,
+                onEmojiSelect = { emoji -> viewModel.toggleReaction(pickerPostId, emoji) },
+                onClose = { viewModel.hideReactionPicker() }
+            )
         }
     }
 
@@ -176,7 +213,8 @@ fun TimelineScreen(
                                         }
                                     },
                                     onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
-                                    onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                    onReactionClick = { viewModel.toggleFavourite(post.sharedPost?.id ?: post.id) },
+                                    onReactionLongPress = { viewModel.showReactionPicker(post.sharedPost?.id ?: post.id) },
                                     onExternalShareClick = {
                                         val displayPost = post.sharedPost ?: post
                                         val shareUrl = displayPost.url ?: displayPost.iri

@@ -12,6 +12,7 @@ fragment MediaFields on PostMedium {
     alt
     height
     width
+    type
 }
 
 fragment EngagementStatsFields on PostEngagementStats {
