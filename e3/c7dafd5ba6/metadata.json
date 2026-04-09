@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "e3c7dafd5ba6",
+  "strategy": "manual-commit",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e3/c7dafd5ba6/0/metadata.json",
+      "transcript": "/e3/c7dafd5ba6/0/full.jsonl",
+      "context": "/e3/c7dafd5ba6/0/context.md",
+      "content_hash": "/e3/c7dafd5ba6/0/content_hash.txt",
+      "prompt": "/e3/c7dafd5ba6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 21,
+    "cache_creation_tokens": 4524,
+    "cache_read_tokens": 2587751,
+    "output_tokens": 2278,
+    "api_call_count": 12
+  }
+}
