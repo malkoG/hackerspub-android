@@ -18,8 +18,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +47,7 @@ import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.PostCard
+import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.theme.LocalAppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +100,26 @@ fun TimelineScreen(
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore && uiState.hasNextPage && !uiState.isLoadingMore) {
             viewModel.loadMore()
+        }
+    }
+
+    // Reaction picker bottom sheet
+    val pickerPostId = uiState.reactionPickerPostId
+    if (pickerPostId != null) {
+        val pickerPost = uiState.posts.find {
+            it.id == pickerPostId || it.sharedPost?.id == pickerPostId
+        }
+        val targetPost = pickerPost?.sharedPost ?: pickerPost
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.hideReactionPicker() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            ReactionPicker(
+                reactionGroups = targetPost?.reactionGroups ?: emptyList(),
+                isSubmitting = false,
+                onEmojiSelect = { emoji -> viewModel.toggleReaction(pickerPostId, emoji) },
+                onClose = { viewModel.hideReactionPicker() }
+            )
         }
     }
 
@@ -190,7 +213,8 @@ fun TimelineScreen(
                                         }
                                     },
                                     onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
-                                    onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                    onReactionClick = { viewModel.toggleFavourite(post.sharedPost?.id ?: post.id) },
+                                    onReactionLongPress = { viewModel.showReactionPicker(post.sharedPost?.id ?: post.id) },
                                     onExternalShareClick = {
                                         val displayPost = post.sharedPost ?: post
                                         val shareUrl = displayPost.url ?: displayPost.iri

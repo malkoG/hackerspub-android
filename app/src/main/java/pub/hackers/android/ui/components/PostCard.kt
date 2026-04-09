@@ -90,6 +90,7 @@ fun PostCard(
     onShareClick: (() -> Unit)? = null,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
+    onReactionLongPress: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0,
@@ -113,6 +114,7 @@ fun PostCard(
             onShareClick = onShareClick,
             onQuoteClick = onQuoteClick,
             onReactionClick = onReactionClick,
+            onReactionLongPress = onReactionLongPress,
             onExternalShareClick = onExternalShareClick,
             onQuotedPostClick = onQuotedPostClick,
             contentMaxLength = contentMaxLength,
@@ -130,6 +132,7 @@ private fun NoteCard(
     onShareClick: (() -> Unit)? = null,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
+    onReactionLongPress: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0,
@@ -500,6 +503,7 @@ private fun NoteCard(
                     onShareClick = onShareClick,
                     onQuoteClick = onQuoteClick,
                     onReactionClick = onReactionClick,
+                    onReactionLongPress = onReactionLongPress,
                     onExternalShareClick = onExternalShareClick
                 )
             }
@@ -515,6 +519,7 @@ private fun EngagementBar(
     onShareClick: (() -> Unit)?,
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
+    onReactionLongPress: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null
 ) {
     val colors = LocalAppColors.current
@@ -546,14 +551,12 @@ private fun EngagementBar(
             isActive = isShared
         )
 
-        // Heart/React
-        EngagementButton(
-            icon = if (isReacted) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+        // Heart/React — tap to toggle ❤️, long-press for emoji picker
+        ReactionEngagementButton(
+            isReacted = isReacted,
             count = post.engagementStats.reactions,
-            contentDescription = stringResource(R.string.reactions),
             onClick = onReactionClick,
-            activeColor = colors.reaction,
-            isActive = isReacted
+            onLongClick = onReactionLongPress
         )
 
         // Quote
@@ -605,6 +608,47 @@ private fun EngagementButton(
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
+                tint = tint,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        if (count > 0) {
+            Text(
+                text = formatCount(count),
+                style = typography.labelMedium,
+                color = tint
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReactionEngagementButton(
+    isReacted: Boolean,
+    count: Int,
+    onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)? = null
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val tint = if (isReacted) colors.reaction else colors.textSecondary
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .combinedClickable(
+                    onClick = { onClick?.invoke() },
+                    onLongClick = { onLongClick?.invoke() }
+                )
+        ) {
+            Icon(
+                imageVector = if (isReacted) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                contentDescription = stringResource(R.string.reactions),
                 tint = tint,
                 modifier = Modifier.size(20.dp)
             )

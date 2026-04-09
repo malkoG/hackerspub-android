@@ -15,10 +15,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +40,7 @@ import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.PostCard
+import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
 
@@ -73,6 +76,26 @@ fun ExploreScreen(
 
     LaunchedEffect(uiState.selectedTab) {
         listState.scrollToItem(0)
+    }
+
+    // Reaction picker bottom sheet
+    val pickerPostId = uiState.reactionPickerPostId
+    if (pickerPostId != null) {
+        val pickerPost = uiState.posts.find {
+            it.id == pickerPostId || it.sharedPost?.id == pickerPostId
+        }
+        val targetPost = pickerPost?.sharedPost ?: pickerPost
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.hideReactionPicker() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            ReactionPicker(
+                reactionGroups = targetPost?.reactionGroups ?: emptyList(),
+                isSubmitting = false,
+                onEmojiSelect = { emoji -> viewModel.toggleReaction(pickerPostId, emoji) },
+                onClose = { viewModel.hideReactionPicker() }
+            )
+        }
     }
 
     Scaffold(
@@ -185,7 +208,12 @@ fun ExploreScreen(
                                         onQuoteClick = if (isLoggedIn) {
                                             { onQuoteClick(post.sharedPost?.id ?: post.id) }
                                         } else null,
-                                        onReactionClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                        onReactionClick = if (isLoggedIn) {
+                                            { viewModel.toggleFavourite(post.sharedPost?.id ?: post.id) }
+                                        } else null,
+                                        onReactionLongPress = if (isLoggedIn) {
+                                            { viewModel.showReactionPicker(post.sharedPost?.id ?: post.id) }
+                                        } else null,
                                         onExternalShareClick = {
                                             val displayPost = post.sharedPost ?: post
                                             val shareUrl = displayPost.url ?: displayPost.iri
