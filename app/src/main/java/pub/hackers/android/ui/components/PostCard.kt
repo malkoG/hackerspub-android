@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -824,64 +826,148 @@ fun QuotedPostPreview(
 // Step 6: MediaGrid with 8dp radius
 @Composable
 fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
+    val gridHeight = 200.dp
+    val gap = 4.dp
+
     when (media.size) {
+        0 -> {}
         1 -> {
             MediaImage(
                 url = media[0].url,
                 alt = media[0].alt,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(gridHeight)
                     .clip(RoundedCornerShape(AppShapes.mediaRadius))
             )
         }
         2 -> {
+            // a | b
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                media.forEach { item ->
+                MediaImage(
+                    url = media[0].url,
+                    alt = media[0].alt,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(gridHeight)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
+                MediaImage(
+                    url = media[1].url,
+                    alt = media[1].alt,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(gridHeight)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
+            }
+        }
+        3 -> {
+            // a | (b / c)
+            val halfHeight = (gridHeight - gap) / 2
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                MediaImage(
+                    url = media[0].url,
+                    alt = media[0].alt,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(gridHeight)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.weight(1f)
+                ) {
                     MediaImage(
-                        url = item.url,
-                        alt = item.alt,
+                        url = media[1].url,
+                        alt = media[1].alt,
                         modifier = Modifier
-                            .weight(1f)
-                            .height(150.dp)
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
+                    MediaImage(
+                        url = media[2].url,
+                        alt = media[2].alt,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
                             .clip(RoundedCornerShape(AppShapes.mediaRadius))
                     )
                 }
             }
         }
         else -> {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            // (a / c) | (b / d+)
+            val remaining = media.size - 4
+            val halfHeight = (gridHeight - gap) / 2
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    media.take(2).forEach { item ->
-                        MediaImage(
-                            url = item.url,
-                            alt = item.alt,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(100.dp)
-                                .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                        )
-                    }
+                    MediaImage(
+                        url = media[0].url,
+                        alt = media[0].alt,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
+                    MediaImage(
+                        url = media[2].url,
+                        alt = media[2].alt,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
                 }
-                if (media.size > 2) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    MediaImage(
+                        url = media[1].url,
+                        alt = media[1].alt,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
                     ) {
-                        media.drop(2).take(2).forEach { item ->
-                            MediaImage(
-                                url = item.url,
-                                alt = item.alt,
+                        MediaImage(
+                            url = media[3].url,
+                            alt = media[3].alt,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        if (remaining > 0) {
+                            Box(
+                                contentAlignment = Alignment.Center,
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                            )
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                            ) {
+                                Text(
+                                    text = "+$remaining",
+                                    color = Color.White,
+                                    style = LocalAppTypography.current.titleLarge
+                                )
+                            }
                         }
                     }
                 }
@@ -891,7 +977,7 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
 }
 
 @Composable
-private fun MediaImage(
+fun MediaImage(
     url: String,
     alt: String?,
     modifier: Modifier = Modifier
@@ -900,11 +986,12 @@ private fun MediaImage(
     val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
 
-    Box {
+    Box(modifier = modifier) {
         AsyncImage(
             model = url,
             contentDescription = alt,
-            modifier = modifier
+            modifier = Modifier
+                .fillMaxSize()
                 .border(
                     width = 1.dp,
                     color = colors.divider,
