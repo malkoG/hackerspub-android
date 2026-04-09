@@ -1,0 +1,46 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "140531bc2cc8",
+  "session_id": "ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-09T22:11:51.613735Z",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/pub/hackers/android/MainActivity.kt",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/navigation/HackersPubUrlRouter.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/InAppBrowserUriHandler.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/LinkPreviewCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/explore/ExploreScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/explore/ExploreViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/search/SearchScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineViewModel.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "66b6f4c7-ee01-4aa0-b0e0-039658122999",
+  "checkpoint_transcript_start": 1274,
+  "transcript_lines_at_start": 1274,
+  "token_usage": {
+    "input_tokens": 65,
+    "cache_creation_tokens": 41235,
+    "cache_read_tokens": 9392489,
+    "output_tokens": 18353,
+    "api_call_count": 58
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-09T22:11:50.856999Z",
+    "agent_lines": 276,
+    "human_added": 177,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 453,
+    "agent_percentage": 60.9271523178808
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599.jsonl"
+}

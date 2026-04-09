@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "140531bc2cc8",
+  "strategy": "manual-commit",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/pub/hackers/android/MainActivity.kt",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/navigation/HackersPubUrlRouter.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/InAppBrowserUriHandler.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/LinkPreviewCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/explore/ExploreScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/explore/ExploreViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/search/SearchScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineViewModel.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/14/0531bc2cc8/0/metadata.json",
+      "transcript": "/14/0531bc2cc8/0/full.jsonl",
+      "context": "/14/0531bc2cc8/0/context.md",
+      "content_hash": "/14/0531bc2cc8/0/content_hash.txt",
+      "prompt": "/14/0531bc2cc8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 65,
+    "cache_creation_tokens": 41235,
+    "cache_read_tokens": 9392489,
+    "output_tokens": 18353,
+    "api_call_count": 58
+  }
+}
