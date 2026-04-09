@@ -11,6 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +21,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +35,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -46,6 +54,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -983,8 +995,7 @@ fun MediaImage(
     modifier: Modifier = Modifier
 ) {
     val colors = LocalAppColors.current
-    val context = LocalContext.current
-    var showMenu by remember { mutableStateOf(false) }
+    var showPreview by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         AsyncImage(
@@ -997,41 +1008,110 @@ fun MediaImage(
                     color = colors.divider,
                     shape = RoundedCornerShape(AppShapes.mediaRadius)
                 )
-                .combinedClickable(
-                onClick = {
-                    // Open image in browser/viewer
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    context.startActivity(intent)
-                },
-                onLongClick = { showMenu = true }
-            ),
+                .clickable { showPreview = true },
             contentScale = ContentScale.Crop
         )
+    }
 
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false }
+    if (showPreview) {
+        MediaPreviewDialog(
+            url = url,
+            alt = alt,
+            onDismiss = { showPreview = false }
+        )
+    }
+}
+
+@Composable
+private fun MediaPreviewDialog(
+    url: String,
+    alt: String?,
+    onDismiss: () -> Unit
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+    val transformState = rememberTransformableState { zoomChange, panChange, _ ->
+        scale = (scale * zoomChange).coerceIn(1f, 5f)
+        if (scale > 1f) {
+            offsetX += panChange.x
+            offsetY += panChange.y
+        } else {
+            offsetX = 0f
+            offsetY = 0f
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { if (scale <= 1f) onDismiss() }
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.share)) },
-                onClick = {
-                    showMenu = false
-                    val sendIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, url)
-                        type = "text/plain"
-                    }
-                    context.startActivity(Intent.createChooser(sendIntent, null))
-                }
+            // Close button
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.cancel),
+                    tint = Color.White
+                )
+            }
+
+            // Zoomable image
+            AsyncImage(
+                model = url,
+                contentDescription = alt,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+                    .padding(16.dp)
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                        translationY = offsetY
+                    )
+                    .transformable(state = transformState),
+                contentScale = ContentScale.Fit
             )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.open_in_browser)) },
-                onClick = {
-                    showMenu = false
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    context.startActivity(intent)
+
+            // Alt text
+            if (!alt.isNullOrBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Black.copy(alpha = 0.7f),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(start = 16.dp, end = 64.dp, top = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = alt,
+                        style = typography.bodyMedium,
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp)
+                    )
                 }
-            )
+            }
         }
     }
 }
