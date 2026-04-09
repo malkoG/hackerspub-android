@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -550,7 +551,9 @@ private fun EngagementBar(
     val isReacted = post.reactionGroups.any { it.viewerHasReacted }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset(x = (-14).dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Reply
@@ -581,10 +584,11 @@ private fun EngagementBar(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // External share — always textSecondary
+        // External share — always textSecondary, offset back to align right edge
         if (onExternalShareClick != null) {
             IconButton(
-                onClick = onExternalShareClick
+                onClick = onExternalShareClick,
+                modifier = Modifier.offset(x = 14.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Share,
