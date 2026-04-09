@@ -554,6 +554,45 @@ private fun PostDetailContent(
                     )
                 }
 
+                if (!isTranslating && translationError == null) {
+                    Text(
+                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(R.string.translate),
+                        style = typography.labelMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable {
+                                if (showTranslated) {
+                                    showTranslated = false
+                                    return@clickable
+                                }
+                                translatedContent?.let {
+                                    showTranslated = true
+                                    return@clickable
+                                }
+                                val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                    .getLocales(context.resources.configuration)
+                                    .get(0)?.language ?: Locale.getDefault().language
+                                scope.launch {
+                                    isTranslating = true
+                                    translationError = null
+                                    try {
+                                        val translated = translateDetailContent(
+                                            html = post.content,
+                                            targetLanguageTag = targetLanguageTag
+                                        )
+                                        translatedContent = translated
+                                        showTranslated = true
+                                    } catch (_: Exception) {
+                                        translationError = translationFailedText
+                                    } finally {
+                                        isTranslating = false
+                                    }
+                                }
+                            }
+                    )
+                }
+
                 if (post.media.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
                     MediaGrid(media = post.media)
@@ -739,47 +778,6 @@ private fun PostDetailContent(
                             imageVector = Icons.Outlined.FormatQuote,
                             contentDescription = stringResource(R.string.quotes),
                             tint = colors.textSecondary
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            if (isTranslating) return@IconButton
-                            if (showTranslated) {
-                                showTranslated = false
-                                return@IconButton
-                            }
-                            translatedContent?.let {
-                                showTranslated = true
-                                return@IconButton
-                            }
-                            val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                                .getLocales(context.resources.configuration)
-                                .get(0)?.language ?: Locale.getDefault().language
-                            scope.launch {
-                                isTranslating = true
-                                translationError = null
-                                try {
-                                    val translated = translateDetailContent(
-                                        html = post.content,
-                                        targetLanguageTag = targetLanguageTag
-                                    )
-                                    translatedContent = translated
-                                    showTranslated = true
-                                } catch (_: Exception) {
-                                    translationError = translationFailedText
-                                } finally {
-                                    isTranslating = false
-                                }
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Translate,
-                            contentDescription = if (showTranslated)
-                                stringResource(R.string.show_original)
-                            else
-                                stringResource(R.string.translate),
-                            tint = if (showTranslated) colors.accent else colors.textSecondary
                         )
                     }
                     IconButton(onClick = onExternalShareClick) {
