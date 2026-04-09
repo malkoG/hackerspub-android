@@ -180,7 +180,10 @@ private fun NoteCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(0.5f)
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 8.dp)
+                    .clickable {
+                        onQuotedPostClick?.invoke(displayPost.replyTarget!!.id)
+                    },
                 verticalAlignment = Alignment.Top
             ) {
                 AsyncImage(
@@ -204,7 +207,10 @@ private fun NoteCard(
                     HtmlContent(
                         html = displayPost.replyTarget!!.content,
                         maxLines = 2,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        onTextClick = {
+                            onQuotedPostClick?.invoke(displayPost.replyTarget!!.id)
+                        }
                     )
                 }
             }

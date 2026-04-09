@@ -452,7 +452,9 @@ private fun PostDetailContent(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .clickable { onPostClick(post.replyTarget!!.id) }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Reply,
@@ -1052,7 +1054,8 @@ private fun ReplyTargetPreview(
             html = post.content,
             maxLines = 3,
             modifier = Modifier.fillMaxWidth(),
-            onMentionClick = onProfileClick
+            onMentionClick = onProfileClick,
+            onTextClick = onClick
         )
 
         if (post.media.isNotEmpty()) {
