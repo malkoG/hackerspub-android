@@ -1071,6 +1071,8 @@ private fun MediaCarousel(media: List<pub.hackers.android.domain.model.Media>) {
         MediaImage(
             url = media[0].url,
             alt = media[0].alt,
+            isVideo = media[0].isVideo,
+            thumbnailUrl = media[0].thumbnailUrl,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
@@ -1087,6 +1089,8 @@ private fun MediaCarousel(media: List<pub.hackers.android.domain.model.Media>) {
                 MediaImage(
                     url = item.url,
                     alt = item.alt,
+                    isVideo = item.isVideo,
+                    thumbnailUrl = item.thumbnailUrl,
                     modifier = Modifier
                         .height(250.dp)
                         .width(300.dp)

@@ -858,7 +858,8 @@ class HackersPubRepository @Inject constructor(
             thumbnailUrl = thumbnailUrl,
             alt = alt,
             height = height,
-            width = width
+            width = width,
+            mediaType = type?.toString()
         )
     }
 

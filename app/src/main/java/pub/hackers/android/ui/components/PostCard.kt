@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -835,6 +836,17 @@ fun QuotedPostPreview(
     }
 }
 
+@Composable
+private fun GridMediaItem(item: pub.hackers.android.domain.model.Media, modifier: Modifier) {
+    MediaImage(
+        url = item.url,
+        alt = item.alt,
+        modifier = modifier,
+        isVideo = item.isVideo,
+        thumbnailUrl = item.thumbnailUrl
+    )
+}
+
 // Step 6: MediaGrid with 8dp radius
 @Composable
 fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
@@ -844,14 +856,10 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
     when (media.size) {
         0 -> {}
         1 -> {
-            MediaImage(
-                url = media[0].url,
-                alt = media[0].alt,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(gridHeight)
-                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
-            )
+            GridMediaItem(media[0], Modifier
+                .fillMaxWidth()
+                .height(gridHeight)
+                .clip(RoundedCornerShape(AppShapes.mediaRadius)))
         }
         2 -> {
             // a | b
@@ -859,22 +867,8 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                 horizontalArrangement = Arrangement.spacedBy(gap),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                MediaImage(
-                    url = media[0].url,
-                    alt = media[0].alt,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(gridHeight)
-                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                )
-                MediaImage(
-                    url = media[1].url,
-                    alt = media[1].alt,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(gridHeight)
-                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                )
+                GridMediaItem(media[0], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                GridMediaItem(media[1], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
             }
         }
         3 -> {
@@ -884,34 +878,13 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                 horizontalArrangement = Arrangement.spacedBy(gap),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                MediaImage(
-                    url = media[0].url,
-                    alt = media[0].alt,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(gridHeight)
-                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                )
+                GridMediaItem(media[0], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
                 Column(
                     verticalArrangement = Arrangement.spacedBy(gap),
                     modifier = Modifier.weight(1f)
                 ) {
-                    MediaImage(
-                        url = media[1].url,
-                        alt = media[1].alt,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                    )
-                    MediaImage(
-                        url = media[2].url,
-                        alt = media[2].alt,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                    )
+                    GridMediaItem(media[1], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(media[2], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
                 }
             }
         }
@@ -927,46 +900,21 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                     verticalArrangement = Arrangement.spacedBy(gap),
                     modifier = Modifier.weight(1f)
                 ) {
-                    MediaImage(
-                        url = media[0].url,
-                        alt = media[0].alt,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                    )
-                    MediaImage(
-                        url = media[2].url,
-                        alt = media[2].alt,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                    )
+                    GridMediaItem(media[0], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(media[2], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
                 }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(gap),
                     modifier = Modifier.weight(1f)
                 ) {
-                    MediaImage(
-                        url = media[1].url,
-                        alt = media[1].alt,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(halfHeight)
-                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
-                    )
+                    GridMediaItem(media[1], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(halfHeight)
                             .clip(RoundedCornerShape(AppShapes.mediaRadius))
                     ) {
-                        MediaImage(
-                            url = media[3].url,
-                            alt = media[3].alt,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        GridMediaItem(media[3], Modifier.fillMaxSize())
                         if (remaining > 0) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -992,14 +940,17 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
 fun MediaImage(
     url: String,
     alt: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isVideo: Boolean = false,
+    thumbnailUrl: String? = null
 ) {
     val colors = LocalAppColors.current
+    val context = LocalContext.current
     var showPreview by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         AsyncImage(
-            model = url,
+            model = if (isVideo) (thumbnailUrl ?: url) else url,
             contentDescription = alt,
             modifier = Modifier
                 .fillMaxSize()
@@ -1008,9 +959,33 @@ fun MediaImage(
                     color = colors.divider,
                     shape = RoundedCornerShape(AppShapes.mediaRadius)
                 )
-                .clickable { showPreview = true },
+                .clickable {
+                    if (isVideo) {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        intent.setDataAndType(Uri.parse(url), "video/*")
+                        context.startActivity(intent)
+                    } else {
+                        showPreview = true
+                    }
+                },
             contentScale = ContentScale.Crop
         )
+
+        if (isVideo) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Play video",
+                    tint = Color.White,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        }
     }
 
     if (showPreview) {
