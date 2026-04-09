@@ -1,0 +1,135 @@
+Support weblink.
+
+For example,
+https://hackers.pub/@<username> -> should be linked to detail page
+https://hackers.pub/verify/... -> should be linked to verify page
+
+For detail, reference ../hackerspub
+
+---
+
+Do I need assetlinks.json for this implementation? even though for local testing?
+
+---
+
+Oh, so we can open through chooser dialog?
+
+---
+
+How about tags path?
+
+---
+
+We already support search featuyre
+
+---
+
+Only redirects to search page. Not filled in
+
+---
+
+For sending email, we don't need to fill in urltemplate right?
+
+---
+
+But, i got email specifying hackerspub://
+
+---
+
+I want direct url access. I got email.hackers.pub, that's not i want
+
+---
+
+[Request interrupted by user]
+
+---
+
+Wait, that's not i want
+
+---
+
+How can I redirection to invoke app link?
+
+---
+
+No way for local testing????
+
+---
+
+Is that the best? I want the oneshot
+
+---
+
+Analyze email-handler
+
+---
+
+But, hackerspub:// itself didn't hyperlinked
+
+---
+
+But, I got redirection link
+
+---
+
+How can I redirection to be navigate to local app?
+
+---
+
+So, I need to update the server, too?
+
+---
+
+Okay, rollback to hackerspub://
+
+---
+
+Okay, for tag, instead of tags/%~~, tags/~~
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
