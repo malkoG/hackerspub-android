@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "3a393775d088",
+  "session_id": "ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-09T23:21:24.708894Z",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "85ad722f-c3c3-4fd5-aafc-53c4b89f6262",
+  "checkpoint_transcript_start": 3094,
+  "transcript_lines_at_start": 3094,
+  "token_usage": {
+    "input_tokens": 53,
+    "cache_creation_tokens": 13508,
+    "cache_read_tokens": 11021635,
+    "output_tokens": 7819,
+    "api_call_count": 38
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-09T23:21:23.4221Z",
+    "agent_lines": 111,
+    "human_added": 295,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 406,
+    "agent_percentage": 27.339901477832512
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599.jsonl"
+}
