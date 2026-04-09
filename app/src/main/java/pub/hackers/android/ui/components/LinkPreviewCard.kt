@@ -1,7 +1,5 @@
 package pub.hackers.android.ui.components
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -20,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -39,7 +37,7 @@ fun LinkPreviewCard(
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
-    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val domain = try {
         URI(link.url).host?.removePrefix("www.") ?: link.url
     } catch (_: Exception) {
@@ -62,8 +60,7 @@ fun LinkPreviewCard(
             )
             .clip(RoundedCornerShape(AppShapes.mediaRadius))
             .clickable {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
-                context.startActivity(intent)
+                uriHandler.openUri(link.url)
             }
     ) {
         if (link.image != null && isWideImage) {

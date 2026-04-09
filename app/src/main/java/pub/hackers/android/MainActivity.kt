@@ -20,6 +20,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import pub.hackers.android.data.local.SessionManager
+import pub.hackers.android.navigation.HackersPubRoute
+import pub.hackers.android.navigation.HackersPubUrlRouter
+import pub.hackers.android.navigation.toNavRoute
 import pub.hackers.android.ui.HackersPubApp
 import pub.hackers.android.ui.theme.HackersPubTheme
 import pub.hackers.android.ui.theme.LocalAppColors
@@ -95,12 +98,27 @@ class MainActivity : ComponentActivity() {
 
     private fun handleDeepLink(intent: Intent?) {
         val data = intent?.data ?: return
+
+        // Handle legacy custom scheme
         if (data.scheme == "hackerspub" && data.host == "verify") {
             val token = data.getQueryParameter("token")
             val code = data.getQueryParameter("code")
             if (token != null && code != null) {
                 deepLinkData = DeepLinkData(token = token, code = code)
             }
+            return
+        }
+
+        // Handle HTTPS web links
+        val url = data.toString()
+        when (val route = HackersPubUrlRouter.resolve(url)) {
+            is HackersPubRoute.SignInVerification -> {
+                deepLinkData = DeepLinkData(token = route.token, code = route.code)
+            }
+            is HackersPubRoute.Profile, is HackersPubRoute.NoteDetail, is HackersPubRoute.TagSearch -> {
+                navigationIntent = NavigationIntent(route = route.toNavRoute())
+            }
+            null -> { /* Not a recognized URL, ignore */ }
         }
     }
 }

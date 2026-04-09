@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ fun SearchScreen(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit = {},
     onQuoteClick: (String) -> Unit = {},
+    initialQuery: String? = null,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -56,6 +58,13 @@ fun SearchScreen(
     val context = LocalContext.current
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+
+    LaunchedEffect(initialQuery) {
+        if (initialQuery != null && !uiState.hasSearched) {
+            viewModel.updateQuery(initialQuery)
+            viewModel.search()
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),

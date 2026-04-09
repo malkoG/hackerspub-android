@@ -77,11 +77,19 @@ sealed class Screen(
         Icons.Outlined.Explore
     )
     data object Search : Screen(
-        "search",
+        "search?initialQuery={initialQuery}",
         R.string.nav_search,
         Icons.Filled.Search,
         Icons.Outlined.Search
-    )
+    ) {
+        val baseRoute = "search"
+        fun createRoute(initialQuery: String? = null): String {
+            return if (initialQuery != null) {
+                val encoded = android.net.Uri.encode(initialQuery)
+                "search?initialQuery=$encoded"
+            } else "search"
+        }
+    }
     data object Settings : Screen(
         "settings",
         R.string.nav_settings,
@@ -170,7 +178,12 @@ fun HackersPubApp(
         }
     }
 
-    ProvideInAppBrowserUriHandler(preferencesManager = viewModel.preferencesManager) {
+    ProvideInAppBrowserUriHandler(
+        preferencesManager = viewModel.preferencesManager,
+        onInternalNavigate = { route ->
+            navController.navigate(route) { launchSingleTop = true }
+        }
+    ) {
     CompositionLocalProvider(LocalFontScale provides (fontSizePercent / 100f)) {
 
     val bottomNavItems = if (isLoggedIn) {
@@ -195,7 +208,7 @@ fun HackersPubApp(
                 hasNotificationDot = hasUnread,
             ),
             BottomNavItem(
-                route = Screen.Search.route,
+                route = Screen.Search.baseRoute,
                 label = stringResource(R.string.nav_search),
                 icon = Icons.Outlined.Search,
                 selectedIcon = Icons.Filled.Search,
@@ -210,7 +223,7 @@ fun HackersPubApp(
                 selectedIcon = Icons.Filled.Explore,
             ),
             BottomNavItem(
-                route = Screen.Search.route,
+                route = Screen.Search.baseRoute,
                 label = stringResource(R.string.nav_search),
                 icon = Icons.Outlined.Search,
                 selectedIcon = Icons.Filled.Search,
@@ -227,14 +240,15 @@ fun HackersPubApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val showBottomBar = bottomNavItems.any { it.route == currentRoute }
+    val currentBaseRoute = currentRoute?.substringBefore('?')
+    val showBottomBar = bottomNavItems.any { it.route == currentBaseRoute }
 
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
                 BottomNavBar(
                     items = bottomNavItems,
-                    selectedRoute = currentRoute ?: "",
+                    selectedRoute = currentBaseRoute ?: "",
                     onItemSelected = { item ->
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -311,8 +325,19 @@ fun HackersPubApp(
                 )
             }
 
-            composable(Screen.Search.route) {
+            composable(
+                route = Screen.Search.route,
+                arguments = listOf(
+                    navArgument("initialQuery") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val initialQuery = backStackEntry.arguments?.getString("initialQuery")
                 SearchScreen(
+                    initialQuery = initialQuery,
                     onPostClick = { postId ->
                         navController.navigate(DetailScreen.PostDetail.createRoute(postId))
                     },
