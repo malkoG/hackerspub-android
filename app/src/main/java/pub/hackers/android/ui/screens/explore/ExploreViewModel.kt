@@ -160,17 +160,31 @@ class ExploreViewModel @Inject constructor(
     }
 
     fun sharePost(postId: String) {
+        _uiState.update { state ->
+            state.copy(
+                posts = state.posts.map { post ->
+                    if (post.id == postId) {
+                        post.copy(
+                            viewerHasShared = true,
+                            engagementStats = post.engagementStats.copy(
+                                shares = post.engagementStats.shares + 1
+                            )
+                        )
+                    } else post
+                }
+            )
+        }
         viewModelScope.launch {
             repository.sharePost(postId)
-                .onSuccess {
+                .onFailure {
                     _uiState.update { state ->
                         state.copy(
                             posts = state.posts.map { post ->
                                 if (post.id == postId) {
                                     post.copy(
-                                        viewerHasShared = true,
+                                        viewerHasShared = false,
                                         engagementStats = post.engagementStats.copy(
-                                            shares = post.engagementStats.shares + 1
+                                            shares = maxOf(0, post.engagementStats.shares - 1)
                                         )
                                     )
                                 } else post
@@ -182,17 +196,31 @@ class ExploreViewModel @Inject constructor(
     }
 
     fun unsharePost(postId: String) {
+        _uiState.update { state ->
+            state.copy(
+                posts = state.posts.map { post ->
+                    if (post.id == postId) {
+                        post.copy(
+                            viewerHasShared = false,
+                            engagementStats = post.engagementStats.copy(
+                                shares = maxOf(0, post.engagementStats.shares - 1)
+                            )
+                        )
+                    } else post
+                }
+            )
+        }
         viewModelScope.launch {
             repository.unsharePost(postId)
-                .onSuccess {
+                .onFailure {
                     _uiState.update { state ->
                         state.copy(
                             posts = state.posts.map { post ->
                                 if (post.id == postId) {
                                     post.copy(
-                                        viewerHasShared = false,
+                                        viewerHasShared = true,
                                         engagementStats = post.engagementStats.copy(
-                                            shares = maxOf(0, post.engagementStats.shares - 1)
+                                            shares = post.engagementStats.shares + 1
                                         )
                                     )
                                 } else post
@@ -215,6 +243,29 @@ class ExploreViewModel @Inject constructor(
         val existingGroup = targetPost.reactionGroups.find { it.emoji == emoji }
         val viewerHasReacted = existingGroup?.viewerHasReacted == true
 
+        _uiState.update { state ->
+            state.copy(
+                posts = state.posts.map { p ->
+                    val target = p.sharedPost ?: p
+                    if (target.id == targetPost.id) {
+                        val updatedGroups = updateReactionGroups(
+                            target.reactionGroups, emoji, viewerHasReacted
+                        )
+                        val totalReactions = updatedGroups.sumOf { it.count }
+                        val updatedTarget = target.copy(
+                            reactionGroups = updatedGroups,
+                            engagementStats = target.engagementStats.copy(
+                                reactions = totalReactions
+                            )
+                        )
+                        if (p.sharedPost != null) p.copy(sharedPost = updatedTarget)
+                        else updatedTarget
+                    } else p
+                },
+                reactionPickerPostId = null
+            )
+        }
+
         viewModelScope.launch {
             val result = if (viewerHasReacted) {
                 repository.removeReactionFromPost(targetPost.id, emoji)
@@ -222,27 +273,26 @@ class ExploreViewModel @Inject constructor(
                 repository.addReactionToPost(targetPost.id, emoji)
             }
 
-            result.onSuccess {
+            result.onFailure {
                 _uiState.update { state ->
                     state.copy(
                         posts = state.posts.map { p ->
                             val target = p.sharedPost ?: p
                             if (target.id == targetPost.id) {
-                                val updatedGroups = updateReactionGroups(
-                                    target.reactionGroups, emoji, viewerHasReacted
+                                val revertedGroups = updateReactionGroups(
+                                    target.reactionGroups, emoji, !viewerHasReacted
                                 )
-                                val totalReactions = updatedGroups.sumOf { it.count }
-                                val updatedTarget = target.copy(
-                                    reactionGroups = updatedGroups,
+                                val totalReactions = revertedGroups.sumOf { it.count }
+                                val revertedTarget = target.copy(
+                                    reactionGroups = revertedGroups,
                                     engagementStats = target.engagementStats.copy(
                                         reactions = totalReactions
                                     )
                                 )
-                                if (p.sharedPost != null) p.copy(sharedPost = updatedTarget)
-                                else updatedTarget
+                                if (p.sharedPost != null) p.copy(sharedPost = revertedTarget)
+                                else revertedTarget
                             } else p
-                        },
-                        reactionPickerPostId = null
+                        }
                     )
                 }
             }
