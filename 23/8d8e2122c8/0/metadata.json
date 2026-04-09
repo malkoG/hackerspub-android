@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "238d8e2122c8",
+  "session_id": "ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-09T21:59:47.385289Z",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "6857997f-0922-4b87-85bc-379a168c6592",
+  "token_usage": {
+    "input_tokens": 206,
+    "cache_creation_tokens": 137557,
+    "cache_read_tokens": 13632878,
+    "output_tokens": 42521,
+    "api_call_count": 142
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-09T21:59:46.809455Z",
+    "agent_lines": 30,
+    "human_added": 59,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 89,
+    "agent_percentage": 33.70786516853933
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599.jsonl"
+}
