@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a8dd8e28accb",
+  "strategy": "manual-commit",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/HtmlContent.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a8/dd8e28accb/0/metadata.json",
+      "transcript": "/a8/dd8e28accb/0/full.jsonl",
+      "context": "/a8/dd8e28accb/0/context.md",
+      "content_hash": "/a8/dd8e28accb/0/content_hash.txt",
+      "prompt": "/a8/dd8e28accb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 21,
+    "cache_creation_tokens": 8522,
+    "cache_read_tokens": 4011429,
+    "output_tokens": 3700,
+    "api_call_count": 18
+  }
+}
