@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "d2298056b06b",
+  "strategy": "manual-commit",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d2/298056b06b/0/metadata.json",
+      "transcript": "/d2/298056b06b/0/full.jsonl",
+      "context": "/d2/298056b06b/0/context.md",
+      "content_hash": "/d2/298056b06b/0/content_hash.txt",
+      "prompt": "/d2/298056b06b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 29,
+    "cache_creation_tokens": 11690,
+    "cache_read_tokens": 6832601,
+    "output_tokens": 3339,
+    "api_call_count": 25
+  }
+}
