@@ -1,0 +1,681 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+Support weblink.
+
+For example,
+https://hackers.pub/@<username> -> should be linked to detail page
+https://hackers.pub/verify/... -> should be linked to verify page
+
+For detail, reference ../hackerspub
+
+### Prompt 2
+
+Do I need assetlinks.json for this implementation? even though for local testing?
+
+### Prompt 3
+
+Oh, so we can open through chooser dialog?
+
+### Prompt 4
+
+How about tags path?
+
+### Prompt 5
+
+We already support search featuyre
+
+### Prompt 6
+
+Only redirects to search page. Not filled in
+
+### Prompt 7
+
+For sending email, we don't need to fill in urltemplate right?
+
+### Prompt 8
+
+But, i got email specifying hackerspub://
+
+### Prompt 9
+
+I want direct url access. I got email.hackers.pub, that's not i want
+
+### Prompt 10
+
+[Request interrupted by user]
+
+### Prompt 11
+
+Wait, that's not i want
+
+### Prompt 12
+
+How can I redirection to invoke app link?
+
+### Prompt 13
+
+No way for local testing????
+
+### Prompt 14
+
+Is that the best? I want the oneshot
+
+### Prompt 15
+
+Analyze email-handler
+
+### Prompt 16
+
+But, hackerspub:// itself didn't hyperlinked
+
+### Prompt 17
+
+But, I got redirection link
+
+### Prompt 18
+
+How can I redirection to be navigate to local app?
+
+### Prompt 19
+
+So, I need to update the server, too?
+
+### Prompt 20
+
+Okay, rollback to hackerspub://
+
+### Prompt 21
+
+Okay, for tag, instead of tags/%~~, tags/~~
+
+### Prompt 22
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 23
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main branch` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main branch` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch...
+
+### Prompt 24
+
+Could you add assetlinks to both web/web-next for hackerspub?
+
+### Prompt 25
+
+[Request interrupted by user for tool use]
+
+### Prompt 26
+
+I already have assetlinks json
+
+### Prompt 27
+
+docs/
+
+### Prompt 28
+
+docs/.well-knonw
+
+### Prompt 29
+
+I mean... ../hackerspub
+
+### Prompt 30
+
+Yes
+
+### Prompt 31
+
+[Request interrupted by user for tool use]
+
+### Prompt 32
+
+I mean move it to hackerspub
+
+### Prompt 33
+
+I mean copy it to hackerspub
+
+### Prompt 34
+
+[Request interrupted by user for tool use]
+
+### Prompt 35
+
+No, directly for public path
+
+### Prompt 36
+
+Also for legacy web
+
+### Prompt 37
+
+When click on hometab, if scroll is already moved down, move top of scroll. if already top, refresh the timeline
+
+### Prompt 38
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 39
+
+When click on heart icon from feedcard, just fire favourite action. don't navigate.
+Also, longpress on heart icon, give option for emoji reaction.
+
+### Prompt 40
+
+Wait, heart button has moved up
+
+### Prompt 41
+
+For the button, when click, it should be circle border. not rectangle border
+
+### Prompt 42
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 43
+
+For repost button tab, reaction button tab, each tab should update optimistic UI
+
+### Prompt 44
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 45
+
+For post/article detail page, icon alignment should be space-around. You will know the tailwind notation. right?
+
+### Prompt 46
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 47
+
+For post detail, Also place the translate text button. and remove the translation icon button
+
+### Prompt 48
+
+Hmmm same as PostCard
+
+### Prompt 49
+
+Above the image area dude
+
+### Prompt 50
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 51
+
+For post card, remove qoute button. and on long press onto repost button, it should trigger qoute
+
+### Prompt 52
+
+[Request interrupted by user]
+
+### Prompt 53
+
+Okay, correction. Give two option. repost / quote
+
+### Prompt 54
+
+Only display reposts count. quote count is not important
+
+### Prompt 55
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 56
+
+Okay, left align reply/repost/reaction buttons, and right align share button
+
+### Prompt 57
+
+If count is zero, display zero
+
+### Prompt 58
+
+also for repost please
+
+### Prompt 59
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 60
+
+Is there any cli tools that watch source code, and try ./gradlew installDebug for Android?
+
+### Prompt 61
+
+Hmmm, How about hotmodulereloading for android kotlin jetpack compose?
+
+### Prompt 62
+
+Wait for repost button, single tap, it should trigger repost immediately with optimistic ui update. only long press trigger menu open
+
+### Prompt 63
+
+Also circle shaped please
+
+### Prompt 64
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 65
+
+For asian ecosystem, we need to support ruby tag. It also applied to furigana
+
+### Prompt 66
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 67
+
+When composing quote, also display target post. For this case, we can use icon for quote as mastodon approach
+
+### Prompt 68
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 69
+
+Okay, Now lets take a look at media section.
+
+For two images, It should be a | b
+For three images, It should be a | (b/c)
+For four images It should be (a/c) | (b/d)
+For more images, It should be (a/c) | (b/d+)
+
+### Prompt 70
+
+For post detail, it should be horizontally scrollable
+
+### Prompt 71
+
+Crashed. I don't know reason
+
+### Prompt 72
+
+Crashed. I don't know reason. It happened during scrolling
+
+### Prompt 73
+
+[Request interrupted by user]
+
+### Prompt 74
+
+No, It happened for PostCard
+
+### Prompt 75
+
+How can I monitor the installed app?
+
+### Prompt 76
+
+Only available already installed app
+
+### Prompt 77
+
+For PostCard, 
+splition is not correctly done
+
+### Prompt 78
+
+Yes. it isn't. PostDetail is good. but card is not
+
+### Prompt 79
+
+For 4 images, it only shows 3 image.
+
+### Prompt 80
+
+Now, the problem is 3 image
+
+### Prompt 81
+
+2x2 grid now not working. rollback. 3 image, still not working
+
+### Prompt 82
+
+Let's more take care about 3 image. It still not working
+
+### Prompt 83
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `staged only. ignore others` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged chang...
+
+### Prompt 84
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 85
+
+For PostDetail, we need to also fetch replies. counted as 0 is the problematic
+
+### Prompt 86
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 87
+
+When composing reply, move cursor to end of the text
+
+### Prompt 88
+
+also auto focus
+
+### Prompt 89
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 90
+
+When click on media, spawn popup preview, and display also alt text. not download, not browser call
+
+### Prompt 91
+
+Yes
+
+### Prompt 92
+
+So, is it also applicable for PostDetail?
+
+### Prompt 93
+
+Alt text is being hidden behind virtual buttons area
+
+### Prompt 94
+
+Is it still applied?
+
+### Prompt 95
+
+I think, still not
+
+### Prompt 96
+
+Hmmm... How about under close button?
+
+### Prompt 97
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+
+### Prompt 98
+
+Indeed we also have Video for attachments.
+
+### Prompt 99
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --c...
+

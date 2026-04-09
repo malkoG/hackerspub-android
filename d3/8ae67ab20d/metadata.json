@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "d38ae67ab20d",
+  "strategy": "manual-commit",
+  "branch": "fix/user-feedback-from-closed-test-first-phase",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d3/8ae67ab20d/0/metadata.json",
+      "transcript": "/d3/8ae67ab20d/0/full.jsonl",
+      "context": "/d3/8ae67ab20d/0/context.md",
+      "content_hash": "/d3/8ae67ab20d/0/content_hash.txt",
+      "prompt": "/d3/8ae67ab20d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34,
+    "cache_creation_tokens": 14277,
+    "cache_read_tokens": 9355643,
+    "output_tokens": 8101,
+    "api_call_count": 31
+  }
+}
