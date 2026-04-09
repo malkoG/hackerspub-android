@@ -626,9 +626,15 @@ private fun ShareEngagementButton(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { if (onShareClick != null) showMenu = true },
-                enabled = onShareClick != null
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .combinedClickable(
+                        onClick = { onShareClick?.invoke() },
+                        onLongClick = { if (onQuoteClick != null) showMenu = true }
+                    )
             ) {
                 Icon(
                     imageVector = if (isShared) Icons.Filled.Repeat else Icons.Outlined.Repeat,
