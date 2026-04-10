@@ -113,6 +113,8 @@ dependencies {
     implementation(libs.mlkit.language.id)
 
     implementation("androidx.browser:browser:1.8.0")
+    implementation("androidx.credentials:credentials:1.5.0-rc01")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
 
     debugImplementation(libs.androidx.ui.tooling)
 }
