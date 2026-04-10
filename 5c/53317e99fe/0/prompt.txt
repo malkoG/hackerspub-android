@@ -1,0 +1,2550 @@
+Support weblink.
+
+For example,
+https://hackers.pub/@<username> -> should be linked to detail page
+https://hackers.pub/verify/... -> should be linked to verify page
+
+For detail, reference ../hackerspub
+
+---
+
+Do I need assetlinks.json for this implementation? even though for local testing?
+
+---
+
+Oh, so we can open through chooser dialog?
+
+---
+
+How about tags path?
+
+---
+
+We already support search featuyre
+
+---
+
+Only redirects to search page. Not filled in
+
+---
+
+For sending email, we don't need to fill in urltemplate right?
+
+---
+
+But, i got email specifying hackerspub://
+
+---
+
+I want direct url access. I got email.hackers.pub, that's not i want
+
+---
+
+[Request interrupted by user]
+
+---
+
+Wait, that's not i want
+
+---
+
+How can I redirection to invoke app link?
+
+---
+
+No way for local testing????
+
+---
+
+Is that the best? I want the oneshot
+
+---
+
+Analyze email-handler
+
+---
+
+But, hackerspub:// itself didn't hyperlinked
+
+---
+
+But, I got redirection link
+
+---
+
+How can I redirection to be navigate to local app?
+
+---
+
+So, I need to update the server, too?
+
+---
+
+Okay, rollback to hackerspub://
+
+---
+
+Okay, for tag, instead of tags/%~~, tags/~~
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main branch` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main branch` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+EOF
+)"
+```
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+Could you add assetlinks to both web/web-next for hackerspub?
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+I already have assetlinks json
+
+---
+
+docs/
+
+---
+
+docs/.well-knonw
+
+---
+
+I mean... ../hackerspub
+
+---
+
+Yes
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+I mean move it to hackerspub
+
+---
+
+I mean copy it to hackerspub
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+No, directly for public path
+
+---
+
+Also for legacy web
+
+---
+
+When click on hometab, if scroll is already moved down, move top of scroll. if already top, refresh the timeline
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+When click on heart icon from feedcard, just fire favourite action. don't navigate.
+Also, longpress on heart icon, give option for emoji reaction.
+
+---
+
+Wait, heart button has moved up
+
+---
+
+For the button, when click, it should be circle border. not rectangle border
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For repost button tab, reaction button tab, each tab should update optimistic UI
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For post/article detail page, icon alignment should be space-around. You will know the tailwind notation. right?
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For post detail, Also place the translate text button. and remove the translation icon button
+
+---
+
+Hmmm same as PostCard
+
+---
+
+Above the image area dude
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For post card, remove qoute button. and on long press onto repost button, it should trigger qoute
+
+---
+
+[Request interrupted by user]
+
+---
+
+Okay, correction. Give two option. repost / quote
+
+---
+
+Only display reposts count. quote count is not important
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Okay, left align reply/repost/reaction buttons, and right align share button
+
+---
+
+If count is zero, display zero
+
+---
+
+also for repost please
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Is there any cli tools that watch source code, and try ./gradlew installDebug for Android?
+
+---
+
+Hmmm, How about hotmodulereloading for android kotlin jetpack compose?
+
+---
+
+Wait for repost button, single tap, it should trigger repost immediately with optimistic ui update. only long press trigger menu open
+
+---
+
+Also circle shaped please
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For asian ecosystem, we need to support ruby tag. It also applied to furigana
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+When composing quote, also display target post. For this case, we can use icon for quote as mastodon approach
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Okay, Now lets take a look at media section.
+
+For two images, It should be a | b
+For three images, It should be a | (b/c)
+For four images It should be (a/c) | (b/d)
+For more images, It should be (a/c) | (b/d+)
+
+---
+
+For post detail, it should be horizontally scrollable
+
+---
+
+Crashed. I don't know reason
+
+---
+
+Crashed. I don't know reason. It happened during scrolling
+
+---
+
+[Request interrupted by user]
+
+---
+
+No, It happened for PostCard
+
+---
+
+How can I monitor the installed app?
+
+---
+
+Only available already installed app
+
+---
+
+For PostCard, 
+splition is not correctly done
+
+---
+
+Yes. it isn't. PostDetail is good. but card is not
+
+---
+
+For 4 images, it only shows 3 image.
+
+---
+
+Now, the problem is 3 image
+
+---
+
+2x2 grid now not working. rollback. 3 image, still not working
+
+---
+
+Let's more take care about 3 image. It still not working
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `staged only. ignore others` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `staged only. ignore others` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For PostDetail, we need to also fetch replies. counted as 0 is the problematic
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+When composing reply, move cursor to end of the text
+
+---
+
+also auto focus
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+When click on media, spawn popup preview, and display also alt text. not download, not browser call
+
+---
+
+Yes
+
+---
+
+So, is it also applicable for PostDetail?
+
+---
+
+Alt text is being hidden behind virtual buttons area
+
+---
+
+Is it still applied?
+
+---
+
+I think, still not
+
+---
+
+Hmmm... How about under close button?
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Indeed we also have Video for attachments.
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For media dialog, when longpress on media, give option menu, and add download menu item
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+When click on replytarget, clicking on the reply text also should trigger navigation
+
+---
+
+Also for PostCard
+
+---
+
+Still not working. I clicked on reply content
+
+---
+
+Also for detail screen?
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+For PostCard component, leftmost icon should be align with content's left. because of padding, it is misaligned
+
+---
+
+[Request interrupted by user]
+
+---
+
+Go
+
+---
+
+now, rightmost external share button should move
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+EOF
+)"
+```
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+When i click the web link on email client, I can't get redirected to app
+
+---
+
+Okay, If already autoVerify is setup, and updating assetlink solve this issue? Or Do I need to update assetlink and rebuild app?
+
+---
+
+Oh.... Could you see assetlinks.json?
+
+---
+
+Only android
+
+---
+
+Here too
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+EOF
+)"
+```
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+EOF
+)"
+```
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+Hmmm... Okay, Already deployed. But, web link not working for /sign/in/<token>?code=xxx
+
+---
+
+No, it happens when i click on link directly
+
+---
+
+I mean, clicking on the link from email client. It should be navigated to prod app
+
+---
+
+Run curl
+
+---
+
+Yes, we already have
+
+---
+
+How can run app
+
+---
+
+Okay, it worked
+
+---
+
+Is that the best?????
+
+---
+
+Instead of webview, i want to give option or force open the macthed app
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Please, don't. We will have the solution only for android
+
+---
+
+Okay, intent is correctly working. but clicking from browser or something not works
+
+---
+
+But, we need to think from customer's perspective
+
+---
+
+So, uninstall and install will help? not update?
+
+---
+
+I also reinstalled app. and clicked link from mobile chrome, not worked
+
+---
+
+```
+ pub.hackers.android:
+    ID: e7b549e8-dae8-47c4-8b72-da829f3024de
+    Signatures: [AD:C6:2C:B4:7B:C0:7D:26:48:D5:C8:E5:51:88:BF:1E:82:33:B4:CC:5A:A3:74:49:25:D0:C4:3C:32:D7:12:BB]
+    Domain verification state:
+      hackers.pub: 1024
+```
+
+---
+
+create new branch and pr to upstream main
+
+---
+
+Okay, I deployed again, matched fingerprint, but verify-app-links give me blank
+
+---
+
+What 1024 mean
+
+---
+
+Still 10254
+
+---
+
+<bash-input> apksigner verify --print-certs $(adb shell pm path pub.hackers.android | sed
+  's/package://')</bash-input>
+
+---
+
+<bash-stdout></bash-stdout><bash-stderr>(eval):2: no such file or directory: s/package://
+(eval):1: command not found: apksigner
+</bash-stderr>
+
+---
+
+<bash-input> apksigner verify --print-certs $(adb shell pm path pub.hackers.android | sed 's/package://')</bash-input>
+
+---
+
+<bash-stdout></bash-stdout><bash-stderr>(eval):1: command not found: apksigner
+</bash-stderr>
+
+---
+
+<bash-input> adb shell dumpsys package pub.hackers.android | grep -A1 "Signatures"</bash-input>
+
+---
+
+<bash-stdout>    Signatures: [AD:C6:2C:B4:7B:C0:7D:26:48:D5:C8:E5:51:88:BF:1E:82:33:B4:CC:5A:A3:74:49:25:D0:C4:3C:32:D7:12:BB]
+    Domain verification state:
+--
+    signatures=PackageSignatures{8ee7f30 version:3, signatures:[4eee3cb0], past signatures:[]}
+    installPermissionsFixed=false</bash-stdout><bash-stderr></bash-stderr>
+
+---
+
+Okay do you see?
+
+---
+
+Why still not working?
+
+---
+
+<bash-input> curl -s
+  "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=ht
+  tps://hackers.pub&relation=delegate_permission/common.handle_all_urls" |
+  python3 -m json.tool</bash-input>
+
+---
+
+<bash-stdout></bash-stdout><bash-stderr>curl: (2) no URL specified
+curl: try 'curl --help' or 'curl --manual' for more information
+(eval):2: no such file or directory: https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=ht\n  tps://hackers.pub&amp;relation=delegate_permission/common.handle_all_urls
+Expecting value: line 1 column 1 (char 0)
+</bash-stderr>
+
+---
+
+```
+ curl -s "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://hackers.pub&relation=delegate_permission/common.handle_all_urls" | python3 -m json.tool
+{
+    "statements": [
+        {
+            "source": {
+                "web": {
+                    "site": "https://hackers.pub."
+                }
+            },
+            "relation": "delegate_permission/common.handle_all_urls",
+            "target": {
+                "androidApp": {
+                    "packageName": "pub.hackers.android",
+                    "certificate": {
+                        "sha256Fingerprint": "52:A0:14:21:02:CD:30:FD:8B:29:A3:ED:80:2B:0A:BE:AF:AB:37:29:79:39:84:1A:B7:9E:39:05:AF:64:D5:1A"
+                    }
+                }
+            }
+        }
+    ],
+    "maxAge": "2386.264162457s"
+}
+```
+
+Oh... its cached
+
+---
+
+Okay, I also have
+
+```
+adb shell am start -a android.intent.action.VIEW -d "hackerspub://verify?token=42f22fb1-e8ba-47a3-9268-ca705db77889&code=BGM3BO" pub.hackers.android
+/system/bin/sh: pub.hackers.android: inaccessible or not found
+Starting: Intent { act=android.intent.action.VIEW dat=hackerspub://verify/... }
+```
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/list-plans
+
+# List Plans
+
+List saved plans from `~/.planvault/`, optionally filtered by the current project directory.
+
+**Arguments**: `` (optional: `--all` to show plans across all projects)
+
+## Instructions
+
+1. **Run the list script**:
+   ```bash
+   bash <skill-dir>/scripts/list-plans.sh 
+   ```
+
+2. **Parse the output**:
+
+   - `NO_PLANS` — No plans saved yet. Suggest `/save-plan`.
+   - `NO_MATCH` — No plans for current project, followed by all plans as fallback.
+   - `PROJECT\t<path>` — Group header for a project path.
+   - `PLAN\t<mnemonic>\t<description>\t<updated_at>` — A plan entry.
+   - `TOTAL\t<count>` — Total plan count.
+
+3. **Display**: Format as a readable table grouped by project, sorted by updated date descending.
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/cache/zipsa/minimalism-workflow/0.1.0/skills/load-plan
+
+# Load Plan
+
+Load a previously saved plan from `~/.planvault/` for the current project or by mnemonic name.
+
+**Arguments**: `hackerspub-android-passkey` (optional mnemonic name of the plan to load)
+
+## Instructions
+
+1. **Run the load script**:
+   ```bash
+   bash <skill-dir>/scripts/load-plan.sh "<mnemonic-or-empty>"
+   ```
+
+2. **Parse the output**:
+
+   - `NO_PLANS` — No plans saved yet. Suggest `/save-plan`.
+   - `SINGLE\t<mnemonic>` — One plan found for this project. Re-run with that mnemonic to load it.
+   - `MULTIPLE` followed by `<mnemonic>\t<pwd>\t<description>\t<updated_at>` lines — Multiple plans found. Present as a list and ask the user which to load.
+   - `NO_MATCH` followed by plan lines — No plans for this project. Show all plans as fallback.
+   - `NOT_FOUND` — Mnemonic doesn't exist. List available plans.
+   - `FOUND\t<pwd>\t<description>\t<created_at>\t<updated_at>` followed by `---CONTENT---` and plan markdown — Present the plan content with metadata.
+   - `MISSING_FILE` — Index entry exists but plan file is missing. Suggest re-saving.
+
+3. **Present the plan**: Show the full markdown content and metadata (mnemonic, project path, dates).
+
+---
+
+Sure
+
+---
+
+Progress to Step 6
+
+---
+
+I got user.name must be defined error
+
+---
+
+How can I see log?
+
+---
+
+04-10 15:09:37.112 16104 16104 I ImeFocusController: onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:09:37.112 16104 16104 I ImeFocusController: onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:09:37.173 16104 16104 D InputTransport: Input channel destroyed: 'ClientS', fd=160
+04-10 15:09:38.970 16104 16104 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:09:38.970 16104 16104 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=statusBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:09:39.670 16104 16104 I VRI[MainActivity]@772dc20: handleAppVisibility mAppVisible = true visible = false
+04-10 15:09:39.670 16104 16104 D VRI[MainActivity]@772dc20: visibilityChanged oldVisibility=true newVisibility=false
+04-10 15:09:39.684 16104 16136 D HWUI    : CacheManager::trimMemory(20)
+04-10 15:09:39.690 16104 16104 I VRI[MainActivity]@772dc20: Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)8 dur=2 res=0x2 s={false 0x0} ch=true seqId=0
+04-10 15:09:39.690 16104 16104 D VRI[MainActivity]@772dc20: Not drawing due to not visible. Reason=!mAppVisible && !mForceDecorViewVisibility
+04-10 15:09:39.691 16104 16136 D HWUI    : CacheManager::trimMemory(20)
+04-10 15:09:39.691 16104 16104 I VRI[MainActivity]@772dc20: stopped(true) old = false
+04-10 15:09:39.691 16104 16104 D VRI[MainActivity]@772dc20: WindowStopped on pub.hackers.android.dev/pub.hackers.android.MainActivity set to true
+04-10 15:09:39.692 16104 16136 D HWUI    : CacheManager::trimMemory(20)
+04-10 15:09:39.710 16104 16104 D BBA2    : setIsFg isFg = false; delayValue 3999ms
+04-10 15:09:39.710 16104 16136 D HWUI    : CacheManager::trimMemory(40)
+04-10 15:10:08.660 16104 16104 I VRI[MainActivity]@772dc20: handleAppVisibility mAppVisible = false visible = true
+04-10 15:10:08.662 16104 16104 I VRI[MainActivity]@772dc20: stopped(false) old = true
+04-10 15:10:08.662 16104 16104 D VRI[MainActivity]@772dc20: WindowStopped on pub.hackers.android.dev/pub.hackers.android.MainActivity set to false
+04-10 15:10:08.663 16104 16104 D ViewRootImpl: Skipping stats log for color mode
+04-10 15:10:08.663 16104 16104 D BBA2    : setIsFg isFg = true
+04-10 15:10:08.664 16104 16104 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+04-10 15:10:08.664 16104 16104 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+04-10 15:10:08.671 16104 16104 I BufferQueueProducer: [](id:3ee800000002,api:0,p:-1,c:16104) setDequeueTimeout:2077252342
+04-10 15:10:08.671 16104 16104 I BLASTBufferQueue_Java: new BLASTBufferQueue, mName= VRI[MainActivity]@772dc20 mNativeObject= 0xb400007a140ec400 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3585 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 android.view.Choreographer.doCallbacks:1367 android.view.Choreographer.doFrame:1292 android.view.Choreographer$FrameDisplayEventReceiver.run:1870
+04-10 15:10:08.671 16104 16104 I BLASTBufferQueue_Java: update, w= 1080 h= 2340 mName = VRI[MainActivity]@772dc20 mNativeObject= 0xb400007a140ec400 sc.mNativeObject= 0xb400007a440aef90 format= -1 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3590 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901
+04-10 15:10:08.672 16104 16104 I VRI[MainActivity]@772dc20: Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)0 dur=3 res=0x3 s={true 0xb4000079a40c3280} ch=true seqId=0
+04-10 15:10:08.672 16104 16104 D VRI[MainActivity]@772dc20: mThreadedRenderer.initialize() mSurface={isValid=true 0xb4000079a40c3280} hwInitialized=true
+04-10 15:10:08.672 16104 16104 D VRI[MainActivity]@772dc20: reportNextDraw android.view.ViewRootImpl.performTraversals:5443 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910
+04-10 15:10:08.672 16104 16104 D VRI[MainActivity]@772dc20: Setup new sync=wmsSync-VRI[MainActivity]@772dc20#4
+04-10 15:10:08.672 16104 16104 I VRI[MainActivity]@772dc20: Creating new active sync group VRI[MainActivity]@772dc20#5
+04-10 15:10:08.672 16104 16104 D VRI[MainActivity]@772dc20: Start draw after previous draw not visible
+04-10 15:10:08.672 16104 16104 D VRI[MainActivity]@772dc20: registerCallbacksForSync syncBuffer=false
+04-10 15:10:08.677 16104 16149 D VRI[MainActivity]@772dc20: Received frameDrawingCallback syncResult=0 frameNum=1.
+04-10 15:10:08.677 16104 16149 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40dfe50 mBlastBufferQueue=0xb400007a140ec400 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$12.onFrameDraw:15441 android.view.ThreadedRenderer$1.onFrameDraw:718 <bottom of call stack>
+04-10 15:10:08.677 16104 16149 I VRI[MainActivity]@772dc20: Setting up sync and frameCommitCallback
+04-10 15:10:08.682 16104 16136 I BLASTBufferQueue: [VRI[MainActivity]@772dc20#2](f:0,a:0,s:0) onFrameAvailable the first frame is available
+04-10 15:10:08.682 16104 16136 I SurfaceComposerClient: apply transaction with the first frame. layerId: 31119, bufferData(ID: 69166153334796, frameNumber: 1)
+04-10 15:10:08.682 16104 16136 I VRI[MainActivity]@772dc20: Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true
+04-10 15:10:08.682 16104 16104 D VRI[MainActivity]@772dc20: reportDrawFinished seqId=0
+04-10 15:10:13.437 16104 16123 I CredManProvService: Create Result returned from framework:
+04-10 15:10:13.453 16104 16104 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:10:13.453 16104 16104 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=statusBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:10:13.454 16104 16104 D VRI[MainActivity]@772dc20: mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb4000079a40c3280}
+04-10 15:10:13.454 16104 16104 D InputMethodManagerUtils: startInputInner - Id : 0
+04-10 15:10:13.454 16104 16104 I InputMethodManager: startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+04-10 15:10:13.456 16104 16104 I InputMethodManager: handleMessage: setImeVisibility visible=false
+04-10 15:10:13.456 16104 16104 D InsetsController: hide(ime(), fromIme=false)
+04-10 15:10:13.456 16104 16104 I ImeTracker: pub.hackers.android.dev:e5578af8: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+04-10 15:10:13.457 16104 16123 D InputTransport: Input channel constructed: 'ClientS', fd=145
+04-10 15:10:42.896 16104 16104 I VRI[MainActivity]@772dc20: handleAppVisibility mAppVisible = true visible = false
+04-10 15:10:42.896 16104 16104 D VRI[MainActivity]@772dc20: visibilityChanged oldVisibility=true newVisibility=false
+04-10 15:10:42.904 16104 16136 D HWUI    : CacheManager::trimMemory(20)
+04-10 15:10:42.914 16104 16104 I VRI[MainActivity]@772dc20: Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)8 dur=4 res=0x2 s={false 0x0} ch=true seqId=0
+04-10 15:10:42.914 16104 16104 D VRI[MainActivity]@772dc20: Not drawing due to not visible. Reason=!mAppVisible && !mForceDecorViewVisibility
+04-10 15:10:42.914 16104 16136 D HWUI    : CacheManager::trimMemory(20)
+04-10 15:10:42.916 16104 16104 I VRI[MainActivity]@772dc20: stopped(true) old = false
+04-10 15:10:42.916 16104 16104 D VRI[MainActivity]@772dc20: WindowStopped on pub.hackers.android.dev/pub.hackers.android.MainActivity set to true
+04-10 15:10:42.916 16104 16136 D HWUI    : CacheManager::trimMemory(20)
+04-10 15:10:42.919 16104 16104 I VRI[MainActivity]@772dc20: onDisplayChanged oldDisplayState=2 newDisplayState=1
+04-10 15:10:43.071 16104 16104 I ImeFocusController: onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:10:43.072 16104 16104 I ImeFocusController: onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+
+I got unexpected error
+
+---
+
+shOperation: [SAMSUNGPASS_V2_PASSKEY] finish: SUCCESS
+04-10 15:14:10.499 13116  9933 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: finish, arg: SAMSUNGPASS_V2_PASSKEY
+04-10 15:14:10.499 13116  9933 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:10.500 13116  9933 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@80aa85f, prepare=mj.k$a@450d2ac, download=mj.k$d@3a24b75, upload=mj.k$c@95f70a, getFileDescriptor=mj.k$i@cdb6b7b, finish=mj.k$h@4e6d98, getLocalChanges=mj.k$b@25929f1, downloadComplete=mj.k$g@c2479d6, delete=mj.k$e@a2b4457}
+04-10 15:14:10.500 13116  9933 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_PASSKEY] FINISH
+04-10 15:14:10.500 13116  9933 I [PASS][SPASS]SCloudSyncImplPasskey: finish isSuccess : true type : sync lastSyncTime : 1775801649973
+04-10 15:14:10.500 13116  9933 I [PASS][SPASS]SCloudSyncImplPasskey: passkey sync finish - passkey record count: 4
+04-10 15:14:10.500 13116  9933 I [PASS][SPASS]SCloudSyncImplPasskey: clearBulkEncryptionCache - Cleared cache (previous size: 0)
+04-10 15:14:10.500 13116  9933 I [PASS][SPASS]SCloudSyncManager: resetRequestOnGoing table: passkey
+04-10 15:14:10.501 17539 22210 I [SC]EdpContentChecker: contentId: ZZFAtz6HCf, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:10.502  1707  5776 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-10 15:14:10.502 17539 22210 I [SC][SyncScheduleLogger]: [ContentFinished] [syncType=AppRequestSync] [authority=com.samsung.android.samsungpass.scloud] [content=SAMSUNG_PASS_KEY_DATA] [initial_sync=false] [upload_result=SUCCESS] [upload_record_cnt=1] [upload_record_size=7262] [upload_file_cnt=0] [upload_file_size=0] [download_result=SUCCESS] [download_record_cnt=0] [download_record_size=0] [download_file_cnt=0] [download_file_size=0]
+04-10 15:14:10.502 17539 22210 I [SC][Sync]AbstractBaseSyncAdapter: [SAMSUNGPASS_V2_PASSKEY] performSync: finished: SUCCESS, nextTime: 1775801649973
+04-10 15:14:10.502  1707  5776 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-10 15:14:10.502  1707  5776 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-10 15:14:10.503 17539 22264 I [SC]SyncTelemetryDao: submitCache: 0
+04-10 15:14:10.504 17539 22264 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_PASSKEY: onFinishSync: true
+04-10 15:14:10.504 17539 22210 I [SC]SyncSettingManager: verifyContentSync: d4FjaEWIDx, true
+04-10 15:14:10.504 17539 22210 I [SC]EdpContentChecker: contentId: d4FjaEWIDx, isServerPolicyUpdated: true, isContentIdRegistered: false
+04-10 15:14:10.504 17539 22210 I [SC]EdpContentChecker: contentId: d4FjaEWIDx, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:10.504 17539 22210 I [SC][Sync]AbstractBaseSyncAdapter: [SAMSUNGPASS_V2_SCLOUD] performSync: started
+04-10 15:14:10.505 17539 22210 I [SC]EdpContentChecker: contentId: d4FjaEWIDx, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:10.505 17539 22210 I [SC][SamsungCloudE2EESync]: name: com.samsung.scsp.framework.storage.data, version : 1.2.0010, isAccountRequiredFeature = true, isDrsSupported = false, platformConfigurationRequire = true
+04-10 15:14:10.505 17539 22210 I KMX|DeviceInfoManagementImpl: KmxSdk v2.0.16-release
+04-10 15:14:10.505 17539 22210 I KMX|DeviceInfoManagementImpl: [getE2EEDeviceType] : 1
+04-10 15:14:10.505 17539 22210 I DeviceInfoManagementImpl: VC :201603900
+04-10 15:14:10.505 17539 22210 I KMX|DeviceInfoManagementImpl: [getSAKUid] : REDACTED
+04-10 15:14:10.505 17539 22210 I KMX|DeviceInfoManagementImpl: KmxSdk v2.0.16-release
+04-10 15:14:10.505 17539 22210 I KMX|DeviceInfoManagementImpl: [getE2EEDeviceType] : 1
+04-10 15:14:10.505 17539 22210 I [SC][DeviceUtil]: One UI version : 8.0.0
+04-10 15:14:10.506 17539 22210 I [SC][UserRegistration]: register
+04-10 15:14:10.506 17539 22210 I [SC][UserRegistration]: Already user registered.
+04-10 15:14:10.506 17539 22210 I [SC][UserToken]: Get token
+04-10 15:14:10.506 17539 22210 I [SC][UserToken]: UserToken is valid
+04-10 15:14:10.506  4232  5787 I ScanController: onScanResult to scannerId: 7- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:32, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-41, periodicAdvInt=0x0
+04-10 15:14:10.507 17539 22210 I [SC][DeviceUtil]: getSimMcc
+04-10 15:14:10.507 17539 22210 I [SC][DeviceUtil]: getSimMnc
+04-10 15:14:10.507 17539 22210 I [SC][SamsungCloudE2EESync]: public com.samsung.scsp.framework.storage.data.api.DataApiV3ControlImpl()
+04-10 15:14:10.507 17539 22210 I [SC][PlatformConfigurationImpl]: getPlatformConfiguration
+04-10 15:14:10.508 17539 22210 I [SC][E2eeFiles]: initializeFileControl
+04-10 15:14:10.508 17539 22210 I [SC]REDACTED: onStartSync
+04-10 15:14:10.508 17539 22210 I [SC]DlFeature: isDlMode. false
+04-10 15:14:10.508 17539 22210 I [SC]EdpContentChecker: contentId: d4FjaEWIDx, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:10.508 17539 22210 I [SC][SyncScheduleLogger]: [ContentStarted] [syncType=AppRequestSync] [authority=com.samsung.android.samsungpass.scloud] [content=SAMSUNG_PASS]
+04-10 15:14:10.509 17539 22210 I [SC]REDACTED: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@6e35c43
+04-10 15:14:10.509 13116  9933 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: prepare, arg: SAMSUNGPASS_V2_SCLOUD
+04-10 15:14:10.509 13116  9933 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:10.509 13116  9933 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@c465d62, prepare=mj.k$a@635cef3, download=mj.k$d@ce957b0, upload=mj.k$c@a322629, getFileDescriptor=mj.k$i@bb0edae, finish=mj.k$h@554674f, getLocalChanges=mj.k$b@2843edc, downloadComplete=mj.k$g@79dfbe5, delete=mj.k$e@92236ba}
+04-10 15:14:10.509 13116  9933 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_SCLOUD] Sync Prepare
+04-10 15:14:10.509 13116  9933 I [PASS][SPASS]SCloudSyncImplScloud: prepare type : Sync lastSyncTime : 1775801631416
+04-10 15:14:10.509 13116  9933 I [PASS][SPASS]SCloudSyncImplScloud: sclouddata sync prepare - sclouddata record count: 0
+04-10 15:14:10.509 17539 22210 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_SCLOUD] lastSyncTime: 1775801631416
+04-10 15:14:10.509 17539 22210 I [SC][UserToken]: Get token
+04-10 15:14:10.509 17539 22210 I [SC][UserToken]: UserToken is valid
+04-10 15:14:10.510 17539 22210 I [SC][DeviceUtil]: getSimMcc
+04-10 15:14:10.510 17539 22210 I [SC][DeviceUtil]: getSimMnc
+04-10 15:14:10.510 17539 22210 I [SC][OkHttpNetworkImpl]: [QUERY_EVENT_IDS][62710464][https://api.samsungcloud.com/data/v3/com.samsung.spass.sbrowser2/documents/events?idModifiedAtOnly=true&limit=100&lastCheckPoint=1775801631416][e7f0681a-bed8-37b3-8e4c-df752fb7a557]
+04-10 15:14:10.510 17539 22210 I [SC][OkHttpNetworkImpl]: call is added.
+04-10 15:14:10.512  2337  3873 D NetdEventListenerService: DNS Requested by 108, 5009(com.samsung.android.scloud,...), SUCCESS, 0ms
+04-10 15:14:10.546  1707  5776 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-10 15:14:10.546  1707  5776 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-10 15:14:10.587  2337  3917 I Pageboost: Launcher App Execution
+04-10 15:14:10.696  1707  4641 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released
+04-10 15:14:10.777  1101  1101 D io_stats: !@   8,0 r 28041824 420411844 w 5016121 76731880 d 768396 169678672 f 75615 309275 iot 2041932 0 th 0 0 0 pt 0 inp 0 0 47415.107
+04-10 15:14:10.878  1846  1894 E HeatmapThread: ECT Thread time in milliseconds: 1775801650
+04-10 15:14:10.881  1846  1894 D HeatmapThread: !@ batteryplugType : 2
+04-10 15:14:10.881  1846  1894 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 313
+04-10 15:14:10.881  1846  1894 D HeatmapThread: !@ Heatmap currtime: 29596694
+04-10 15:14:10.881  1846  1894 D HeatmapThread: !@ Heatmap prevtime: 29596680
+04-10 15:14:10.881  1846  1894 D HeatmapThread: !@ Heatmap plugstarttime: 29596609
+04-10 15:14:10.881  1846  1894 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29596681
+04-10 15:14:10.881  1846  1894 E HeatmapThread: !@ CAM New BSOH: 100
+04-10 15:14:10.881  1846  1894 E HeatmapThread: !@ CAM is Working
+04-10 15:14:10.907  2337  6874 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+04-10 15:14:11.014  1718  6660 I sensors-hal: handle_sns_client_event:202, auto_rotation_debug_2 mode,255, type,1,0 acc,1.421,-0.263,9.763, ar,0, ver,14, pedo,1,e,1,i,3
+04-10 15:14:11.132  1764 24868 I StatsHandler: [avcD_580] Stats: Pending(0) i/p-done(0) Works: Q: 240/Done 228|Work-Rate: Q(0.0/s Avg=0.0/s) Done(0.000/s Avg=0.007/s)| Stream: 10.00fps 286.2Kbps
+04-10 15:14:11.132  1764 24868 I StatsHandler: [avcD_580] Mem-usage:  [In-1D: 11 bufs 88.000 MB] [1D-971: 48 bufs 0.750 MB] [2D-972: 47 bufs 12.484 MB] | Total: 101.234 MB
+04-10 15:14:11.133 17539 22210 I [SC][OkHttpNetworkImpl]: call is removed.
+04-10 15:14:11.133 17539 22210 I [SC][SamsungCloudE2EESync]: getDocumentEventIds - server response : {"updated":[],"deleted":[],"checkPoint":1775801651387,"hasNext":false}
+04-10 15:14:11.133 17539 22210 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_SCLOUD] server changes: 0
+04-10 15:14:11.134 13116  9933 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: getLocalChanges, arg: SAMSUNGPASS_V2_SCLOUD
+04-10 15:14:11.134 13116  9933 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:11.134 13116  9933 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@c465d62, prepare=mj.k$a@635cef3, download=mj.k$d@ce957b0, upload=mj.k$c@a322629, getFileDescriptor=mj.k$i@bb0edae, finish=mj.k$h@554674f, getLocalChanges=mj.k$b@2843edc, downloadComplete=mj.k$g@79dfbe5, delete=mj.k$e@92236ba}
+04-10 15:14:11.134 13116  9933 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_SCLOUD] GET_LOCAL_CHANGES
+04-10 15:14:11.135 13116  9933 I [PASS][CMN]DeviceFeature: isJDMDevice : 0
+04-10 15:14:11.139  1156  1156 W keymint_tee: [WRN]begin req PARAMS: A32, BM2, PD64,
+04-10 15:14:11.143  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (km_add_tag:528) skip: non repetable tag already exists with different value: 268435458
+04-10 15:14:11.143  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_begin() returns 0
+04-10 15:14:11.143  1156  1156 D android.hardware.security.keymint-service: begin: ret 0
+04-10 15:14:11.143  1152  1152 I keystore2: system/security/keystore2/src/security_level.rs:466 - In create_operation. Success to create IKeystoreOperation. 10130, None
+04-10 15:14:11.144  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_update() returns 0
+04-10 15:14:11.144  1156  1156 D android.hardware.security.keymint-service: update: ret 0
+04-10 15:14:11.145  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_finish() returns 0
+04-10 15:14:11.145  1156  1156 D android.hardware.security.keymint-service: finish: ret 0
+04-10 15:14:11.146 13116  9933 I [PASS][CMN]DeviceFeature: isJDMDevice : 0
+04-10 15:14:11.147  1156  1156 W keymint_tee: [WRN]begin req PARAMS: A32, BM2, PD64,
+04-10 15:14:11.149  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (km_add_tag:528) skip: non repetable tag already exists with different value: 268435458
+04-10 15:14:11.149  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_begin() returns 0
+04-10 15:14:11.149  1156  1156 D android.hardware.security.keymint-service: begin: ret 0
+04-10 15:14:11.149  1152  1152 I keystore2: system/security/keystore2/src/security_level.rs:466 - In create_operation. Success to create IKeystoreOperation. 10130, None
+04-10 15:14:11.151  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_update() returns 0
+04-10 15:14:11.151  1156  1156 D android.hardware.security.keymint-service: update: ret 0
+04-10 15:14:11.152  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_finish() returns 0
+04-10 15:14:11.152  1156  1156 D android.hardware.security.keymint-service: finish: ret 0
+04-10 15:14:11.152 13116  9933 I [PASS][SPASS]WebSigninCloudSyncDelegate: organizeNotesInSCloud : already done
+04-10 15:14:11.154 13116  9933 I [PASS][SPASS]SCloudSyncImplScloud: getHeader isColdStart: false length: 0
+04-10 15:14:11.154 17539 22210 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_SCLOUD] local changes: 0
+04-10 15:14:11.154 17539 22210 I [SC]REDACTED: onStateOperationFinished: CollectChangesWithoutPaging
+04-10 15:14:11.154 17539 22210 I [SC]REDACTED: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@32e1569
+04-10 15:14:11.155 17539 22210 I [SC][Sync][Core][Sync]ReconcileServerContents: [SAMSUNGPASS_V2_SCLOUD] reconcile
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onStateOperationFinished: ReconcileServerContents
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onStartDownload
+04-10 15:14:11.155 17539 22210 I [SC][Sync][Core]DownloadContents: [SAMSUNGPASS_V2_SCLOUD] download from server: 0
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onFinishDownload
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onDownloadStatMeasured: 0,0,0,0
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onEncryptionStatMeasured: 0,0,0,0,0,0
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onDecryptionStatMeasured: 0,0,0,0,0,0
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onUploadStatMeasured: 0,0,0,0,0,0
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onDownloadStatMeasured: 0,0,0,0
+04-10 15:14:11.155 17539 22210 I [SC]REDACTED: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@d5b4bee
+04-10 15:14:11.156 17539 22210 I [SC][Sync][Core][Sync]ReconcileRemainingContents: [SAMSUNGPASS_V2_SCLOUD] reconcile
+04-10 15:14:11.156 17539 22210 I [SC]REDACTED: onStateOperationFinished: ReconcileRemainingContents
+04-10 15:14:11.156 17539 22210 I [SC]REDACTED: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@916088f
+04-10 15:14:11.156 17539 22210 I [SC][Sync][Core]DeleteContents: [SAMSUNGPASS_V2_SCLOUD] deleteServerContents: 0
+04-10 15:14:11.156 17539 22210 I [SC][Sync][Core]DeleteContents: [SAMSUNGPASS_V2_SCLOUD] deleteLocalContents: 0
+04-10 15:14:11.156 17539 22210 I [SC]REDACTED: onStateOperationFinished: DeleteContents
+04-10 15:14:11.156 17539 22210 I [SC]REDACTED: onStartUpload
+04-10 15:14:11.157 17539 22210 I [SC][Sync][Core]UploadContents: [SAMSUNGPASS_V2_SCLOUD] upload to server: 0
+04-10 15:14:11.157 17539 22210 I [SC]REDACTED: onFinishUpload
+04-10 15:14:11.157 17539 22210 I [SC]REDACTED: onDownloadStatMeasured: 0,0,0,0
+04-10 15:14:11.157 17539 22210 I [SC]REDACTED: onEncryptionStatMeasured: 0,0,0,0,0,0
+04-10 15:14:11.157 17539 22210 I [SC]REDACTED: onDecryptionStatMeasured: 0,0,0,0,0,0
+04-10 15:14:11.157 17539 22210 I [SC]REDACTED: onUploadStatMeasured: 0,0,0,0,0,0
+04-10 15:14:11.157 17539 22210 I [SC]REDACTED: onDownloadStatMeasured: 0,0,0,0
+04-10 15:14:11.157 17539 22210 I [SC][Sync][Core]FinishOperation: [SAMSUNGPASS_V2_SCLOUD] finish: SUCCESS
+04-10 15:14:11.158 13116  9933 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: finish, arg: SAMSUNGPASS_V2_SCLOUD
+04-10 15:14:11.158 13116  9933 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:11.158 13116  9933 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@c465d62, prepare=mj.k$a@635cef3, download=mj.k$d@ce957b0, upload=mj.k$c@a322629, getFileDescriptor=mj.k$i@bb0edae, finish=mj.k$h@554674f, getLocalChanges=mj.k$b@2843edc, downloadComplete=mj.k$g@79dfbe5, delete=mj.k$e@92236ba}
+04-10 15:14:11.158 13116  9933 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_SCLOUD] FINISH
+04-10 15:14:11.158 13116  9933 I [PASS][SPASS]SCloudSyncImplScloud: finish isSuccess : true type : sync lastSyncTime : 1775801651387
+04-10 15:14:11.158 13116  9933 I [PASS][SPASS]SCloudSyncImplScloud: doOnFinishSuccess
+04-10 15:14:11.158 13116  9933 I [PASS][CMN]DeviceFeature: isJDMDevice : 0
+04-10 15:14:11.159  1156  1156 W keymint_tee: [WRN]begin req PARAMS: A32, BM2, PD64,
+04-10 15:14:11.161  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (km_add_tag:528) skip: non repetable tag already exists with different value: 268435458
+04-10 15:14:11.161  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_begin() returns 0
+04-10 15:14:11.161  1156  1156 D android.hardware.security.keymint-service: begin: ret 0
+04-10 15:14:11.161  1152  1152 I keystore2: system/security/keystore2/src/security_level.rs:466 - In create_operation. Success to create IKeystoreOperation. 10130, None
+04-10 15:14:11.162  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_update() returns 0
+04-10 15:14:11.162  1156  1156 D android.hardware.security.keymint-service: update: ret 0
+04-10 15:14:11.163  1156  1156 D keymint_swd: keymint_swd keymint [WRN] (swd_run_cb:267) swd_finish() returns 0
+04-10 15:14:11.163  1156  1156 D android.hardware.security.keymint-service: finish: ret 0
+04-10 15:14:11.163 13116  9933 I [PASS][SPASS]DigitalAssetLinksUtil: DALUpdateChecked 0 days ago.
+04-10 15:14:11.164 13116  9933 I [PASS][SPASS]SCloudSyncImplScloud: sclouddata sync finish - sclouddata record count: 0
+04-10 15:14:11.164 13116  9933 I [PASS][SPASS]SCloudSyncManager: resetRequestOnGoing table: sclouddata
+04-10 15:14:11.165 13116 13116 I [PASS][SPASS]#SafetyPackageReceiver: onReceive com.samsung.android.samsungpass.ACTION_START_CHECK_SAFETY
+04-10 15:14:11.165 17539 22210 I [SC]EdpContentChecker: contentId: d4FjaEWIDx, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:11.165 17539 22210 I [SC][SyncScheduleLogger]: [ContentFinished] [syncType=AppRequestSync] [authority=com.samsung.android.samsungpass.scloud] [content=SAMSUNG_PASS] [initial_sync=false] [upload_result=SUCCESS] [upload_record_cnt=0] [upload_record_size=0] [upload_file_cnt=0] [upload_file_size=0] [download_result=SUCCESS] [download_record_cnt=0] [download_record_size=0] [download_file_cnt=0] [download_file_size=0]
+04-10 15:14:11.165 17539 22210 I [SC][Sync]AbstractBaseSyncAdapter: [SAMSUNGPASS_V2_SCLOUD] performSync: finished: SUCCESS, nextTime: 1775801651387
+04-10 15:14:11.165 13116 13116 I [PASS][SPASS]FrameworkUtils: isInitialized : true
+04-10 15:14:11.165 17539 22210 I [SC]SyncSettingManager: setSyncStatus: SyncStatusVo{authority='com.samsung.android.samsungpass.scloud', state='FINISH', errorCode='999'},false,false
+04-10 15:14:11.165 17539 22210 I [SC]ExternalBaseSyncAdapter-com.samsung.android.samsungpass: [SAMSUNG_PASS] onPerformSync: finished
+04-10 15:14:11.165 13116 13116 I [PASS][SPASS]PassFramework: ISU
+04-10 15:14:11.165 13116 13116 I [PASS][SPASS]FrameworkUtils: isSignedUp - true
+04-10 15:14:11.165 13116 13116 I [PASS][CMN]DeviceFeature: isJDMDevice : 0
+04-10 15:14:11.165 17539 22271 I [SC]SyncTelemetryDao: expireCache: 0
+04-10 15:14:11.166 17539 22271 I [SC]REDACTED: onFinishSync: false
+04-10 15:14:11.166  2337  6930 I BatteryService_BatteryPropertiesRegistrar: [getProperty]id:4
+04-10 15:14:11.166  2337  6930 I BatteryService_BatteryPropertiesRegistrar: [getProperty]prop.long:-9223372036854775808 ,prop.string:null
+04-10 15:14:11.166 13116 13116 W JobInfo : Requested backoff +1s0ms for job 9995 is too small; raising to +10s0ms
+04-10 15:14:11.167 17539 22272 I [SC]SamsungApiImpl: getThermistor. temp: 333
+04-10 15:14:11.167 17539 22272 I [SC][SyncScheduleLogger]: [SyncFinished] [syncType=AppRequestSync] [authority=com.samsung.android.samsungpass.scloud] [reqContents=] [resultContents=SAMSUNG_PASS_ADDRESS,SAMSUNG_PASS_NOTE,SAMSUNG_PASS_KEY_DATA,SAMSUNG_PASS] [hasError=false] [reqTime=-1] [startTime=1775801648091] [endTime=1775801651165] [txBytes=25278] [rxBytes=38554] [battery=100] [cpuDegree=333] [siop=-2] [SAMSUNG_PASS_ADDRESS_elapsed=481] [SAMSUNG_PASS_ADDRESS_downsync_record_cnt=0] [SAMSUNG_PASS_ADDRESS_upsync_record_cnt=0] [SAMSUNG_PASS_NOTE_elapsed=642] [SAMSUNG_PASS_NOTE_downsync_record_cnt=0] [SAMSUNG_PASS_NOTE_upsync_record_cnt=0] [SAMSUNG_PASS_KEY_DATA_elapsed=1268] [SAMSUNG_PASS_KEY_DATA_downsync_record_cnt=0] [SAMSUNG_PASS_KEY_DATA_upsync_record_cnt=1] [SAMSUNG_PASS_elapsed=656] [SAMSUNG_PASS_downsync_record_cnt=0] [SAMSUNG_PASS_upsync_record_cnt=0]
+04-10 15:14:11.169 17539 17539 I [SC]SyncSettingManager: getSyncStatus: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.169 17539 17539 I [SC]SyncStatusCode: convertToDesignCode: 20000000
+04-10 15:14:11.170 17539 17539 I [SC]SyncSettingManager: getSyncStatus: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.170 17539 17539 I [SC]SyncStatusCode: convertToDesignCode: 20000000
+04-10 15:14:11.171 13116 13116 I [PASS][CMN]DeviceFeature: isJDMDevice : 0
+04-10 15:14:11.172 13116 13116 I [PASS][SPASS]#SafetyCheckService: isTimeToCheckSafety: Fri Apr 10 15:10:10 GMT+09:00 2026 1775801651171 240665
+04-10 15:14:11.175  2337  3803 D SyncManager: userId - 0 auto - true
+04-10 15:14:11.176  2337  3783 D BackgroundInstallControlService: Package event received: 0
+04-10 15:14:11.177 17539 22273 I [SC]CloudSyncAdapter: onPerformSync - authority: com.samsung.android.samsungpass.scloud, extra: Bundle[{upload=true}]
+04-10 15:14:11.177  2337  4100 I BatteryService_BatteryPropertiesRegistrar: [getProperty]id:4
+04-10 15:14:11.177  2337  4100 I BatteryService_BatteryPropertiesRegistrar: [getProperty]prop.long:-9223372036854775808 ,prop.string:null
+04-10 15:14:11.177 17539 22273 I [SC]SamsungApiImpl: getThermistor. temp: 333
+04-10 15:14:11.177 17539 22273 I [SC][SyncScheduleLogger]: [SyncStarted] [syncType=AppNotifyChanged] [authority=com.samsung.android.samsungpass.scloud] [reqTime=-1] [startTime=1775801651177] [reqContents=]
+04-10 15:14:11.177 17539 22273 I [SC]ExternalBaseSyncAdapter-com.samsung.android.samsungpass: [SAMSUNG_PASS] onPerformSync: started
+04-10 15:14:11.177 17539 22274 I [SC]SyncSchedulePolicyManager: onSyncStarted: false
+04-10 15:14:11.177 17539 22273 I [SC]SyncSettingManager: setSyncStatus: SyncStatusVo{authority='com.samsung.android.samsungpass.scloud', state='START', errorCode='999'},false,false
+04-10 15:14:11.177 17539 22273 I [SC]SyncSettingManager: getCategory: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.178 17539 17539 I [SC]SyncSettingManager: getSyncStatus: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.179 17539 17676 I [SC][Verification]: [ChinaPnCtcpiSupplier] isPrivacyNoticeAgreed: Not china account
+04-10 15:14:11.179 17539 17676 I [SC][Verification]: [ChinaPnCtcpiSupplier] isPersonalInfoCollectionAgreed: Not china account
+04-10 15:14:11.179 17539 22273 I [SC]SyncAuthority: com.samsung.android.samsungpass.scloud has no permissions to grant
+04-10 15:14:11.179 17539 17539 I [SC]SyncSettingManager: getSyncStatus: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.179 17539 22273 I [SC]SimplePolicyManager: getPolicy: policy found: Sync_System_Precondition / {"maxSIOPLevel":3}/SyncSystemPrecondition{maxSiopLevel=3}
+04-10 15:14:11.179 17539 22273 I [SC]SyncPolicyManager: isSystemOverheated: SyncSystemPrecondition{maxSiopLevel=3}
+04-10 15:14:11.179 17539 22273 I [SC]SyncSettingManager: setSyncStatus: SyncStatusVo{authority='com.samsung.android.samsungpass.scloud', state='ACTIVE', errorCode='999'},false,false
+04-10 15:14:11.179 13116 13131 I [PASS][SPASS]ApplicationUtils: isSignedUp : true
+04-10 15:14:11.179 13116 13131 I [PASS][SPASS] SCSyncSettingLibraryProvider: isSupported: true
+04-10 15:14:11.179 13116 13131 I [scsettingv2][2.0.35.0]: isSupported: true
+04-10 15:14:11.179 17539 22213 I [SC][DEPENDENCY][LIB][SamsungPass][RPC]: isSupported: true
+04-10 15:14:11.179 17539 22213 I [SC]BaseFunctionCache: isSupported: com.samsung.android.samsungpass.scloud, true, true, elapsed time: 0
+04-10 15:14:11.180 17539 17539 I [SC]SyncSettingManager: getSyncStatus: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.180 17539 22273 I [SC]SyncSettingManager: verifyContentSync: JVr2j6jQIE, true
+04-10 15:14:11.180 17539 22273 I [SC]EdpContentChecker: contentId: JVr2j6jQIE, isServerPolicyUpdated: true, isContentIdRegistered: false
+04-10 15:14:11.180 17539 22273 I [SC]EdpContentChecker: contentId: JVr2j6jQIE, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:11.181 17539 22273 I [SC][Sync]AbstractBaseSyncAdapter: [SAMSUNGPASS_V2_ADDRESS] performSync: started
+04-10 15:14:11.181 17539 17539 I [SC]SyncSettingManager: getSyncStatus: com.samsung.android.samsungpass.scloud
+04-10 15:14:11.181 17539 22273 I [SC]EdpContentChecker: contentId: JVr2j6jQIE, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:11.181 17539 22273 I [SC][SamsungCloudE2EESync]: name: com.samsung.scsp.framework.storage.data, version : 1.2.0010, isAccountRequiredFeature = true, isDrsSupported = false, platformConfigurationRequire = true
+04-10 15:14:11.181 17539 22273 I KMX|DeviceInfoManagementImpl: KmxSdk v2.0.16-release
+04-10 15:14:11.181 17539 22273 I KMX|DeviceInfoManagementImpl: [getE2EEDeviceType] : 1
+04-10 15:14:11.181 17539 22273 I DeviceInfoManagementImpl: VC :201603900
+04-10 15:14:11.181 17539 22273 I KMX|DeviceInfoManagementImpl: [getSAKUid] : REDACTED
+04-10 15:14:11.181 17539 22273 I KMX|DeviceInfoManagementImpl: KmxSdk v2.0.16-release
+04-10 15:14:11.181 17539 22273 I KMX|DeviceInfoManagementImpl: [getE2EEDeviceType] : 1
+04-10 15:14:11.181 17539 22273 I [SC][DeviceUtil]: One UI version : 8.0.0
+04-10 15:14:11.181 17539 22273 I [SC][UserRegistration]: register
+04-10 15:14:11.181 17539 22273 I [SC][UserRegistration]: Already user registered.
+04-10 15:14:11.181 17539 22273 I [SC][UserToken]: Get token
+04-10 15:14:11.181 17539 22273 I [SC][UserToken]: UserToken is valid
+04-10 15:14:11.182 17539 22273 I [SC][DeviceUtil]: getSimMcc
+04-10 15:14:11.182 17539 22273 I [SC][DeviceUtil]: getSimMnc
+04-10 15:14:11.182 17539 22273 I [SC][SamsungCloudE2EESync]: public com.samsung.scsp.framework.storage.data.api.DataApiV3ControlImpl()
+04-10 15:14:11.182 17539 22273 I [SC][PlatformConfigurationImpl]: getPlatformConfiguration
+04-10 15:14:11.182 17539 22273 I [SC][E2eeFiles]: initializeFileControl
+04-10 15:14:11.182 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_ADDRESS: onStartSync
+04-10 15:14:11.182 17539 22273 I [SC]DlFeature: isDlMode. false
+04-10 15:14:11.182 17539 22273 I [SC]EdpContentChecker: contentId: JVr2j6jQIE, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:11.182 17539 22273 I [SC][SyncScheduleLogger]: [ContentStarted] [syncType=AppNotifyChanged] [authority=com.samsung.android.samsungpass.scloud] [content=SAMSUNG_PASS_ADDRESS]
+04-10 15:14:11.182 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_ADDRESS: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@d5a08a1
+04-10 15:14:11.182 13116 13131 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: prepare, arg: SAMSUNGPASS_V2_ADDRESS
+04-10 15:14:11.182 13116 13131 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:11.182 13116 13131 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@d052c9a, prepare=mj.k$a@7e719cb, download=mj.k$d@54405a8, upload=mj.k$c@f9fc8c1, getFileDescriptor=mj.k$i@c797866, finish=mj.k$h@74b87a7, getLocalChanges=mj.k$b@a7d454, downloadComplete=mj.k$g@71f2ffd, delete=mj.k$e@394b4f2}
+04-10 15:14:11.182 13116 13131 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_ADDRESS] Sync Prepare
+04-10 15:14:11.183 13116 13131 I [PASS][SPASS]SCloudSyncImplAddress: prepare type : Sync lastSyncTime : 1775801648860
+04-10 15:14:11.183 13116 13131 I [PASS][SPASS]SCloudSyncImplAddress: address sync prepare - address record count: 0
+04-10 15:14:11.183 17539 22273 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_ADDRESS] lastSyncTime: 1775801648860
+04-10 15:14:11.183 17539 22273 I [SC][UserToken]: Get token
+04-10 15:14:11.183 17539 22273 I [SC][UserToken]: UserToken is valid
+04-10 15:14:11.183 17539 22273 I [SC][DeviceUtil]: getSimMcc
+04-10 15:14:11.183 17539 22273 I [SC][DeviceUtil]: getSimMnc
+04-10 15:14:11.183 17539 22273 I [SC][OkHttpNetworkImpl]: [QUERY_EVENT_IDS][192735942][https://api.samsungcloud.com/data/v3/com.samsung.spass.address/documents/events?idModifiedAtOnly=true&limit=100&lastCheckPoint=1775801648860][e7f0681a-bed8-37b3-8e4c-df752fb7a557]
+04-10 15:14:11.183 17539 22273 I [SC][OkHttpNetworkImpl]: call is added.
+04-10 15:14:11.319  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.319  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.320  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.320  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.321  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.321  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.322  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.322  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:11.345  3916  4534 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+04-10 15:14:11.403  1732 22064 I HYPER-HAL: [RequestManager.cpp]releaseLocked(): Released ID : 24861852
+04-10 15:14:11.412  2337  2856 D HintManagerService: Sent cleanup message for uid 10271
+04-10 15:14:11.412  1732  1864 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 29485624  [1735 / 5943]    HINT :      list : [TID_LOW_LATENCY / 0] [TID / 25852] [TID / 25853] [TID / 21376] [TID / 25840]
+04-10 15:14:11.413  1732  1864 I HYPER-HAL: [RequestManager.cpp]releaseLocked(): Released ID : 29485624
+04-10 15:14:11.413  1732  1864 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 29493304  [1735 / 5944]    HINT :      list : [UCLAMP_MIN_BOOST / 0] [TIMEOUT / 50] [TID / 25852] [TID / 25853] [TID / 21376] [TID / 25840]
+04-10 15:14:11.463  1732 22276 I HYPER-HAL: [RequestManager.cpp]releaseLocked(): Released ID : 29493304
+04-10 15:14:11.581  2337  2337 I ActivityManager: Changes in 10226 6 to 10, 128 to 0
+04-10 15:14:11.582 11180 11180 I [PASS][CMN]DrawableCache: clearData: clearing cache (current size=0KB)
+04-10 15:14:11.582  2189  2189 I CameraService: onUidStateChanged: uid=5009, procState is changed. (6 -> 8)
+04-10 15:14:11.583  7965  7965 I [AUTHFW][PASS]AuthFwApp: otlv20
+04-10 15:14:11.590  1856  1983 I VSyncReactor: Current= 120, Period= 120, Distance= 0
+04-10 15:14:11.590 11180 11180 I [PASS][CMN]DrawableCache: clearData: clearing cache (current size=0KB)
+04-10 15:14:11.598  1856  1983 I VSyncReactor: Current= 120, Period= 120, Distance= 120
+04-10 15:14:11.660  2337  2925 D PowerManagerService: UserActivityStateListenerState: 0
+04-10 15:14:11.826 18010 18010 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.auth.aang.events.services.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentApiService }
+04-10 15:14:11.878  1846  1894 E HeatmapThread: ECT Thread time in milliseconds: 1775801651
+04-10 15:14:11.881  1846  1894 D HeatmapThread: !@ batteryplugType : 2
+04-10 15:14:11.881  1846  1894 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 313
+04-10 15:14:11.881  1846  1894 D HeatmapThread: !@ Heatmap currtime: 29596694
+04-10 15:14:11.881  1846  1894 D HeatmapThread: !@ Heatmap prevtime: 29596680
+04-10 15:14:11.881  1846  1894 D HeatmapThread: !@ Heatmap plugstarttime: 29596609
+04-10 15:14:11.881  1846  1894 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29596681
+04-10 15:14:11.881  1846  1894 E HeatmapThread: !@ CAM New BSOH: 100
+04-10 15:14:11.881  1846  1894 E HeatmapThread: !@ CAM is Working
+04-10 15:14:11.991 17539 22273 I [SC][OkHttpNetworkImpl]: call is removed.
+04-10 15:14:11.991 17539 22273 I [SC][SamsungCloudE2EESync]: getDocumentEventIds - server response : {"updated":[],"deleted":[],"checkPoint":1775801652347,"hasNext":false}
+04-10 15:14:11.991 17539 22273 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_ADDRESS] server changes: 0
+04-10 15:14:11.991 13116 13131 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: getLocalChanges, arg: SAMSUNGPASS_V2_ADDRESS
+04-10 15:14:11.991 13116 13131 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:11.991 13116 13131 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@d052c9a, prepare=mj.k$a@7e719cb, download=mj.k$d@54405a8, upload=mj.k$c@f9fc8c1, getFileDescriptor=mj.k$i@c797866, finish=mj.k$h@74b87a7, getLocalChanges=mj.k$b@a7d454, downloadComplete=mj.k$g@71f2ffd, delete=mj.k$e@394b4f2}
+04-10 15:14:11.991 13116 13131 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_ADDRESS] GET_LOCAL_CHANGES
+04-10 15:14:11.993 13116 13131 I [PASS][SPASS]SCloudSyncImplAddress: getHeader isColdStart: false length: 0
+04-10 15:14:11.993 17539 22273 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_ADDRESS] local changes: 0
+04-10 15:14:11.993 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_ADDRESS: onStateOperationFinished: CollectChangesWithoutPaging
+04-10 15:14:11.993 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_ADDRESS: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@f731377
+04-10 15:14:11.993 17539 22273 I [SC][Sync][Core][Sync]ReconcileServerContents: [SAMSUNGPASS_V2_ADDRESS] reconcile
+04-10 15:14:11.993 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V
+
+
+04-10 15:14:12.423 19168 19749 I BadgeProvider: query, [calling package]: com.sec.android.app.launcher, [selection]: null
+04-10 15:14:12.423  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.423  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.424  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.424  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.424 17539 22273 I [SC]SyncSettingManager: verifyContentSync: ZZFAtz6HCf, true
+04-10 15:14:12.424 17539 22273 I [SC]EdpContentChecker: contentId: ZZFAtz6HCf, isServerPolicyUpdated: true, isContentIdRegistered: false
+04-10 15:14:12.424 17539 22273 I [SC]EdpContentChecker: contentId: ZZFAtz6HCf, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:12.424 17539 22273 I [SC][Sync]AbstractBaseSyncAdapter: [SAMSUNGPASS_V2_PASSKEY] performSync: started
+04-10 15:14:12.424  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.424  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.424 17539 22273 I [SC]EdpContentChecker: contentId: ZZFAtz6HCf, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:12.425 17539 22273 I [SC][SamsungCloudE2EESync]: name: com.samsung.scsp.framework.storage.data, version : 1.2.0010, isAccountRequiredFeature = true, isDrsSupported = false, platformConfigurationRequire = true
+04-10 15:14:12.425 19168 19180 I BadgeProvider: sendNotify [uri]: content://com.sec.badge/apps, [notify]: null
+04-10 15:14:12.425 17539 22273 I KMX|DeviceInfoManagementImpl: KmxSdk v2.0.16-release
+04-10 15:14:12.425 17539 22273 I KMX|DeviceInfoManagementImpl: [getE2EEDeviceType] : 1
+04-10 15:14:12.425 17539 22273 I DeviceInfoManagementImpl: VC :201603900
+04-10 15:14:12.425 17539 22273 I KMX|DeviceInfoManagementImpl: [getSAKUid] : REDACTED
+04-10 15:14:12.425 19168 19180 I BadgeProvider: update, [calling package]: com.sec.android.provider.badge, [uri]: content://com.sec.badge/apps, [uri.query]: null, [BadgeCount]: badgecount=999, [UpdateCount]: 1
+04-10 15:14:12.425 17539 22273 I KMX|DeviceInfoManagementImpl: KmxSdk v2.0.16-release
+04-10 15:14:12.425 17539 22273 I KMX|DeviceInfoManagementImpl: [getE2EEDeviceType] : 1
+04-10 15:14:12.425 19168 19180 I BadgeCountReceiver: UpdateTask END: PendingResult hashCode: 248058101
+04-10 15:14:12.425 17539 22273 I [SC][DeviceUtil]: One UI version : 8.0.0
+04-10 15:14:12.425 17539 22273 I [SC][UserRegistration]: register
+04-10 15:14:12.425 17539 22273 I [SC][UserRegistration]: Already user registered.
+04-10 15:14:12.425 17539 22273 I [SC][UserToken]: Get token
+04-10 15:14:12.425  1689  1790 E minksocket: MinkIPC ERROR: ( 1689:1790 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.425 17539 22273 I [SC][UserToken]: UserToken is valid
+04-10 15:14:12.425 19168 19749 I BadgeProvider: query, [calling package]: com.sec.android.app.launcher, [selection]: null
+04-10 15:14:12.425  1689  1797 E minksocket: MinkIPC ERROR: ( 1689:1797 ) MinkIPC_preProcess:272 Client down, but cannot find corresponding minksession
+04-10 15:14:12.426 17539 22273 I [SC][DeviceUtil]: getSimMcc
+04-10 15:14:12.426 17539 22273 I [SC][DeviceUtil]: getSimMnc
+04-10 15:14:12.426 17539 22273 I [SC][SamsungCloudE2EESync]: public com.samsung.scsp.framework.storage.data.api.DataApiV3ControlImpl()
+04-10 15:14:12.427 17539 22273 I [SC][PlatformConfigurationImpl]: getPlatformConfiguration
+04-10 15:14:12.427 17539 22273 I [SC][E2eeFiles]: initializeFileControl
+04-10 15:14:12.427 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_PASSKEY: onStartSync
+04-10 15:14:12.427 17539 22273 I [SC]DlFeature: isDlMode. false
+04-10 15:14:12.427 17539 22273 I [SC]EdpContentChecker: contentId: ZZFAtz6HCf, e2ee state: NONE, isServerPolicyUpdated: true
+04-10 15:14:12.427 17539 22273 I [SC][SyncScheduleLogger]: [ContentStarted] [syncType=AppNotifyChanged] [authority=com.samsung.android.samsungpass.scloud] [content=SAMSUNG_PASS_KEY_DATA]
+04-10 15:14:12.427 17539 22273 I [SC]CloudSyncTelemetry-SAMSUNGPASS_V2_PASSKEY: onStateOperationStarted: com.samsung.scsp.framework.storage.data.SyncResultData$State@15e36f1
+04-10 15:14:12.427 13116 13131 I [SCLIB_2.4.9]ClientProvider: call: version: 2.4.9, method: prepare, arg: SAMSUNGPASS_V2_PASSKEY
+04-10 15:14:12.427 13116 13131 I [SCLIB_2.4.9]ClientProvider: CLIENT_MAP {SAMSUNGPASS_V2_ADDRESS=mj.k@4487189, SAMSUNGPASS=wj.c@e66458e, SAMSUNGPASS_V2_PASSKEY=mj.k@49111af, SAMSUNGPASS_V2_NOTE=mj.k@18209bc, SAMSUNGPASS_V2_SCLOUD=mj.k@6bd9d45}
+04-10 15:14:12.427 13116 13131 I [SCLIB_2.4.9]g: getServiceHandler {uploadComplete=mj.k$f@80aa85f, prepare=mj.k$a@450d2ac, download=mj.k$d@3a24b75, upload=mj.k$c@95f70a, getFileDescriptor=mj.k$i@cdb6b7b, finish=mj.k$h@4e6d98, getLocalChanges=mj.k$b@25929f1, downloadComplete=mj.k$g@c2479d6, delete=mj.k$e@a2b4457}
+04-10 15:14:12.427 13116 13131 I [SCLIB_2.4.9]k: [SAMSUNGPASS_V2_PASSKEY] Sync Prepare
+04-10 15:14:12.427 13116 13131 I [PASS][SPASS]SCloudSyncImplPasskey: prepare type : Sync lastSyncTime : 1775801649973
+04-10 15:14:12.428 13116 13131 I [PASS][SPASS]SCloudSyncImplPasskey: passkey sync prepare - passkey record count: 4
+04-10 15:14:12.428 17539 22273 I [SC][Sync][Core][Sync]CollectChangesWithoutPaging: [SAMSUNGPASS_V2_PASSKEY] lastSyncTime: 1775801649973
+04-10 15:14:12.428 17539 22273 I [SC][UserToken]: Get token
+04-10 15:14:12.428 17539 22273 I [SC][UserToken]: UserToken is valid
+04-10 15:14:12.428 17539 22273 I [SC][DeviceUtil]: getSimMcc
+04-10 15:14:12.428 17539 22273 I [SC][DeviceUtil]: getSimMnc
+04-10 15:14:12.428 17539 22273 I [SC][OkHttpNetworkImpl]: [QUERY_EVENT_IDS][155255510][https://api.samsungcloud.com/data/v3/com.samsung.spass.passkey/documents/events?idModifiedAtOnly=true&limit=100&lastCheckPoint=1775801649973][e7f0681a-bed8-37b3-8e4c-df752fb7a557]
+04-10 15:14:12.428 17539 22273 I [SC][OkHttpNetworkImpl]: call is added.
+04-10 15:14:12.430 10408 14467 I Kumiho-Kumiho: getPackageName: com.kakao.talk
+04-10 15:14:12.430 10408 14467 I Kumiho-Kumiho: getPackageName: com.kakao.talk
+04-10 15:14:12.431 10408 14467 I Kumiho-Kumiho: getPackageName: com.kakao.talk
+04-10 15:14:12.437  1707  5776 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-10 15:14:12.437  1707  5776 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-10 15:14:12.439  1754  2068 I SDM     : DisplayBase::CommitThread: Received idle timeout, panel: cmd, timeout: 70000 us
+04-10 15:14:12.587  1707  4641 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released
+04-10 15:14:12.589 10408 10425 I com.kakao.talk: NativeAlloc concurrent mark compact GC freed 36MB AllocSpace bytes, 175(5400KB) LOS objects, 63% free, 27MB/75MB, paused 732us,2.428ms total 163.319ms
+04-10 15:14:12.624  1754  2112 E SDM     : ScalarConfig::GetAIScaleSettingsInfo: AI Scaler Config for display 68 is not present
+04-10 15:14:12.624  1754  2112 W SDM     : ScalarConfig::ApplyDestScaleConfig: GetAIScaleSettingsInfo returned error=1
+04-10 15:14:12.631  1856  1984 I VSyncReactor: Current= 120, Period= 120, Distance= 4
+04-10 15:14:12.639  1856  1984 I VSyncReactor: Current= 120, Period= 120, Distance= 120
+^C
+
+░▒▓   …/hackerspub-android   feature/passkey-auth !?   15:14 
+❯
+
+Do you see the cause?
+
+---
+
+Yes. Add log line
+
+---
+
+MethodManagerUtils: startInputInner - Id : 0
+04-10 15:17:25.146 24249 24249 I InputMethodManager: startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+04-10 15:17:25.147 24249 24249 I InputMethodManager: handleMessage: setImeVisibility visible=false
+04-10 15:17:25.147 24249 24249 D InsetsController: hide(ime(), fromIme=false)
+04-10 15:17:25.147 24249 24249 I ImeTracker: pub.hackers.android.dev:6d79915c: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+04-10 15:17:25.148 24249 24263 D InputTransport: Input channel constructed: 'ClientS', fd=149
+04-10 15:17:25.151 24249 24249 I InsetsController: onStateChanged: host=pub.hackers.android.dev/pub.hackers.android.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2340), mDisplayCutout=DisplayCutout{insets=Rect(0, 91 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(511, 0 - 569, 91), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2340 physicalDisplayWidth=1080 physicalDisplayHeight=2340 density={3.0} cutoutSpec={M 0,0 H -9.666666666666667 V 30.33333333333333 H 9.666666666666667 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=89, center=Point(89, 89)}, RoundedCorner{position=TopRight, radius=89, center=Point(991, 89)}, RoundedCorner{position=BottomRight, radius=89, center=Point(991, 2251)}, RoundedCorner{position=BottomLeft, radius=89, center=Point(89, 2251)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2340), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 91) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2340 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {fa0c0000 mType=statusBars mFrame=[0,0][1080,91] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {fa0c0005 mType=mandatorySystemGestures mFrame=[0,0][1080,123] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {fa0c0006 mType=tappableElement mFrame=[0,0][1080,91] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1349][1080,2340] mVisible=false mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,91] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {2df00001 mType=navigationBars mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00004 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {2df00005 mType=mandatorySystemGestures mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00006 mType=tappableElement mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00024 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null} }
+04-10 15:17:25.151 24249 24249 I VRI[MainActivity]@772dc20: handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+04-10 15:17:25.159 24249 24249 W RemoteInputConnectionImpl: requestCursorUpdates on inactive InputConnection
+04-10 15:17:25.159 24249 24249 E ImeBackDispatcher: Ime callback not found. Ignoring unregisterReceivedCallback. callbackId: 168810766
+04-10 15:17:25.160 24249 24249 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:17:25.161 24249 24249 I InsetsController: controlAnimationUncheckedInner: Added types=ime, animType=1, host=pub.hackers.android.dev/pub.hackers.android.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1608 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343
+04-10 15:17:25.168 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fe850 mBlastBufferQueue=0xb400007a140eb3f0 fn= 832 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.176 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fe850 mBlastBufferQueue=0xb400007a140eb3f0 fn= 833 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.185 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fed90 mBlastBufferQueue=0xb400007a140eb3f0 fn= 834 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.193 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fed90 mBlastBufferQueue=0xb400007a140eb3f0 fn= 835 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.201 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fc8d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 836 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.209 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fc8d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 837 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.218 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fc710 mBlastBufferQueue=0xb400007a140eb3f0 fn= 838 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.226 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40fc710 mBlastBufferQueue=0xb400007a140eb3f0 fn= 839 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.232 24249 24249 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@e996bed
+04-10 15:17:25.234 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f7310 mBlastBufferQueue=0xb400007a140eb3f0 fn= 840 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.243 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f7310 mBlastBufferQueue=0xb400007a140eb3f0 fn= 841 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.251 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40df3d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 842 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.259 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40df3d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 843 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.268 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e1510 mBlastBufferQueue=0xb400007a140eb3f0 fn= 844 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.277 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e1510 mBlastBufferQueue=0xb400007a140eb3f0 fn= 845 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.284 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e3490 mBlastBufferQueue=0xb400007a140eb3f0 fn= 846 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.293 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e3490 mBlastBufferQueue=0xb400007a140eb3f0 fn= 847 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.301 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e3650 mBlastBufferQueue=0xb400007a140eb3f0 fn= 848 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.309 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e3650 mBlastBufferQueue=0xb400007a140eb3f0 fn= 849 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.318 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e6910 mBlastBufferQueue=0xb400007a140eb3f0 fn= 850 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.326 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e6910 mBlastBufferQueue=0xb400007a140eb3f0 fn= 851 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.334 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f8650 mBlastBufferQueue=0xb400007a140eb3f0 fn= 852 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.343 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f8650 mBlastBufferQueue=0xb400007a140eb3f0 fn= 853 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.351 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f8b90 mBlastBufferQueue=0xb400007a140eb3f0 fn= 854 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.359 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f8b90 mBlastBufferQueue=0xb400007a140eb3f0 fn= 855 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.368 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f2d10 mBlastBufferQueue=0xb400007a140eb3f0 fn= 856 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.376 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40f2d10 mBlastBufferQueue=0xb400007a140eb3f0 fn= 857 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.385 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e7fd0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 858 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.393 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40e7fd0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 859 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.401 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40eb0d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 860 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.409 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40eb0d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 861 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.417 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d3510 mBlastBufferQueue=0xb400007a140eb3f0 fn= 862 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.426 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d3510 mBlastBufferQueue=0xb400007a140eb3f0 fn= 863 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.435 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d67d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 864 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.443 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d67d0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 865 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.451 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d6990 mBlastBufferQueue=0xb400007a140eb3f0 fn= 866 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.459 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d6990 mBlastBufferQueue=0xb400007a140eb3f0 fn= 867 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.468 24249 24300 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d2fd0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 868 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.476 24249 24249 I InsetsController: cancelAnimation: types=ime, animType=1, host=pub.hackers.android.dev/pub.hackers.android.MainActivity, from=android.view.InsetsController.notifyFinished:2006 android.view.InsetsAnimationControlImpl.applyChangeInsets:335 android.view.InsetsController.lambda$new$3:957
+04-10 15:17:25.478 24249 24299 I VRI[MainActivity]@772dc20: mWNT: t=0xb4000078e40d2fd0 mBlastBufferQueue=0xb400007a140eb3f0 fn= 869 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SyncRtSurfaceTransactionApplier.applyTransaction:100 android.view.SyncRtSurfaceTransactionApplier.lambda$scheduleApply$0:73 android.view.SyncRtSurfaceTransactionApplier.$r8$lambda$afI4fXg3U3-nBZQEDQMiNy-B06s:0
+04-10 15:17:25.589 24249 24249 I InsetsController: onStateChanged: host=pub.hackers.android.dev/pub.hackers.android.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2340), mDisplayCutout=DisplayCutout{insets=Rect(0, 91 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(511, 0 - 569, 91), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2340 physicalDisplayWidth=1080 physicalDisplayHeight=2340 density={3.0} cutoutSpec={M 0,0 H -9.666666666666667 V 30.33333333333333 H 9.666666666666667 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=89, center=Point(89, 89)}, RoundedCorner{position=TopRight, radius=89, center=Point(991, 89)}, RoundedCorner{position=BottomRight, radius=89, center=Point(991, 2251)}, RoundedCorner{position=BottomLeft, radius=89, center=Point(89, 2251)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2340), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 91) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2340 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {fa0c0000 mType=statusBars mFrame=[0,0][1080,91] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {fa0c0005 mType=mandatorySystemGestures mFrame=[0,0][1080,123] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {fa0c0006 mType=tappableElement mFrame=[0,0][1080,91] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mVisible=false mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,91] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {2df00001 mType=navigationBars mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00004 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {2df00005 mType=mandatorySystemGestures mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00006 mType=tappableElement mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00024 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null} }
+04-10 15:17:25.589 24249 24249 I VRI[MainActivity]@772dc20: handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+04-10 15:17:25.735 24249 24249 I ImeFocusController: onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:17:25.735 24249 24249 I ImeFocusController: onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:17:25.795 24249 24249 D InputTransport: Input channel destroyed: 'ClientS', fd=157
+04-10 15:17:26.333 24249 24249 I VRI[MainActivity]@772dc20: call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@772dc20
+04-10 15:17:26.393 24249 24249 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:17:26.393 24249 24249 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=statusBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:17:27.035 24249 24263 I CredManProvService: Create Result returned from framework:
+04-10 15:17:27.061 24249 24249 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:17:27.061 24249 24249 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=statusBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:17:27.061 24249 24249 D VRI[MainActivity]@772dc20: mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb4000079a40c9ff0}
+04-10 15:17:27.061 24249 24249 D InputMethodManagerUtils: startInputInner - Id : 0
+04-10 15:17:27.061 24249 24249 I InputMethodManager: startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+04-10 15:17:27.063 24249 24249 I InputMethodManager: handleMessage: setImeVisibility visible=false
+04-10 15:17:27.063 24249 24249 D InsetsController: hide(ime(), fromIme=false)
+04-10 15:17:27.063 24249 24249 I ImeTracker: pub.hackers.android.dev:8ddd9516: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+04-10 15:17:27.064 24249 24262 D InputTransport: Input channel constructed: 'ClientS', fd=157
+
+Hmmm
+
+---
+
+Okay, the log has not spawned. Is it passkey provider problem?
+
+---
+
+Is it the callback problem?
+
+---
+
+mSideHint=NONE mBoundingRects=null}, InsetsSource: {2df00005 mType=mandatorySystemGestures mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00006 mType=tappableElement mFrame=[0,2214][1080,2340] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {2df00024 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null} }
+04-10 15:20:59.209 29980 29980 I VRI[MainActivity]@772dc20: handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+04-10 15:20:59.433 29980 29980 I ImeFocusController: onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:20:59.434 29980 29980 I ImeFocusController: onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+04-10 15:20:59.493 29980 29980 D InputTransport: Input channel destroyed: 'ClientS', fd=162
+04-10 15:21:00.592 29980 29980 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:21:00.592 29980 29980 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=statusBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:21:01.294 29980 30061 I CredManProvService: Create Result returned from framework:
+04-10 15:21:01.295 29980 29980 D PasskeyAuth: register: success
+04-10 15:21:01.315 29980 29980 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:21:01.315 29980 29980 I InsetsSourceConsumer: applyRequestedVisibilityToControl: visible=true, type=statusBars, host=pub.hackers.android.dev/pub.hackers.android.MainActivity
+04-10 15:21:01.316 29980 29980 D VRI[MainActivity]@772dc20: mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb4000079a40ccd00}
+04-10 15:21:01.316 29980 29980 D InputMethodManagerUtils: startInputInner - Id : 0
+04-10 15:21:01.316 29980 29980 I InputMethodManager: startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+04-10 15:21:01.316 29980 29980 I InputMethodManager: handleMessage: setImeVisibility visible=false
+04-10 15:21:01.316 29980 29980 D InsetsController: hide(ime(), fromIme=false)
+04-10 15:21:01.317 29980 29980 I ImeTracker: pub.hackers.android.dev:84bd4a59: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+04-10 15:21:01.317 29980 30302 D InputTransport: Input channel constructed: 'ClientS', fd=162
+
+---
+
+04-10 15:20:59.082 29980 29980 D PasskeyAuth: register: creating request
+04-10 15:21:01.295 29980 29980 D PasskeyAuth: register: success
+
+---
+
+CS0hM3iH-IM","rawId":"REDACTED","type":"public-key","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXB
+04-10 15:23:18.187   523   523 D PasskeyAuth: registerPasskey: verifying with server, name=ㅇㅇ
+04-10 15:23:18.731   523   523 E PasskeyAuth: registerPasskey: failed
+04-10 15:23:18.731   523   523 E PasskeyAuth: java.lang.Exception: Unexpected error.
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at pub.hackers.android.data.repository.HackersPubRepository.verifyPasskeyRegistration-BWLJW6A(HackersPubRepository.kt:451)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at pub.hackers.android.data.repository.HackersPubRepository$verifyPasskeyRegistration$1.invokeSuspend(Unknown Source:15)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:28)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:100)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:46)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at android.os.Handler.handleCallback(Handler.java:995)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at android.os.Handler.dispatchMessage(Handler.java:103)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at android.os.Looper.loopOnce(Looper.java:273)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at android.os.Looper.loop(Looper.java:363)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at android.app.ActivityThread.main(ActivityThread.java:10060)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at java.lang.reflect.Method.invoke(Native Method)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+04-10 15:23:18.731   523   523 E PasskeyAuth:   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+
+---
+
+04-10 15:24:47.124  3080  3080 D PasskeyAuth: registerPasskey: getting options for REDACTED
+04-10 15:24:47.702  3080  3080 D PasskeyAuth: registerPasskey: got options
+04-10 15:24:47.702  3080  3080 D PasskeyAuth: register: creating request
+04-10 15:24:49.263  3080  3080 D PasskeyAuth: register: success
+04-10 15:24:49.263  3080  3080 D PasskeyAuth: registerPasskey: got registration response: {"id":"REDACTED","rawId":"REDACTED","type":"public-key","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXB
+04-10 15:24:49.263  3080  3080 D PasskeyAuth: registerPasskey: verifying with server, name=엄지손가락 갤럭시
+04-10 15:24:49.602  3080  3080 E PasskeyAuth: verifyPasskeyRegistration errors: [Unexpected error. path=[verifyPasskeyRegistration]]
+04-10 15:24:49.602  3080  3080 E PasskeyAuth: registerPasskey: failed
+04-10 15:24:49.602  3080  3080 E PasskeyAuth: java.lang.Exception: Unexpected error.
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at pub.hackers.android.data.repository.HackersPubRepository.verifyPasskeyRegistration-BWLJW6A(HackersPubRepository.kt:453)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at pub.hackers.android.data.repository.HackersPubRepository$verifyPasskeyRegistration$1.invokeSuspend(Unknown Source:15)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:28)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:100)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:46)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Handler.handleCallback(Handler.java:995)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Handler.dispatchMessage(Handler.java:103)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Looper.loopOnce(Looper.java:273)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Looper.loop(Looper.java:363)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.app.ActivityThread.main(ActivityThread.java:10060)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at java.lang.reflect.Method.invoke(Native Method)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+
+---
+
+Is this right?
+
+---
+
+Without esrver change
+
+---
+
+Okay. assembleRelease and install
+
+---
+
+Yes i have
+
+```
+
+  # 1. Build signed APK
+  export KEYSTORE_FILE="$(pwd)/hackerspub-release.jks"
+  export STORE_PASSWORD="REDACTED"
+  export KEY_ALIAS="hackerspub"
+  export KEY_PASSWORD="$STORE_PASSWORD"
+
+  ./gradlew assembleRelease
+## Base 64 keystore (KEYSTORE_BASE64)
+
+
+```
+REDACTED
+
+```
+
+```
+
+---
+
+0yNTliMTdhNWFmN2Y=
+04-10 15:24:47.702  3080  3080 D PasskeyAuth: registerPasskey: got options
+04-10 15:24:47.702  3080  3080 D PasskeyAuth: register: creating request
+04-10 15:24:49.263  3080  3080 D PasskeyAuth: register: success
+04-10 15:24:49.263  3080  3080 D PasskeyAuth: registerPasskey: got registration response: {"id":"REDACTED","rawId":"REDACTED","type":"public-key","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXB
+04-10 15:24:49.263  3080  3080 D PasskeyAuth: registerPasskey: verifying with server, name=엄지손가락 갤럭시
+04-10 15:24:49.602  3080  3080 E PasskeyAuth: verifyPasskeyRegistration errors: [Unexpected error. path=[verifyPasskeyRegistration]]
+04-10 15:24:49.602  3080  3080 E PasskeyAuth: registerPasskey: failed
+04-10 15:24:49.602  3080  3080 E PasskeyAuth: java.lang.Exception: Unexpected error.
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at pub.hackers.android.data.repository.HackersPubRepository.verifyPasskeyRegistration-BWLJW6A(HackersPubRepository.kt:453)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at pub.hackers.android.data.repository.HackersPubRepository$verifyPasskeyRegistration$1.invokeSuspend(Unknown Source:15)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:28)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:100)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:46)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Handler.handleCallback(Handler.java:995)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Handler.dispatchMessage(Handler.java:103)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Looper.loopOnce(Looper.java:273)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.os.Looper.loop(Looper.java:363)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at android.app.ActivityThread.main(ActivityThread.java:10060)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at java.lang.reflect.Method.invoke(Native Method)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+04-10 15:24:49.602  3080  3080 E PasskeyAuth:   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+
+---
+
+04-10 15:35:52.160 10240 10240 E PasskeyAuth: verifyPasskeyRegistration errors: [Unexpected error. path=[verifyPasskeyRegistration]]
+04-10 15:35:52.160 10240 10240 E PasskeyAuth: registerPasskey: failed
+04-10 15:35:52.160 10240 10240 E PasskeyAuth: java.lang.Exception: Unexpected error.
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at J5.I.S(Unknown Source:184)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at J5.H.r(Unknown Source:12)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at N4.a.n(Unknown Source:8)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at k5.q.t(Unknown Source:6)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at f5.a.n(Unknown Source:22)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at N4.a.n(Unknown Source:31)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at f5.D.run(Unknown Source:106)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at android.os.Handler.handleCallback(Handler.java:995)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at android.os.Handler.dispatchMessage(Handler.java:103)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at android.os.Looper.loopOnce(Looper.java:273)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at android.os.Looper.loop(Looper.java:363)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at android.app.ActivityThread.main(ActivityThread.java:10060)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at java.lang.reflect.Method.invoke(Native Method)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+04-10 15:35:52.160 10240 10240 E PasskeyAuth:   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+
+---
+
+Okay, android-apk-hash is it consistent for all versions?
+
+---
+
+signing key would be same
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Okay, I got this log from server
+
+```
+ERR Error: Unexpected registration response origin "android:apk-key-hash:REDACTED", expected "https://hackers.pub"
+    at verifyRegistrationResponse (https://jsr.io/@simplewebauthn/server/13.3.0/src/registration/verifyRegistrationResponse.ts:146:13)
+    at verifyRegistration (file:///app/models/passkey.ts:61:24)
+    at eventLoopTick (ext:core/01_core.js:187:7)
+    at async resolve (file:///app/graphql/passkey.ts:132:22) {
+  path: [ "verifyPasskeyRegistration" ],
+  locations: [ { line: 1, column: 101 } ],
+  extensions: [Object: null prototype] {}
+}
+```
+
+---
+
+We need to determine by its from android / ios / web, so that we can ensure typesafe passkey registration
+
+---
+
+But for expectedOrigin, it should return single URL object
+
+---
+
+But, it collides with ctx.fed.origin,
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+We can determine by viewer parameter
+
+---
+
+Okay, platform
+
+---
+
+2
+
+---
+
+Only for gating url origin matching
+
+---
+
+For default, its web
+
+---
+
+Go
+
+---
+
+Yes
+
+---
+
+commit piece-wise, with meaningful atomic unit.
