@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "f4ce4aa55f01",
+  "strategy": "manual-commit",
+  "branch": "chore/assetlink-fix",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/.well-known/assetlinks.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f4/ce4aa55f01/0/metadata.json",
+      "transcript": "/f4/ce4aa55f01/0/full.jsonl",
+      "context": "/f4/ce4aa55f01/0/context.md",
+      "content_hash": "/f4/ce4aa55f01/0/content_hash.txt",
+      "prompt": "/f4/ce4aa55f01/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 33,
+    "cache_creation_tokens": 337776,
+    "cache_read_tokens": 6840031,
+    "output_tokens": 3208,
+    "api_call_count": 21
+  }
+}

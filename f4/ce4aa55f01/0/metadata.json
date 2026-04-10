@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "f4ce4aa55f01",
+  "session_id": "ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-10T04:09:46.923724Z",
+  "branch": "chore/assetlink-fix",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/.well-known/assetlinks.json"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "ba720185-75c2-4c7a-a9a4-9ac21f64c3e4",
+  "checkpoint_transcript_start": 3895,
+  "transcript_lines_at_start": 3895,
+  "token_usage": {
+    "input_tokens": 33,
+    "cache_creation_tokens": 337776,
+    "cache_read_tokens": 6840031,
+    "output_tokens": 3208,
+    "api_call_count": 21
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-10T04:09:45.440937Z",
+    "agent_lines": 15,
+    "human_added": 59,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 74,
+    "agent_percentage": 20.27027027027027
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/ac3f02f2-e1eb-4fdf-9ed4-c39aa08b7599.jsonl"
+}
