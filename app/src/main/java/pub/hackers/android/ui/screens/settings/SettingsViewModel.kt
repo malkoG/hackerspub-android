@@ -17,9 +17,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.app.Activity
+import pub.hackers.android.data.auth.PasskeyManager
 import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
 import pub.hackers.android.data.repository.HackersPubRepository
+import pub.hackers.android.domain.model.Passkey
 import javax.inject.Inject
 
 data class SettingsUiState(
@@ -34,7 +37,11 @@ data class SettingsUiState(
     val confirmBeforeShare: Boolean = false,
     val timelineMaxLength: Int = 0,
     val useInAppBrowser: Boolean = true,
-    val fontSizePercent: Int = 100
+    val fontSizePercent: Int = 100,
+    val passkeys: List<Passkey> = emptyList(),
+    val accountId: String? = null,
+    val isLoadingPasskeys: Boolean = false,
+    val isRegisteringPasskey: Boolean = false
 )
 
 @HiltViewModel
@@ -44,6 +51,7 @@ class SettingsViewModel @Inject constructor(
     private val repository: HackersPubRepository,
     private val apolloClient: ApolloClient,
     private val notificationStateManager: NotificationStateManager,
+    private val passkeyManager: PasskeyManager,
     private val workManager: WorkManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -189,5 +197,124 @@ class SettingsViewModel @Inject constructor(
 
     fun clearMessage() {
         _uiState.update { it.copy(message = null) }
+    }
+
+    fun loadPasskeys() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingPasskeys = true) }
+            repository.getPasskeys()
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            passkeys = result.passkeys,
+                            accountId = result.accountId,
+                            isLoadingPasskeys = false
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingPasskeys = false) }
+                }
+        }
+    }
+
+    fun registerPasskey(name: String, activity: Activity) {
+        val accountId = _uiState.value.accountId ?: run {
+            android.util.Log.e("PasskeyAuth", "registerPasskey: accountId is null")
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRegisteringPasskey = true) }
+            try {
+                android.util.Log.d("PasskeyAuth", "registerPasskey: getting options for accountId=$accountId")
+                val optionsJson = repository.getPasskeyRegistrationOptions(accountId)
+                    .getOrThrow()
+                android.util.Log.d("PasskeyAuth", "registerPasskey: got options")
+
+                val registrationResponse = passkeyManager.register(optionsJson, activity)
+                android.util.Log.d("PasskeyAuth", "registerPasskey: got registration response: ${registrationResponse.take(200)}")
+
+                // Parse and re-serialize to ensure clean JSON, then convert to Map for Apollo
+                val jsonObj = org.json.JSONObject(registrationResponse)
+                android.util.Log.d("PasskeyAuth", "registerPasskey: JSON keys: ${jsonObj.keys().asSequence().toList()}")
+                android.util.Log.d("PasskeyAuth", "registerPasskey: response.keys: ${org.json.JSONObject(jsonObj.getString("response")).keys().asSequence().toList()}")
+
+                val responseMap = jsonToMap(jsonObj)
+                android.util.Log.d("PasskeyAuth", "registerPasskey: verifying with server, name=$name, map keys=${responseMap.keys}")
+
+                val result = repository.verifyPasskeyRegistration(accountId, name, responseMap)
+                    .getOrThrow()
+                android.util.Log.d("PasskeyAuth", "registerPasskey: verified=${result.verified}")
+
+                if (result.verified) {
+                    _uiState.update {
+                        it.copy(
+                            message = "Passkey registered",
+                            isRegisteringPasskey = false
+                        )
+                    }
+                    loadPasskeys()
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            message = "Passkey registration failed",
+                            isRegisteringPasskey = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PasskeyAuth", "registerPasskey: failed", e)
+                _uiState.update {
+                    it.copy(
+                        message = e.message ?: "Passkey registration failed",
+                        isRegisteringPasskey = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun revokePasskey(passkeyId: String) {
+        viewModelScope.launch {
+            repository.revokePasskey(passkeyId)
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(
+                            passkeys = state.passkeys.filter { it.id != passkeyId },
+                            message = "Passkey removed"
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(message = "Failed to remove passkey") }
+                }
+        }
+    }
+
+    private fun jsonToMap(json: org.json.JSONObject): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        val keys = json.keys()
+        while (keys.hasNext()) {
+            val key = keys.next()
+            val value = json.get(key)
+            map[key] = when (value) {
+                is org.json.JSONObject -> jsonToMap(value)
+                is org.json.JSONArray -> jsonToList(value)
+                org.json.JSONObject.NULL -> null
+                else -> value
+            }
+        }
+        return map
+    }
+
+    private fun jsonToList(array: org.json.JSONArray): List<Any?> {
+        return (0 until array.length()).map { i ->
+            when (val value = array.get(i)) {
+                is org.json.JSONObject -> jsonToMap(value)
+                is org.json.JSONArray -> jsonToList(value)
+                org.json.JSONObject.NULL -> null
+                else -> value
+            }
+        }
     }
 }

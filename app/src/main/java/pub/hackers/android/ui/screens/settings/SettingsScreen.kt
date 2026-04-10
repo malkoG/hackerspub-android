@@ -1,24 +1,34 @@
 package pub.hackers.android.ui.screens.settings
 
+import android.app.Activity
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,8 +65,14 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSignOutDialog by remember { mutableStateOf(false) }
+    var showAddPasskeyDialog by remember { mutableStateOf(false) }
+    var showRevokePasskeyId by remember { mutableStateOf<String?>(null) }
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) viewModel.loadPasskeys()
+    }
 
     LaunchedEffect(uiState.isSignedOut) {
         if (uiState.isSignedOut) {
@@ -163,6 +180,86 @@ fun SettingsScreen(
                         color = colors.textPrimary
                     )
                 }
+
+                HorizontalDivider(color = colors.divider, thickness = 1.dp)
+
+                // Passkeys section
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Fingerprint,
+                            contentDescription = null,
+                            tint = colors.textSecondary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.passkeys),
+                            style = typography.bodyLarge,
+                            color = colors.textPrimary
+                        )
+                    }
+                    IconButton(onClick = { showAddPasskeyDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.add_passkey),
+                            tint = colors.accent
+                        )
+                    }
+                }
+
+                if (uiState.isLoadingPasskeys) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
+                } else if (uiState.passkeys.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.no_passkeys),
+                        style = typography.bodyMedium,
+                        color = colors.textSecondary,
+                        modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp)
+                    )
+                } else {
+                    uiState.passkeys.forEach { passkey ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 56.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = passkey.name,
+                                    style = typography.bodyMedium,
+                                    color = colors.textPrimary
+                                )
+                                Text(
+                                    text = passkey.created,
+                                    style = typography.labelSmall,
+                                    color = colors.textSecondary
+                                )
+                            }
+                            IconButton(onClick = { showRevokePasskeyId = passkey.id }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = stringResource(R.string.remove),
+                                    tint = colors.reaction
+                                )
+                            }
+                        }
+                    }
+                }
             } else {
                 Row(
                     modifier = Modifier
@@ -235,5 +332,67 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    // Add passkey dialog
+    if (showAddPasskeyDialog) {
+        var passkeyName by remember { mutableStateOf("") }
+        val activity = LocalContext.current as Activity
+
+        AlertDialog(
+            onDismissRequest = { showAddPasskeyDialog = false },
+            title = { Text(stringResource(R.string.add_passkey)) },
+            text = {
+                OutlinedTextField(
+                    value = passkeyName,
+                    onValueChange = { passkeyName = it },
+                    placeholder = { Text(stringResource(R.string.passkey_name_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.accent,
+                        cursorColor = colors.accent
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showAddPasskeyDialog = false
+                        viewModel.registerPasskey(passkeyName.ifBlank { "Android" }, activity)
+                    },
+                    enabled = !uiState.isRegisteringPasskey
+                ) {
+                    Text(stringResource(R.string.add))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddPasskeyDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Revoke passkey confirmation dialog
+    if (showRevokePasskeyId != null) {
+        AlertDialog(
+            onDismissRequest = { showRevokePasskeyId = null },
+            title = { Text(stringResource(R.string.remove_passkey)) },
+            text = { Text(stringResource(R.string.remove_passkey_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.revokePasskey(showRevokePasskeyId!!)
+                    showRevokePasskeyId = null
+                }) {
+                    Text(stringResource(R.string.remove), color = colors.reaction)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRevokePasskeyId = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }

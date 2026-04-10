@@ -17,6 +17,16 @@
     <string name="send_code">Send Code</string>
     <string name="verify">Verify</string>
     <string name="account_not_found">Account not found</string>
+    <string name="or">or</string>
+    <string name="sign_in_with_passkey">Sign in with Passkey</string>
+    <string name="passkeys">Passkeys</string>
+    <string name="add_passkey">Add Passkey</string>
+    <string name="no_passkeys">No passkeys registered</string>
+    <string name="passkey_name_hint">Passkey name (e.g. My Phone)</string>
+    <string name="remove_passkey">Remove Passkey</string>
+    <string name="remove_passkey_confirm">Are you sure you want to remove this passkey?</string>
+    <string name="remove">Remove</string>
+    <string name="add">Add</string>
 
     <!-- Timeline -->
     <string name="local_timeline">Hackers\' Pub</string>
