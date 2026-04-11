@@ -60,17 +60,17 @@ app/src/main/java/pub/hackers/android/
    cd hackerspub-android
    ```
 
-2. Generate GraphQL code:
-   ```bash
-   ./gradlew generateApolloSources
-   ```
-
-3. Build the app:
+2. Build the app:
    ```bash
    ./gradlew assembleDebug
    ```
 
-4. Or open in Android Studio and run on a device/emulator.
+3. Or open in Android Studio and run on a device/emulator.
+
+4. (Optional) Generate GraphQL code separately:
+   ```bash
+   ./gradlew generateApolloSources
+   ```
 
 ## GraphQL
 
