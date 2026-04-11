@@ -458,7 +458,8 @@ private fun parseHtmlToAnnotatedString(
 
                         "ul", "ol" -> {
                             if (listStack.isNotEmpty()) {
-                                listStack.removeLast()
+                                // Use removeAt instead of removeLast to avoid Java 21 SequencedCollection dependency
+                                listStack.removeAt(listStack.lastIndex)
                             }
                             insideListItem = false
                             if (listStack.isEmpty() && hasContent) {
