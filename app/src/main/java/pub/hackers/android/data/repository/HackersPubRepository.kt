@@ -5,7 +5,9 @@ import com.apollographql.apollo.api.Optional
 import com.apollographql.apollo.cache.normalized.FetchPolicy
 import com.apollographql.apollo.cache.normalized.fetchPolicy
 import pub.hackers.android.domain.model.*
+import pub.hackers.android.graphql.ActorArticlesQuery
 import pub.hackers.android.graphql.ActorByHandleQuery
+import pub.hackers.android.graphql.ActorNotesQuery
 import pub.hackers.android.graphql.AddReactionToPostMutation
 import pub.hackers.android.graphql.BlockActorMutation
 import pub.hackers.android.graphql.CompleteLoginChallengeMutation
@@ -260,8 +262,32 @@ class HackersPubRepository @Inject constructor(
                             avatarUrl = actor.avatarUrl.toString()
                         ),
                         bio = actor.bio?.toString(),
+                        fields = actor.fields.map { field ->
+                            ActorField(
+                                name = field.name,
+                                value = field.value.toString()
+                            )
+                        },
+                        accountLinks = actor.account?.links?.map { link ->
+                            AccountLink(
+                                name = link.name,
+                                handle = link.handle,
+                                icon = link.icon.name.lowercase(),
+                                url = link.url.toString(),
+                                verified = link.verified?.toString()
+                            )
+                        } ?: emptyList(),
                         posts = actor.posts.edges.mapNotNull { edge ->
-                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                            val sharedPost = edge.node.sharedPost?.sharedPostFields?.toPost()
+                            edge.node.postFields.toPost(
+                                sharedPost = sharedPost,
+                                lastSharer = if (sharedPost != null) Actor(
+                                    id = actor.id,
+                                    name = actor.name?.toString(),
+                                    handle = actor.handle,
+                                    avatarUrl = actor.avatarUrl.toString()
+                                ) else null
+                            )
                         },
                         hasNextPage = actor.posts.pageInfo.hasNextPage,
                         endCursor = actor.posts.pageInfo.endCursor,
@@ -269,6 +295,60 @@ class HackersPubRepository @Inject constructor(
                         viewerFollows = actor.viewerFollows,
                         followsViewer = actor.followsViewer,
                         viewerBlocks = actor.viewerBlocks
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getActorArticles(handle: String, after: String? = null): Result<TimelineResult> {
+        return try {
+            val response = apolloClient.query(
+                ActorArticlesQuery(handle, Optional.presentIfNotNull(after))
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val articles = response.data?.actorByHandle?.articles
+                    ?: return Result.failure(Exception("Actor not found"))
+
+                Result.success(
+                    TimelineResult(
+                        posts = articles.edges.mapNotNull { edge ->
+                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                        },
+                        hasNextPage = articles.pageInfo.hasNextPage,
+                        endCursor = articles.pageInfo.endCursor
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getActorNotes(handle: String, after: String? = null): Result<TimelineResult> {
+        return try {
+            val response = apolloClient.query(
+                ActorNotesQuery(handle, Optional.presentIfNotNull(after))
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val notes = response.data?.actorByHandle?.notes
+                    ?: return Result.failure(Exception("Actor not found"))
+
+                Result.success(
+                    TimelineResult(
+                        posts = notes.edges.mapNotNull { edge ->
+                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                        },
+                        hasNextPage = notes.pageInfo.hasNextPage,
+                        endCursor = notes.pageInfo.endCursor
                     )
                 )
             }
