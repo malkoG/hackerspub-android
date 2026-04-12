@@ -1,0 +1,25 @@
+Let's enrich profile page.
+1. Add article+post / post only / article only tab
+2. Add attachmnets for user profile. 
+
+See ../hackerspub
+
+---
+
+For reposted, Display also reposter
+
+---
+
+For grided links, I want grid border. and more enlarged text
+
+---
+
+Commit piece-wise and with meaningful unit
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Hmmmm.... Just file-wise
