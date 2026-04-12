@@ -69,9 +69,10 @@ fun SettingsScreen(
     var showRevokePasskeyId by remember { mutableStateOf<String?>(null) }
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+    val passkeyEnabled = pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED
 
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) viewModel.loadPasskeys()
+    LaunchedEffect(isLoggedIn, passkeyEnabled) {
+        if (isLoggedIn && passkeyEnabled) viewModel.loadPasskeys()
     }
 
     LaunchedEffect(uiState.isSignedOut) {
@@ -181,6 +182,7 @@ fun SettingsScreen(
                     )
                 }
 
+                if (passkeyEnabled) {
                 HorizontalDivider(color = colors.divider, thickness = 1.dp)
 
                 // Passkeys section
@@ -260,6 +262,7 @@ fun SettingsScreen(
                         }
                     }
                 }
+                } // passkeyEnabled
             } else {
                 Row(
                     modifier = Modifier
@@ -335,7 +338,7 @@ fun SettingsScreen(
     }
 
     // Add passkey dialog
-    if (showAddPasskeyDialog) {
+    if (passkeyEnabled && showAddPasskeyDialog) {
         var passkeyName by remember { mutableStateOf("") }
         val activity = LocalContext.current as Activity
 
@@ -375,7 +378,7 @@ fun SettingsScreen(
     }
 
     // Revoke passkey confirmation dialog
-    if (showRevokePasskeyId != null) {
+    if (passkeyEnabled && showRevokePasskeyId != null) {
         AlertDialog(
             onDismissRequest = { showRevokePasskeyId = null },
             title = { Text(stringResource(R.string.remove_passkey)) },

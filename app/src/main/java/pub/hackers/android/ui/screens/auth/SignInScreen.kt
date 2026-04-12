@@ -96,7 +96,6 @@ fun SignInScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            val activity = LocalContext.current as Activity
             if (uiState.step == SignInStep.USERNAME) {
                 UsernameStep(
                     username = uiState.username,
@@ -105,10 +104,13 @@ fun SignInScreen(
                         keyboardController?.hide()
                         viewModel.sendVerificationCode()
                     },
-                    onPasskeySignIn = {
-                        keyboardController?.hide()
-                        viewModel.signInWithPasskey(activity)
-                    },
+                    onPasskeySignIn = if (pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED) {
+                        val activity = LocalContext.current as Activity
+                        {
+                            keyboardController?.hide()
+                            viewModel.signInWithPasskey(activity)
+                        }
+                    } else null,
                     isLoading = uiState.isLoading
                 )
             } else {
@@ -132,7 +134,7 @@ private fun UsernameStep(
     username: String,
     onUsernameChange: (String) -> Unit,
     onSubmit: () -> Unit,
-    onPasskeySignIn: () -> Unit = {},
+    onPasskeySignIn: (() -> Unit)? = null,
     isLoading: Boolean
 ) {
     val colors = LocalAppColors.current
@@ -214,42 +216,44 @@ private fun UsernameStep(
         }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    if (onPasskeySignIn != null) {
+        Spacer(modifier = Modifier.height(16.dp))
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        HorizontalDivider(modifier = Modifier.weight(1f), color = colors.divider)
-        Text(
-            text = stringResource(R.string.or),
-            style = typography.labelMedium,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        HorizontalDivider(modifier = Modifier.weight(1f), color = colors.divider)
-    }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = colors.divider)
+            Text(
+                text = stringResource(R.string.or),
+                style = typography.labelMedium,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f), color = colors.divider)
+        }
 
-    Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-    OutlinedButton(
-        onClick = onPasskeySignIn,
-        enabled = !isLoading,
-        shape = RoundedCornerShape(AppShapes.pillRadius),
-        border = BorderStroke(1.dp, colors.divider),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Icon(
-            imageVector = Icons.Default.Fingerprint,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = stringResource(R.string.sign_in_with_passkey),
-            style = typography.bodyLarge,
-            color = colors.textPrimary
-        )
+        OutlinedButton(
+            onClick = onPasskeySignIn,
+            enabled = !isLoading,
+            shape = RoundedCornerShape(AppShapes.pillRadius),
+            border = BorderStroke(1.dp, colors.divider),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.Fingerprint,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.sign_in_with_passkey),
+                style = typography.bodyLarge,
+                color = colors.textPrimary
+            )
+        }
     }
 }
 
