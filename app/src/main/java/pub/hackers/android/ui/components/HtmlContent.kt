@@ -1,5 +1,6 @@
 package pub.hackers.android.ui.components
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -34,7 +35,7 @@ private enum class LinkType {
 
 private data class ListContext(val ordered: Boolean, var itemIndex: Int = 0)
 
-private sealed class ContentBlock {
+internal sealed class ContentBlock {
     data class Text(val html: String) : ContentBlock()
     data class Code(val codeHtml: String) : ContentBlock()
 }
@@ -49,8 +50,8 @@ private val PRE_CODE_REGEX = Regex(
 @Composable
 fun HtmlContent(
     html: String,
-    maxLines: Int = Int.MAX_VALUE,
     modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
     fontScale: Float = 1f,
     onMentionClick: ((handle: String) -> Unit)? = null,
     onLinkClick: ((url: String) -> Unit)? = null,
@@ -154,7 +155,8 @@ private fun handleClick(
     onTextClick?.invoke()
 }
 
-private fun splitIntoBlocks(html: String): List<ContentBlock> {
+@VisibleForTesting
+internal fun splitIntoBlocks(html: String): List<ContentBlock> {
     val blocks = mutableListOf<ContentBlock>()
     var lastEnd = 0
     val source = html.trim()
@@ -184,7 +186,8 @@ private fun splitIntoBlocks(html: String): List<ContentBlock> {
     return blocks
 }
 
-private fun extractHandleFromUrl(url: String): String? {
+@VisibleForTesting
+internal fun extractHandleFromUrl(url: String): String? {
     return try {
         val uri = URI(url)
         val host = uri.host ?: return null
@@ -196,7 +199,8 @@ private fun extractHandleFromUrl(url: String): String? {
     }
 }
 
-private fun parseHtmlToAnnotatedString(
+@VisibleForTesting
+internal fun parseHtmlToAnnotatedString(
     html: String,
     linkColor: Color,
     mentionBg: Color,
@@ -578,7 +582,8 @@ private fun parseAttributes(attrString: String): Map<String, String> {
     return attrs
 }
 
-private fun decodeHtmlEntities(text: String): String {
+@VisibleForTesting
+internal fun decodeHtmlEntities(text: String): String {
     return text
         .replace("&nbsp;", " ")
         .replace("&amp;", "&")

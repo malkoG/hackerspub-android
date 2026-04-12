@@ -114,5 +114,7 @@ dependencies {
 
     implementation("androidx.browser:browser:1.8.0")
 
+    testImplementation(libs.junit)
+
     debugImplementation(libs.androidx.ui.tooling)
 }
