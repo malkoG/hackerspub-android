@@ -111,6 +111,10 @@
     <string name="settings_timeline_unlimited">Unlimited</string>
 
     <!-- Profile -->
+    <string name="profile_tab_posts">Posts</string>
+    <string name="profile_tab_notes">Notes</string>
+    <string name="profile_tab_articles">Articles</string>
+    <string name="profile_verified">Verified</string>
     <string name="follow">Follow</string>
     <string name="unfollow">Unfollow</string>
     <string name="block">Block</string>

@@ -10,19 +10,33 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.repository.HackersPubRepository
+import pub.hackers.android.domain.model.AccountLink
 import pub.hackers.android.domain.model.Actor
+import pub.hackers.android.domain.model.ActorField
 import pub.hackers.android.domain.model.Post
 import javax.inject.Inject
+
+enum class ProfileTab {
+    POSTS, NOTES, ARTICLES
+}
+
+data class TabState(
+    val posts: List<Post> = emptyList(),
+    val hasNextPage: Boolean = false,
+    val endCursor: String? = null,
+    val isLoaded: Boolean = false
+)
 
 data class ProfileUiState(
     val actor: Actor? = null,
     val bio: String? = null,
-    val posts: List<Post> = emptyList(),
+    val fields: List<ActorField> = emptyList(),
+    val accountLinks: List<AccountLink> = emptyList(),
+    val selectedTab: ProfileTab = ProfileTab.POSTS,
+    val tabStates: Map<ProfileTab, TabState> = ProfileTab.entries.associateWith { TabState() },
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
-    val hasNextPage: Boolean = false,
-    val endCursor: String? = null,
     val error: String? = null,
     val isViewer: Boolean = false,
     val viewerFollows: Boolean = false,
@@ -30,7 +44,11 @@ data class ProfileUiState(
     val viewerBlocks: Boolean = false,
     val isPerformingAction: Boolean = false,
     val actionError: String? = null
-)
+) {
+    val currentTabState: TabState get() = tabStates[selectedTab] ?: TabState()
+    val posts: List<Post> get() = currentTabState.posts
+    val hasNextPage: Boolean get() = currentTabState.hasNextPage
+}
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -54,12 +72,19 @@ class ProfileViewModel @Inject constructor(
             repository.getProfile(handle)
                 .onSuccess { result ->
                     _uiState.update {
-                        it.copy(
-                            actor = result.actor,
-                            bio = result.bio,
+                        val newTabStates = it.tabStates.toMutableMap()
+                        newTabStates[ProfileTab.POSTS] = TabState(
                             posts = result.posts,
                             hasNextPage = result.hasNextPage,
                             endCursor = result.endCursor,
+                            isLoaded = true
+                        )
+                        it.copy(
+                            actor = result.actor,
+                            bio = result.bio,
+                            fields = result.fields,
+                            accountLinks = result.accountLinks,
+                            tabStates = newTabStates,
                             isViewer = result.isViewer,
                             viewerFollows = result.viewerFollows,
                             followsViewer = result.followsViewer,
@@ -86,18 +111,31 @@ class ProfileViewModel @Inject constructor(
             repository.getProfile(handle)
                 .onSuccess { result ->
                     _uiState.update {
-                        it.copy(
-                            actor = result.actor,
-                            bio = result.bio,
+                        // Reset all tab states on refresh
+                        val newTabStates = ProfileTab.entries.associateWith { TabState() }.toMutableMap()
+                        newTabStates[ProfileTab.POSTS] = TabState(
                             posts = result.posts,
                             hasNextPage = result.hasNextPage,
                             endCursor = result.endCursor,
+                            isLoaded = true
+                        )
+                        it.copy(
+                            actor = result.actor,
+                            bio = result.bio,
+                            fields = result.fields,
+                            accountLinks = result.accountLinks,
+                            tabStates = newTabStates,
                             isViewer = result.isViewer,
                             viewerFollows = result.viewerFollows,
                             followsViewer = result.followsViewer,
                             viewerBlocks = result.viewerBlocks,
                             isRefreshing = false
                         )
+                    }
+                    // Reload current tab if not POSTS
+                    val currentTab = _uiState.value.selectedTab
+                    if (currentTab != ProfileTab.POSTS) {
+                        loadTabData(currentTab)
                     }
                 }
                 .onFailure { error ->
@@ -111,22 +149,81 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun selectTab(tab: ProfileTab) {
+        _uiState.update { it.copy(selectedTab = tab) }
+        val tabState = _uiState.value.tabStates[tab]
+        if (tabState == null || !tabState.isLoaded) {
+            loadTabData(tab)
+        }
+    }
+
+    private fun loadTabData(tab: ProfileTab) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            val result = when (tab) {
+                ProfileTab.POSTS -> repository.getProfile(handle).map {
+                    Triple(it.posts, it.hasNextPage, it.endCursor)
+                }
+                ProfileTab.NOTES -> repository.getActorNotes(handle).map {
+                    Triple(it.posts, it.hasNextPage, it.endCursor)
+                }
+                ProfileTab.ARTICLES -> repository.getActorArticles(handle).map {
+                    Triple(it.posts, it.hasNextPage, it.endCursor)
+                }
+            }
+
+            result
+                .onSuccess { (posts, hasNextPage, endCursor) ->
+                    _uiState.update {
+                        val newTabStates = it.tabStates.toMutableMap()
+                        newTabStates[tab] = TabState(
+                            posts = posts,
+                            hasNextPage = hasNextPage,
+                            endCursor = endCursor,
+                            isLoaded = true
+                        )
+                        it.copy(tabStates = newTabStates, isLoading = false)
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+        }
+    }
+
     fun loadMore() {
         val currentState = _uiState.value
-        if (!currentState.hasNextPage || currentState.isLoadingMore) return
+        val tabState = currentState.currentTabState
+        if (!tabState.hasNextPage || currentState.isLoadingMore) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
 
-            repository.getProfile(handle, postsAfter = currentState.endCursor)
-                .onSuccess { result ->
+            val tab = currentState.selectedTab
+            val result = when (tab) {
+                ProfileTab.POSTS -> repository.getProfile(handle, postsAfter = tabState.endCursor).map {
+                    Triple(it.posts, it.hasNextPage, it.endCursor)
+                }
+                ProfileTab.NOTES -> repository.getActorNotes(handle, after = tabState.endCursor).map {
+                    Triple(it.posts, it.hasNextPage, it.endCursor)
+                }
+                ProfileTab.ARTICLES -> repository.getActorArticles(handle, after = tabState.endCursor).map {
+                    Triple(it.posts, it.hasNextPage, it.endCursor)
+                }
+            }
+
+            result
+                .onSuccess { (posts, hasNextPage, endCursor) ->
                     _uiState.update {
-                        it.copy(
-                            posts = it.posts + result.posts,
-                            hasNextPage = result.hasNextPage,
-                            endCursor = result.endCursor,
-                            isLoadingMore = false
+                        val newTabStates = it.tabStates.toMutableMap()
+                        val existing = newTabStates[tab] ?: TabState()
+                        newTabStates[tab] = existing.copy(
+                            posts = existing.posts + posts,
+                            hasNextPage = hasNextPage,
+                            endCursor = endCursor
                         )
+                        it.copy(tabStates = newTabStates, isLoadingMore = false)
                     }
                 }
                 .onFailure {
@@ -239,22 +336,31 @@ class ProfileViewModel @Inject constructor(
         _uiState.update { it.copy(actionError = null) }
     }
 
+    private fun updatePostInAllTabs(postId: String, transform: (Post) -> Post) {
+        _uiState.update { state ->
+            val newTabStates = state.tabStates.mapValues { (_, tabState) ->
+                tabState.copy(
+                    posts = tabState.posts.map { post ->
+                        if (post.id == postId || post.sharedPost?.id == postId) {
+                            transform(post)
+                        } else post
+                    }
+                )
+            }
+            state.copy(tabStates = newTabStates)
+        }
+    }
+
     fun sharePost(postId: String) {
         viewModelScope.launch {
             repository.sharePost(postId)
                 .onSuccess {
-                    _uiState.update { state ->
-                        state.copy(
-                            posts = state.posts.map { post ->
-                                if (post.id == postId || post.sharedPost?.id == postId) {
-                                    post.copy(
-                                        viewerHasShared = true,
-                                        engagementStats = post.engagementStats.copy(
-                                            shares = post.engagementStats.shares + 1
-                                        )
-                                    )
-                                } else post
-                            }
+                    updatePostInAllTabs(postId) { post ->
+                        post.copy(
+                            viewerHasShared = true,
+                            engagementStats = post.engagementStats.copy(
+                                shares = post.engagementStats.shares + 1
+                            )
                         )
                     }
                 }
@@ -265,18 +371,12 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             repository.unsharePost(postId)
                 .onSuccess {
-                    _uiState.update { state ->
-                        state.copy(
-                            posts = state.posts.map { post ->
-                                if (post.id == postId || post.sharedPost?.id == postId) {
-                                    post.copy(
-                                        viewerHasShared = false,
-                                        engagementStats = post.engagementStats.copy(
-                                            shares = maxOf(0, post.engagementStats.shares - 1)
-                                        )
-                                    )
-                                } else post
-                            }
+                    updatePostInAllTabs(postId) { post ->
+                        post.copy(
+                            viewerHasShared = false,
+                            engagementStats = post.engagementStats.copy(
+                                shares = maxOf(0, post.engagementStats.shares - 1)
+                            )
                         )
                     }
                 }

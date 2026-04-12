@@ -3,6 +3,8 @@ package pub.hackers.android.ui.screens.profile
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -54,12 +57,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import pub.hackers.android.R
+import pub.hackers.android.domain.model.AccountLink
+import pub.hackers.android.domain.model.ActorField
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
@@ -187,6 +194,8 @@ fun ProfileScreen(
                                     name = uiState.actor!!.name,
                                     handle = uiState.actor!!.handle,
                                     bio = uiState.bio,
+                                    fields = uiState.fields,
+                                    accountLinks = uiState.accountLinks,
                                     isViewer = uiState.isViewer,
                                     viewerFollows = uiState.viewerFollows,
                                     followsViewer = uiState.followsViewer,
@@ -196,10 +205,12 @@ fun ProfileScreen(
                                     onUnfollowClick = { viewModel.unfollowActor() },
                                     onMentionClick = onProfileClick
                                 )
-                                HorizontalDivider(
-                                    color = LocalAppColors.current.divider,
-                                    thickness = 1.dp,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
+                            }
+
+                            item {
+                                ProfileTabBar(
+                                    selectedTab = uiState.selectedTab,
+                                    onTabSelected = { viewModel.selectTab(it) }
                                 )
                             }
 
@@ -315,11 +326,59 @@ private fun ProfileActionMenu(
 }
 
 @Composable
+private fun ProfileTabBar(
+    selectedTab: ProfileTab,
+    onTabSelected: (ProfileTab) -> Unit
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    Row(modifier = Modifier.fillMaxWidth()) {
+        ProfileTab.entries.forEach { tab ->
+            val isSelected = selectedTab == tab
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onTabSelected(tab) },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = when (tab) {
+                        ProfileTab.POSTS -> stringResource(R.string.profile_tab_posts)
+                        ProfileTab.NOTES -> stringResource(R.string.profile_tab_notes)
+                        ProfileTab.ARTICLES -> stringResource(R.string.profile_tab_articles)
+                    },
+                    style = if (isSelected) typography.bodyLargeSemiBold else typography.bodyLarge,
+                    color = if (isSelected) colors.accent else colors.textSecondary,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .then(
+                            if (isSelected) Modifier.background(colors.accent) else Modifier
+                        )
+                )
+            }
+        }
+    }
+
+    HorizontalDivider(
+        color = colors.divider,
+        thickness = 1.dp,
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
+}
+
+@Composable
 private fun ProfileHeader(
     avatarUrl: String,
     name: String?,
     handle: String,
     bio: String?,
+    fields: List<ActorField>,
+    accountLinks: List<AccountLink>,
     isViewer: Boolean,
     viewerFollows: Boolean,
     followsViewer: Boolean,
@@ -436,7 +495,114 @@ private fun ProfileHeader(
                 onMentionClick = onMentionClick
             )
         }
+
+        if (accountLinks.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileAttachments(accountLinks = accountLinks)
+        } else if (fields.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileFields(fields = fields)
+        }
     }
+}
+
+@Composable
+private fun ProfileAttachments(accountLinks: List<AccountLink>) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val uriHandler = LocalUriHandler.current
+    val borderColor = colors.divider
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+    ) {
+        accountLinks.forEachIndexed { index, link ->
+            if (index > 0) {
+                HorizontalDivider(color = borderColor, thickness = 1.dp)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { uriHandler.openUri(link.url) }
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = link.name,
+                    style = typography.bodyMedium,
+                    color = colors.textSecondary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = link.handle ?: compactUrl(link.url),
+                    style = typography.bodyMedium,
+                    color = colors.accent,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                if (link.verified != null) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = stringResource(R.string.profile_verified),
+                        modifier = Modifier.size(16.dp),
+                        tint = Color(0xFF22C55E)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileFields(fields: List<ActorField>) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val borderColor = colors.divider
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+    ) {
+        fields.forEachIndexed { index, field ->
+            if (index > 0) {
+                HorizontalDivider(color = borderColor, thickness = 1.dp)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = field.name,
+                    style = typography.bodyMedium,
+                    color = colors.textSecondary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                HtmlContent(
+                    html = field.value,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
+        }
+    }
+}
+
+private fun compactUrl(url: String): String {
+    return url
+        .removePrefix("https://")
+        .removePrefix("http://")
+        .removePrefix("www.")
+        .trimEnd('/')
 }
 
 @Composable

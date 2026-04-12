@@ -295,7 +295,62 @@ query ActorByHandle($handle: String!, $after: String) {
         name
         bio
         avatarUrl
+        fields {
+            name
+            value
+        }
+        account {
+            links {
+                name
+                handle
+                icon
+                url
+                verified
+            }
+        }
         posts(first: 20, after: $after) {
+            edges {
+                cursor
+                node {
+                    ...PostFields
+                    sharedPost {
+                        ...SharedPostFields
+                    }
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+}
+
+query ActorArticles($handle: String!, $after: String) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+        id
+        articles(first: 20, after: $after) {
+            edges {
+                cursor
+                node {
+                    ...PostFields
+                    sharedPost {
+                        ...SharedPostFields
+                    }
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+}
+
+query ActorNotes($handle: String!, $after: String) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+        id
+        notes(first: 20, after: $after) {
             edges {
                 cursor
                 node {

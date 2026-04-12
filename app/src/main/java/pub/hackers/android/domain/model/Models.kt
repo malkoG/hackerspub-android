@@ -9,6 +9,19 @@ data class Actor(
     val avatarUrl: String
 )
 
+data class ActorField(
+    val name: String,
+    val value: String
+)
+
+data class AccountLink(
+    val name: String,
+    val handle: String?,
+    val icon: String,
+    val url: String,
+    val verified: String?
+)
+
 data class Media(
     val url: String,
     val thumbnailUrl: String?,
@@ -221,6 +234,8 @@ data class QuotesResult(
 data class ProfileResult(
     val actor: Actor,
     val bio: String?,
+    val fields: List<ActorField> = emptyList(),
+    val accountLinks: List<AccountLink> = emptyList(),
     val posts: List<Post>,
     val hasNextPage: Boolean,
     val endCursor: String?,
