@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,7 +45,7 @@ fun ArticleCard(
     modifier: Modifier = Modifier
 ) {
     val displayPost = post.sharedPost ?: post
-    val isRepost = post.sharedPost != null
+    val isRepost = post.lastSharer != null
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
 
@@ -62,24 +63,44 @@ fun ArticleCard(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                if (isRepost) {
+                if (isRepost && post.lastSharer != null) {
+                    val sharer = post.lastSharer!!
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier
+                            .padding(start = 54.dp, bottom = 8.dp)
+                            .clickable { onProfileClick(sharer.handle) }
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Repeat,
                             contentDescription = null,
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(16.dp)
+                            tint = colors.share,
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        RichDisplayName(
-                            name = post.actor.name?.let { "$it ${stringResource(R.string.share)}d" },
-                            fallback = "${post.actor.handle} ${stringResource(R.string.share)}d",
-                            style = typography.caption,
+                        if (sharer.name != null) {
+                            RichDisplayName(
+                                name = sharer.name,
+                                fallback = sharer.handle,
+                                style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                                color = colors.textSecondary,
+                                emojiHeight = 14.dp
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                        }
+                        Text(
+                            text = sharer.handle,
+                            style = typography.caption.copy(fontStyle = FontStyle.Italic),
                             color = colors.textSecondary,
-                            emojiHeight = 14.dp
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.share) + "d",
+                            style = typography.caption.copy(fontStyle = FontStyle.Italic),
+                            color = colors.textSecondary
                         )
                     }
                 }
