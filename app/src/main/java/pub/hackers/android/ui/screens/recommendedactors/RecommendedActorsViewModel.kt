@@ -26,53 +26,45 @@ class RecommendedActorsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(RecommendedActorsUiState())
     val uiState: StateFlow<RecommendedActorsUiState> = _uiState.asStateFlow()
 
-    private val bufferQueue = mutableListOf<Actor>()
-    private val seenActorIds = mutableSetOf<String>()
-    private var isFetching = false
+    private val shownActors = mutableListOf<Actor>()
+    private val hiddenActors = mutableListOf<Actor>()
 
     init {
-        loadInitialBatch()
+        loadActors()
     }
 
-    private fun loadInitialBatch() {
+    private fun loadActors() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            isFetching = true
             repository.getRecommendedActors(limit = FETCH_SIZE).fold(
                 onSuccess = { actors ->
-                    val newActors = actors.filter { it.id !in seenActorIds }
-                    bufferQueue.addAll(newActors)
-                    updateDisplayedActors()
-                    _uiState.update { it.copy(isLoading = false) }
+                    shownActors.clear()
+                    shownActors.addAll(actors.take(WINDOW_SIZE))
+                    hiddenActors.clear()
+                    hiddenActors.addAll(actors.drop(WINDOW_SIZE))
+                    _uiState.update {
+                        it.copy(isLoading = false, displayedActors = shownActors.toList())
+                    }
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
             )
-            isFetching = false
         }
     }
 
     fun dismissActor(actorId: String) {
-        seenActorIds.add(actorId)
-        bufferQueue.removeAll { it.id == actorId }
-        updateDisplayedActors()
-        if (bufferQueue.size <= REFETCH_THRESHOLD) {
-            fetchMoreActors()
-        }
+        val index = shownActors.indexOfFirst { it.id == actorId }
+        if (index < 0) return
+        replaceActorAt(index)
     }
 
     fun followActor(actorId: String) {
+        val index = shownActors.indexOfFirst { it.id == actorId }
+        if (index < 0) return
         viewModelScope.launch {
             repository.followActor(actorId).fold(
-                onSuccess = {
-                    seenActorIds.add(actorId)
-                    bufferQueue.removeAll { it.id == actorId }
-                    updateDisplayedActors()
-                    if (bufferQueue.size <= REFETCH_THRESHOLD) {
-                        fetchMoreActors()
-                    }
-                },
+                onSuccess = { replaceActorAt(index) },
                 onFailure = { e ->
                     _uiState.update { it.copy(error = e.message) }
                 }
@@ -80,30 +72,17 @@ class RecommendedActorsViewModel @Inject constructor(
         }
     }
 
-    private fun fetchMoreActors() {
-        if (isFetching) return
-        isFetching = true
-        viewModelScope.launch {
-            val bufferIds = bufferQueue.map { it.id }.toSet()
-            repository.getRecommendedActors(limit = FETCH_SIZE).fold(
-                onSuccess = { actors ->
-                    val newActors = actors.filter { it.id !in seenActorIds && it.id !in bufferIds }
-                    bufferQueue.addAll(newActors)
-                    updateDisplayedActors()
-                },
-                onFailure = { /* silently fail for background fetch */ }
-            )
-            isFetching = false
+    private fun replaceActorAt(index: Int) {
+        if (hiddenActors.isNotEmpty()) {
+            shownActors[index] = hiddenActors.removeFirst()
+        } else {
+            shownActors.removeAt(index)
         }
-    }
-
-    private fun updateDisplayedActors() {
-        _uiState.update { it.copy(displayedActors = bufferQueue.take(DISPLAY_COUNT)) }
+        _uiState.update { it.copy(displayedActors = shownActors.toList()) }
     }
 
     companion object {
-        private const val DISPLAY_COUNT = 6
-        private const val FETCH_SIZE = 10
-        private const val REFETCH_THRESHOLD = 5
+        private const val WINDOW_SIZE = 6
+        private const val FETCH_SIZE = 50
     }
 }
