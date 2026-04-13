@@ -105,17 +105,10 @@ fun NotificationsScreen(
                     )
                 }
                 uiState.notifications.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.no_notifications),
-                            style = typography.bodyLarge,
-                            color = colors.textSecondary,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    ErrorMessage(
+                        message = stringResource(R.string.no_notifications),
+                        onRefresh = { viewModel.refresh() }
+                    )
                 }
                 else -> {
                     PullToRefreshBox(
