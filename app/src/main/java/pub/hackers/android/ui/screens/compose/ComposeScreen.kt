@@ -1,7 +1,11 @@
 package pub.hackers.android.ui.screens.compose
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,22 +28,20 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import pub.hackers.android.ui.components.LargeTitleHeader
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,13 +51,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -64,11 +63,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -188,7 +187,9 @@ fun ComposeScreen(
                     )
                 }
                 Text(
-                    text = if (replyToId != null) stringResource(R.string.reply) else stringResource(R.string.compose),
+                    text = if (replyToId != null) stringResource(R.string.reply) else stringResource(
+                        R.string.compose
+                    ),
                     style = typography.titleLarge,
                     color = colors.textPrimary,
                     modifier = Modifier.align(Alignment.Center)
@@ -203,143 +204,132 @@ fun ComposeScreen(
                 .padding(paddingValues)
                 .imePadding()
         ) {
-         Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp)
-         ) {
-            // Reply target preview
-            if (uiState.isLoadingReplyTarget) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.CenterHorizontally)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)
+            ) {
+                // Reply target preview
+                ReplyTargetSection(
+                    isLoading = uiState.isLoadingReplyTarget,
+                    replyTargetPost = uiState.replyTargetPost,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-            } else if (uiState.replyTargetPost != null) {
-                ReplyTargetPreview(
-                    post = uiState.replyTargetPost!!,
-                    modifier = Modifier.alpha(0.6f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
 
-            Box(modifier = Modifier.weight(1f)) {
-                // Custom text field with cursor position tracking
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .onGloballyPositioned { coordinates ->
-                            textFieldBounds = coordinates.boundsInWindow()
-                        },
-                    shape = RoundedCornerShape(4.dp),
-                    color = colors.surface,
-                    border = BorderStroke(1.dp, colors.divider)
-                ) {
-                    Box(
+                Box(modifier = Modifier.weight(1f)) {
+                    // Custom text field with cursor position tracking
+                    Surface(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                focusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
-                            .padding(16.dp)
-                            .verticalScroll(scrollState)
+                            .onGloballyPositioned { coordinates ->
+                                textFieldBounds = coordinates.boundsInWindow()
+                            },
+                        shape = RoundedCornerShape(4.dp),
+                        color = colors.surface,
+                        border = BorderStroke(1.dp, colors.divider)
                     ) {
-                        BasicTextField(
-                            value = textFieldValue,
-                            onValueChange = { newValue: TextFieldValue ->
-                                textFieldValue = newValue
-                                viewModel.updateContent(
-                                    content = newValue.text,
-                                    cursorPosition = newValue.selection.start
-                                )
-                            },
-                            onTextLayout = { result: TextLayoutResult ->
-                                textLayoutResult = result
-                                // Update cursor position
-                                val cursorPos = textFieldValue.selection.start
-                                    .coerceIn(0, textFieldValue.text.length)
-                                cursorRect = if (textFieldValue.text.isNotEmpty() || cursorPos == 0) {
-                                    result.getCursorRect(cursorPos)
-                                } else {
-                                    Rect.Zero
-                                }
-                            },
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester),
-                            enabled = !uiState.isPosting,
-                            textStyle = typography.bodyLarge.copy(
-                                color = colors.textBody
-                            ),
-                            cursorBrush = SolidColor(colors.composeAccent),
-                            decorationBox = { innerTextField ->
-                                Box {
-                                    if (textFieldValue.text.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.compose_hint),
-                                            style = typography.bodyLarge,
-                                            color = colors.textSecondary
-                                        )
-                                    }
-                                    innerTextField()
+                                .fillMaxSize()
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    focusRequester.requestFocus()
+                                    keyboardController?.show()
                                 }
-                            }
-                        )
+                                .padding(16.dp)
+                                .verticalScroll(scrollState)
+                        ) {
+                            BasicTextField(
+                                value = textFieldValue,
+                                onValueChange = { newValue: TextFieldValue ->
+                                    textFieldValue = newValue
+                                    viewModel.updateContent(
+                                        content = newValue.text,
+                                        cursorPosition = newValue.selection.start
+                                    )
+                                },
+                                onTextLayout = { result: TextLayoutResult ->
+                                    textLayoutResult = result
+                                    // Update cursor position
+                                    val cursorPos = textFieldValue.selection.start
+                                        .coerceIn(0, textFieldValue.text.length)
+                                    cursorRect =
+                                        if (textFieldValue.text.isNotEmpty() || cursorPos == 0) {
+                                            result.getCursorRect(cursorPos)
+                                        } else {
+                                            Rect.Zero
+                                        }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(focusRequester),
+                                enabled = !uiState.isPosting,
+                                textStyle = typography.bodyLarge.copy(
+                                    color = colors.textBody
+                                ),
+                                cursorBrush = SolidColor(colors.composeAccent),
+                                decorationBox = { innerTextField ->
+                                    Box {
+                                        if (textFieldValue.text.isEmpty()) {
+                                            Text(
+                                                text = stringResource(R.string.compose_hint),
+                                                style = typography.bodyLarge,
+                                                color = colors.textSecondary
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    // Mention autocomplete popup
+                    if (uiState.mentionSuggestions.isNotEmpty() || uiState.isLoadingMentions) {
+                        // Calculate cursor position accounting for padding and scroll
+                        val paddingPx = with(density) { 16.dp.toPx() }
+                        val cursorYInBox = cursorRect.bottom - scrollState.value + paddingPx
+                        val cursorXInBox = cursorRect.left + paddingPx
+
+                        // Clamp to visible area
+                        val visibleCursorY =
+                            cursorYInBox.coerceIn(paddingPx, textFieldBounds.height - paddingPx)
+
+                        Popup(
+                            alignment = Alignment.TopStart,
+                            offset = IntOffset(
+                                x = cursorXInBox.roundToInt().coerceIn(
+                                    0,
+                                    (textFieldBounds.width - with(density) { 280.dp.toPx() }).toInt()
+                                        .coerceAtLeast(0)
+                                ),
+                                y = (visibleCursorY + with(density) { 20.dp.toPx() }).roundToInt()
+                            ),
+                            properties = PopupProperties(focusable = false)
+                        ) {
+                            MentionAutocomplete(
+                                suggestions = uiState.mentionSuggestions,
+                                isLoading = uiState.isLoadingMentions,
+                                onSuggestionSelected = { actor ->
+                                    val (newContent, newCursor) = viewModel.selectMention(actor)
+                                    textFieldValue = TextFieldValue(
+                                        text = newContent,
+                                        selection = TextRange(newCursor)
+                                    )
+                                },
+                                modifier = Modifier.width(280.dp)
+                            )
+                        }
                     }
                 }
 
-                // Mention autocomplete popup
-                if (uiState.mentionSuggestions.isNotEmpty() || uiState.isLoadingMentions) {
-                    // Calculate cursor position accounting for padding and scroll
-                    val paddingPx = with(density) { 16.dp.toPx() }
-                    val cursorYInBox = cursorRect.bottom - scrollState.value + paddingPx
-                    val cursorXInBox = cursorRect.left + paddingPx
-
-                    // Clamp to visible area
-                    val visibleCursorY = cursorYInBox.coerceIn(paddingPx, textFieldBounds.height - paddingPx)
-
-                    Popup(
-                        alignment = Alignment.TopStart,
-                        offset = IntOffset(
-                            x = cursorXInBox.roundToInt().coerceIn(0, (textFieldBounds.width - with(density) { 280.dp.toPx() }).toInt().coerceAtLeast(0)),
-                            y = (visibleCursorY + with(density) { 20.dp.toPx() }).roundToInt()
-                        ),
-                        properties = PopupProperties(focusable = false)
-                    ) {
-                        MentionAutocomplete(
-                            suggestions = uiState.mentionSuggestions,
-                            isLoading = uiState.isLoadingMentions,
-                            onSuggestionSelected = { actor ->
-                                val (newContent, newCursor) = viewModel.selectMention(actor)
-                                textFieldValue = TextFieldValue(
-                                    text = newContent,
-                                    selection = TextRange(newCursor)
-                                )
-                            },
-                            modifier = Modifier.width(280.dp)
-                        )
-                    }
-                }
-            }
-
-            // Quoted post preview
-            if (uiState.isLoadingQuotedPost) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.CenterHorizontally)
+                // Quoted post preview
+                QuotedPostSection(
+                    isLoading = uiState.isLoadingQuotedPost,
+                    quotedPost = uiState.quotedPost,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-            } else if (uiState.quotedPost != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                QuotedPostPreview(post = uiState.quotedPost!!)
             }
-         }
             // Close inner content Column
 
             // Visibility toolbar pinned above keyboard
@@ -569,6 +559,55 @@ private fun QuotedPostPreview(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+        }
+    }
+}
+
+@Composable
+@androidx.annotation.VisibleForTesting
+internal fun ColumnScope.ReplyTargetSection(
+    isLoading: Boolean,
+    replyTargetPost: Post?,
+) {
+    when {
+        isLoading -> {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        replyTargetPost != null -> {
+            ReplyTargetPreview(
+                post = replyTargetPost,
+                modifier = Modifier.alpha(0.6f)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+@androidx.annotation.VisibleForTesting
+internal fun ColumnScope.QuotedPostSection(
+    isLoading: Boolean,
+    quotedPost: Post?,
+) {
+    when {
+        isLoading -> {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        quotedPost != null -> {
+            Spacer(modifier = Modifier.height(8.dp))
+            QuotedPostPreview(post = quotedPost)
         }
     }
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,9 +33,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import pub.hackers.android.ui.components.LargeTitleHeader
-import pub.hackers.android.ui.theme.LocalAppColors
-import pub.hackers.android.ui.theme.LocalAppTypography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import pub.hackers.android.R
+import pub.hackers.android.ui.components.LargeTitleHeader
+import pub.hackers.android.ui.theme.LocalAppColors
+import pub.hackers.android.ui.theme.LocalAppTypography
 
 @Composable
 fun SettingsScreen(
@@ -183,85 +182,85 @@ fun SettingsScreen(
                 }
 
                 if (passkeyEnabled) {
-                HorizontalDivider(color = colors.divider, thickness = 1.dp)
+                    HorizontalDivider(color = colors.divider, thickness = 1.dp)
 
-                // Passkeys section
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Fingerprint,
-                            contentDescription = null,
-                            tint = colors.textSecondary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = stringResource(R.string.passkeys),
-                            style = typography.bodyLarge,
-                            color = colors.textPrimary
-                        )
-                    }
-                    IconButton(onClick = { showAddPasskeyDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.add_passkey),
-                            tint = colors.accent
-                        )
-                    }
-                }
-
-                if (uiState.isLoadingPasskeys) {
-                    Box(
+                    // Passkeys section
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Fingerprint,
+                                contentDescription = null,
+                                tint = colors.textSecondary
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = stringResource(R.string.passkeys),
+                                style = typography.bodyLarge,
+                                color = colors.textPrimary
+                            )
+                        }
+                        IconButton(onClick = { showAddPasskeyDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = stringResource(R.string.add_passkey),
+                                tint = colors.accent
+                            )
+                        }
                     }
-                } else if (uiState.passkeys.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.no_passkeys),
-                        style = typography.bodyMedium,
-                        color = colors.textSecondary,
-                        modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp)
-                    )
-                } else {
-                    uiState.passkeys.forEach { passkey ->
-                        Row(
+
+                    if (uiState.isLoadingPasskeys) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 56.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = passkey.name,
-                                    style = typography.bodyMedium,
-                                    color = colors.textPrimary
-                                )
-                                Text(
-                                    text = passkey.created,
-                                    style = typography.labelSmall,
-                                    color = colors.textSecondary
-                                )
-                            }
-                            IconButton(onClick = { showRevokePasskeyId = passkey.id }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = stringResource(R.string.remove),
-                                    tint = colors.reaction
-                                )
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    } else if (uiState.passkeys.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_passkeys),
+                            style = typography.bodyMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp)
+                        )
+                    } else {
+                        uiState.passkeys.forEach { passkey ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 56.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = passkey.name,
+                                        style = typography.bodyMedium,
+                                        color = colors.textPrimary
+                                    )
+                                    Text(
+                                        text = passkey.created,
+                                        style = typography.labelSmall,
+                                        color = colors.textSecondary
+                                    )
+                                }
+                                IconButton(onClick = { showRevokePasskeyId = passkey.id }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = stringResource(R.string.remove),
+                                        tint = colors.reaction
+                                    )
+                                }
                             }
                         }
                     }
-                }
                 } // passkeyEnabled
             } else {
                 Row(
@@ -378,24 +377,40 @@ fun SettingsScreen(
     }
 
     // Revoke passkey confirmation dialog
-    if (passkeyEnabled && showRevokePasskeyId != null) {
-        AlertDialog(
-            onDismissRequest = { showRevokePasskeyId = null },
-            title = { Text(stringResource(R.string.remove_passkey)) },
-            text = { Text(stringResource(R.string.remove_passkey_confirm)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.revokePasskey(showRevokePasskeyId!!)
-                    showRevokePasskeyId = null
-                }) {
-                    Text(stringResource(R.string.remove), color = colors.reaction)
-                }
+    val passkeyIdToRevoke = showRevokePasskeyId
+    if (passkeyEnabled && passkeyIdToRevoke != null) {
+        RevokePasskeyDialog(
+            passkeyId = passkeyIdToRevoke,
+            onConfirm = { id ->
+                viewModel.revokePasskey(id)
+                showRevokePasskeyId = null
             },
-            dismissButton = {
-                TextButton(onClick = { showRevokePasskeyId = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
+            onDismiss = { showRevokePasskeyId = null }
         )
     }
+}
+
+@Composable
+@androidx.annotation.VisibleForTesting
+internal fun RevokePasskeyDialog(
+    passkeyId: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.remove_passkey)) },
+        text = { Text(stringResource(R.string.remove_passkey_confirm)) },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(passkeyId) }) {
+                Text(stringResource(R.string.remove), color = colors.reaction)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }

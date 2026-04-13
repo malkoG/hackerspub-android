@@ -1,9 +1,9 @@
 package pub.hackers.android.ui.screens.postdetail
 
 import android.content.Intent
+import android.text.Html
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,42 +18,41 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
-import androidx.compose.material.icons.automirrored.filled.ReplyAll
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.AddReaction
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,6 +74,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.languageid.LanguageIdentification
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
@@ -90,17 +98,6 @@ import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
-import android.text.Html
-import androidx.compose.material.icons.outlined.Translate
-import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.nl.languageid.LanguageIdentification
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translation
-import com.google.mlkit.nl.translate.TranslatorOptions
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -120,7 +117,9 @@ fun PostDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
-    val confirmBeforeDelete by viewModel.preferencesManager.confirmBeforeDelete.collectAsState(initial = true)
+    val confirmBeforeDelete by viewModel.preferencesManager.confirmBeforeDelete.collectAsState(
+        initial = true
+    )
     val confirmBeforeShare by viewModel.preferencesManager.confirmBeforeShare.collectAsState(initial = false)
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showShareConfirmation by remember { mutableStateOf(false) }
@@ -297,61 +296,56 @@ fun PostDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when {
-                uiState.isLoading -> {
-                    FullScreenLoading()
-                }
-                uiState.error != null -> {
-                    ErrorMessage(
-                        message = uiState.error ?: stringResource(R.string.error_generic),
-                        onRetry = { viewModel.loadPost(postId) }
-                    )
-                }
-                uiState.post != null -> {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = { viewModel.refresh() }
-                    ) {
-                        PostDetailContent(
-                            post = uiState.post!!,
-                            reactionGroups = uiState.reactionGroups,
-                            replies = uiState.replies,
-                            hasMoreReplies = uiState.hasMoreReplies,
-                            isLoadingMoreReplies = uiState.isLoadingMoreReplies,
-                            onLoadMoreReplies = { viewModel.loadMoreReplies() },
-                            onProfileClick = onProfileClick,
-                            onPostClick = onPostClick,
-                            onReplyClick = { onReplyClick(postId) },
-                            onShareClick = {
-                                if (confirmBeforeShare) {
-                                    showShareConfirmation = true
+            val post = uiState.post
+            PostDetailStateDispatch(
+                post = post,
+                isLoading = uiState.isLoading,
+                error = uiState.error,
+                onRetry = { viewModel.loadPost(postId) },
+            ) { resolvedPost ->
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = { viewModel.refresh() }
+                ) {
+                    PostDetailContent(
+                        post = resolvedPost,
+                        reactionGroups = uiState.reactionGroups,
+                        replies = uiState.replies,
+                        hasMoreReplies = uiState.hasMoreReplies,
+                        isLoadingMoreReplies = uiState.isLoadingMoreReplies,
+                        onLoadMoreReplies = { viewModel.loadMoreReplies() },
+                        onProfileClick = onProfileClick,
+                        onPostClick = onPostClick,
+                        onReplyClick = { onReplyClick(postId) },
+                        onShareClick = {
+                            if (confirmBeforeShare) {
+                                showShareConfirmation = true
+                            } else {
+                                if (resolvedPost.viewerHasShared) {
+                                    viewModel.unsharePost()
                                 } else {
-                                    if (uiState.post!!.viewerHasShared) {
-                                        viewModel.unsharePost()
-                                    } else {
-                                        viewModel.sharePost()
-                                    }
-                                }
-                            },
-                            onReactionClick = { emoji -> viewModel.toggleReaction(emoji) },
-                            onReactionPickerClick = { viewModel.toggleReactionPicker() },
-                            onQuoteClick = { onQuoteClick(postId) },
-                            onSharesClick = { viewModel.showSharesSheet() },
-                            onQuotesClick = { viewModel.showQuotesSheet() },
-                            onExternalShareClick = {
-                                val shareUrl = uiState.post?.url
-                                    ?: uiState.post?.iri
-                                if (shareUrl != null) {
-                                    val sendIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, shareUrl)
-                                        type = "text/plain"
-                                    }
-                                    context.startActivity(Intent.createChooser(sendIntent, null))
+                                    viewModel.sharePost()
                                 }
                             }
-                        )
-                    }
+                        },
+                        onReactionClick = { emoji -> viewModel.toggleReaction(emoji) },
+                        onReactionPickerClick = { viewModel.toggleReactionPicker() },
+                        onQuoteClick = { onQuoteClick(postId) },
+                        onSharesClick = { viewModel.showSharesSheet() },
+                        onQuotesClick = { viewModel.showQuotesSheet() },
+                        onExternalShareClick = {
+                            val shareUrl = uiState.post?.url
+                                ?: uiState.post?.iri
+                            if (shareUrl != null) {
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                    type = "text/plain"
+                                }
+                                context.startActivity(Intent.createChooser(sendIntent, null))
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -403,7 +397,8 @@ private fun PostDetailActionMenu(
 }
 
 @Composable
-private fun PostDetailContent(
+@androidx.annotation.VisibleForTesting
+internal fun PostDetailContent(
     post: Post,
     reactionGroups: List<ReactionGroup>,
     replies: List<Post>,
@@ -441,10 +436,11 @@ private fun PostDetailContent(
                 modifier = Modifier.padding(12.dp)
             ) {
                 // Reply target preview
-                if (post.replyTarget != null) {
+                val replyTarget = post.replyTarget
+                if (replyTarget != null) {
                     ReplyTargetPreview(
-                        post = post.replyTarget!!,
-                        onClick = { onPostClick(post.replyTarget!!.id) },
+                        post = replyTarget,
+                        onClick = { onPostClick(replyTarget.id) },
                         onProfileClick = onProfileClick
                     )
 
@@ -454,7 +450,7 @@ private fun PostDetailContent(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .padding(vertical = 4.dp)
-                            .clickable { onPostClick(post.replyTarget!!.id) }
+                            .clickable { onPostClick(replyTarget.id) }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Reply,
@@ -464,7 +460,7 @@ private fun PostDetailContent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${stringResource(R.string.replying_to)} @${post.replyTarget!!.actor.handle}",
+                            text = "${stringResource(R.string.replying_to)} @${replyTarget.actor.handle}",
                             style = typography.labelSmall,
                             color = colors.textSecondary
                         )
@@ -525,9 +521,10 @@ private fun PostDetailContent(
                     }
                 }
 
-                if (showTranslated && translatedContent != null) {
+                val translatedText = translatedContent
+                if (showTranslated && translatedText != null) {
                     Text(
-                        text = translatedContent!!,
+                        text = translatedText,
                         style = typography.bodyLarge,
                         color = colors.textBody,
                         modifier = Modifier.fillMaxWidth()
@@ -549,9 +546,10 @@ private fun PostDetailContent(
                     )
                 }
 
-                if (translationError != null) {
+                val translationErrorText = translationError
+                if (translationErrorText != null) {
                     Text(
-                        text = translationError!!,
+                        text = translationErrorText,
                         style = typography.labelMedium,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 4.dp)
@@ -560,7 +558,9 @@ private fun PostDetailContent(
 
                 if (!isTranslating && translationError == null) {
                     Text(
-                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(R.string.translate),
+                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
+                            R.string.translate
+                        ),
                         style = typography.labelMedium,
                         color = colors.textSecondary,
                         modifier = Modifier
@@ -605,8 +605,8 @@ private fun PostDetailContent(
                 if (post.quotedPost != null) {
                     Spacer(modifier = Modifier.height(12.dp))
                     QuotedPostPreview(
-                        post = post.quotedPost!!,
-                        onClick = { onPostClick(post.quotedPost!!.id) },
+                        post = post.quotedPost,
+                        onClick = { onPostClick(post.quotedPost.id) },
                         onProfileClick = onProfileClick
                     )
                 }
@@ -713,7 +713,10 @@ private fun PostDetailContent(
                                 modifier = Modifier.padding(end = 8.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 6.dp
+                                    ),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (group.emoji != null) {
@@ -1141,5 +1144,32 @@ private suspend fun translateDetailContent(
     } finally {
         translator.close()
         languageIdentifier.close()
+    }
+}
+
+@Composable
+@androidx.annotation.VisibleForTesting
+internal fun PostDetailStateDispatch(
+    post: Post?,
+    isLoading: Boolean,
+    error: String?,
+    onRetry: () -> Unit,
+    content: @Composable (Post) -> Unit,
+) {
+    when {
+        isLoading -> {
+            FullScreenLoading()
+        }
+
+        error != null -> {
+            ErrorMessage(
+                message = error,
+                onRetry = onRetry,
+            )
+        }
+
+        post != null -> {
+            content(post)
+        }
     }
 }

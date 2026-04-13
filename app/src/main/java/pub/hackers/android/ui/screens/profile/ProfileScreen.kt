@@ -67,10 +67,10 @@ import coil.compose.AsyncImage
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.AccountLink
 import pub.hackers.android.domain.model.ActorField
-import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.HtmlContent
+import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.theme.AppShapes
@@ -134,10 +134,12 @@ fun ProfileScreen(
                     }
                 },
                 trailingContent = {
-                    if (uiState.actor != null) {
+                    val actor = uiState.actor
+                    if (actor != null) {
                         IconButton(onClick = {
-                            val profileHandle = uiState.actor!!.handle
-                            val normalizedHandle = if (profileHandle.startsWith("@")) profileHandle else "@$profileHandle"
+                            val profileHandle = actor.handle
+                            val normalizedHandle =
+                                if (profileHandle.startsWith("@")) profileHandle else "@$profileHandle"
                             val profileUrl = "https://hackers.pub/$normalizedHandle"
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
@@ -153,7 +155,7 @@ fun ProfileScreen(
                             )
                         }
                     }
-                    if (!uiState.isViewer && uiState.actor != null) {
+                    if (!uiState.isViewer && actor != null) {
                         ProfileActionMenu(
                             followsViewer = uiState.followsViewer,
                             viewerBlocks = uiState.viewerBlocks,
@@ -172,92 +174,92 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when {
-                uiState.isLoading && uiState.actor == null -> {
-                    FullScreenLoading()
-                }
-                uiState.error != null && uiState.actor == null -> {
-                    ErrorMessage(
-                        message = uiState.error ?: stringResource(R.string.error_generic),
-                        onRetry = { viewModel.loadProfile(handle) }
-                    )
-                }
-                uiState.actor != null -> {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = { viewModel.refresh() }
-                    ) {
-                        LazyColumn(state = listState) {
-                            item {
-                                ProfileHeader(
-                                    avatarUrl = uiState.actor!!.avatarUrl,
-                                    name = uiState.actor!!.name,
-                                    handle = uiState.actor!!.handle,
-                                    bio = uiState.bio,
-                                    fields = uiState.fields,
-                                    accountLinks = uiState.accountLinks,
-                                    isViewer = uiState.isViewer,
-                                    viewerFollows = uiState.viewerFollows,
-                                    followsViewer = uiState.followsViewer,
-                                    viewerBlocks = uiState.viewerBlocks,
-                                    isPerformingAction = uiState.isPerformingAction,
-                                    onFollowClick = { viewModel.followActor() },
-                                    onUnfollowClick = { viewModel.unfollowActor() },
-                                    onMentionClick = onProfileClick
-                                )
-                            }
+            val actor = uiState.actor
+            ProfileStateDispatch(
+                actor = actor,
+                isLoading = uiState.isLoading,
+                error = uiState.error,
+                onRetry = { viewModel.loadProfile(handle) },
+            ) { resolvedActor ->
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = { viewModel.refresh() }
+                ) {
+                    LazyColumn(state = listState) {
+                        item {
+                            ProfileHeader(
+                                avatarUrl = resolvedActor.avatarUrl,
+                                name = resolvedActor.name,
+                                handle = resolvedActor.handle,
+                                bio = uiState.bio,
+                                fields = uiState.fields,
+                                accountLinks = uiState.accountLinks,
+                                isViewer = uiState.isViewer,
+                                viewerFollows = uiState.viewerFollows,
+                                followsViewer = uiState.followsViewer,
+                                viewerBlocks = uiState.viewerBlocks,
+                                isPerformingAction = uiState.isPerformingAction,
+                                onFollowClick = { viewModel.followActor() },
+                                onUnfollowClick = { viewModel.unfollowActor() },
+                                onMentionClick = onProfileClick
+                            )
+                        }
 
-                            item {
-                                ProfileTabBar(
-                                    selectedTab = uiState.selectedTab,
-                                    onTabSelected = { viewModel.selectTab(it) }
-                                )
-                            }
+                        item {
+                            ProfileTabBar(
+                                selectedTab = uiState.selectedTab,
+                                onTabSelected = { viewModel.selectTab(it) }
+                            )
+                        }
 
-                            items(
-                                items = uiState.posts,
-                                key = { it.id }
-                            ) { post ->
-                                PostCard(
-                                    post = post,
-                                    onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
-                                    onProfileClick = onProfileClick,
-                                    onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
-                                    onShareClick = {
-                                        val targetId = post.sharedPost?.id ?: post.id
-                                        if (post.viewerHasShared) {
-                                            viewModel.unsharePost(targetId)
-                                        } else {
-                                            viewModel.sharePost(targetId)
+                        items(
+                            items = uiState.posts,
+                            key = { it.id }
+                        ) { post ->
+                            PostCard(
+                                post = post,
+                                onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                onProfileClick = onProfileClick,
+                                onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
+                                onShareClick = {
+                                    val targetId = post.sharedPost?.id ?: post.id
+                                    if (post.viewerHasShared) {
+                                        viewModel.unsharePost(targetId)
+                                    } else {
+                                        viewModel.sharePost(targetId)
+                                    }
+                                },
+                                onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                onReactionClick = null,
+                                onExternalShareClick = {
+                                    val displayPost = post.sharedPost ?: post
+                                    val shareUrl = displayPost.url ?: displayPost.iri
+                                    if (shareUrl != null) {
+                                        val sendIntent = Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                            type = "text/plain"
                                         }
-                                    },
-                                    onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
-                                    onReactionClick = null,
-                                    onExternalShareClick = {
-                                        val displayPost = post.sharedPost ?: post
-                                        val shareUrl = displayPost.url ?: displayPost.iri
-                                        if (shareUrl != null) {
-                                            val sendIntent = Intent().apply {
-                                                action = Intent.ACTION_SEND
-                                                putExtra(Intent.EXTRA_TEXT, shareUrl)
-                                                type = "text/plain"
-                                            }
-                                            context.startActivity(Intent.createChooser(sendIntent, null))
-                                        }
-                                    },
-                                    onQuotedPostClick = onPostClick
-                                )
-                                HorizontalDivider(
-                                    color = LocalAppColors.current.divider,
-                                    thickness = 1.dp,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
-                            }
+                                        context.startActivity(
+                                            Intent.createChooser(
+                                                sendIntent,
+                                                null
+                                            )
+                                        )
+                                    }
+                                },
+                                onQuotedPostClick = onPostClick
+                            )
+                            HorizontalDivider(
+                                color = LocalAppColors.current.divider,
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
 
-                            if (uiState.isLoadingMore) {
-                                item {
-                                    LoadingItem()
-                                }
+                        if (uiState.isLoadingMore) {
+                            item {
+                                LoadingItem()
                             }
                         }
                     }
@@ -640,6 +642,33 @@ private fun RelationshipTags(
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
+        }
+    }
+}
+
+@Composable
+@androidx.annotation.VisibleForTesting
+internal fun ProfileStateDispatch(
+    actor: pub.hackers.android.domain.model.Actor?,
+    isLoading: Boolean,
+    error: String?,
+    onRetry: () -> Unit,
+    content: @Composable (pub.hackers.android.domain.model.Actor) -> Unit,
+) {
+    when {
+        isLoading && actor == null -> {
+            FullScreenLoading()
+        }
+
+        error != null && actor == null -> {
+            ErrorMessage(
+                message = error,
+                onRetry = onRetry,
+            )
+        }
+
+        actor != null -> {
+            content(actor)
         }
     }
 }

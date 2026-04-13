@@ -5,7 +5,6 @@ package pub.hackers.android.ui.components
 import android.content.Intent
 import android.net.Uri
 import android.text.Html
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,33 +21,31 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FormatQuote
-import androidx.compose.material.icons.outlined.Repeat
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -57,16 +54,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -74,6 +73,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.languageid.LanguageIdentification
@@ -84,10 +85,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostVisibility
@@ -182,41 +179,42 @@ private fun NoteCard(
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         // Reply target preview (faded)
-        if (displayPost.replyTarget != null) {
+        val replyTarget = displayPost.replyTarget
+        if (replyTarget != null) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(0.5f)
                     .padding(bottom = 8.dp)
                     .clickable {
-                        onQuotedPostClick?.invoke(displayPost.replyTarget!!.id)
+                        onQuotedPostClick?.invoke(replyTarget.id)
                     },
                 verticalAlignment = Alignment.Top
             ) {
                 AsyncImage(
-                    model = displayPost.replyTarget!!.actor.avatarUrl,
+                    model = replyTarget.actor.avatarUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(AppShapes.avatarRepost)
                         .clip(CircleShape)
-                        .clickable { onProfileClick(displayPost.replyTarget!!.actor.handle) },
+                        .clickable { onProfileClick(replyTarget.actor.handle) },
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     RichDisplayName(
-                        name = displayPost.replyTarget!!.actor.name,
-                        fallback = displayPost.replyTarget!!.actor.handle,
+                        name = replyTarget.actor.name,
+                        fallback = replyTarget.actor.handle,
                         style = typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = colors.textPrimary
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     HtmlContent(
-                        html = displayPost.replyTarget!!.content,
+                        html = replyTarget.content,
                         maxLines = 2,
                         modifier = Modifier.fillMaxWidth(),
                         onTextClick = {
-                            onQuotedPostClick?.invoke(displayPost.replyTarget!!.id)
+                            onQuotedPostClick?.invoke(replyTarget.id)
                         }
                     )
                 }
@@ -224,8 +222,8 @@ private fun NoteCard(
         }
 
         // Repost indicator
-        if (isRepost && post.lastSharer != null) {
-            val sharer = post.lastSharer!!
+        if (isRepost) {
+            val sharer = post.lastSharer
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -359,16 +357,19 @@ private fun NoteCard(
                 }
 
                 // Step 3: Body text color
-                val truncatedContent = if (contentMaxLength > 0 && displayPost.content.length > contentMaxLength) {
-                    displayPost.content.take(contentMaxLength)
-                } else {
-                    displayPost.content
-                }
-                val isTruncated = contentMaxLength > 0 && displayPost.content.length > contentMaxLength
+                val truncatedContent =
+                    if (contentMaxLength > 0 && displayPost.content.length > contentMaxLength) {
+                        displayPost.content.take(contentMaxLength)
+                    } else {
+                        displayPost.content
+                    }
+                val isTruncated =
+                    contentMaxLength > 0 && displayPost.content.length > contentMaxLength
 
-                if (showTranslated && translatedContent != null) {
+                val translatedText = translatedContent
+                if (showTranslated && translatedText != null) {
                     Text(
-                        text = translatedContent!!,
+                        text = translatedText,
                         style = typography.bodyLarge,
                         color = colors.textBody,
                         modifier = Modifier.fillMaxWidth()
@@ -392,9 +393,10 @@ private fun NoteCard(
                     )
                 }
 
-                if (translationError != null) {
+                val translationErrorText = translationError
+                if (translationErrorText != null) {
                     Text(
-                        text = translationError!!,
+                        text = translationErrorText,
                         style = typography.labelMedium,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 4.dp)
@@ -404,7 +406,9 @@ private fun NoteCard(
                 // Inline translate link
                 if (!isTranslating && translationError == null) {
                     Text(
-                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(R.string.translate),
+                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
+                            R.string.translate
+                        ),
                         style = typography.labelMedium,
                         color = colors.textSecondary,
                         modifier = Modifier
@@ -462,7 +466,7 @@ private fun NoteCard(
                 if (displayPost.media.isEmpty() && displayPost.quotedPost == null && displayPost.link != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     LinkPreviewCard(
-                        link = displayPost.link!!,
+                        link = displayPost.link,
                         onProfileClick = onProfileClick
                     )
                 }
@@ -471,8 +475,8 @@ private fun NoteCard(
                 if (displayPost.quotedPost != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     QuotedPostPreview(
-                        post = displayPost.quotedPost!!,
-                        onClick = { onQuotedPostClick?.invoke(displayPost.quotedPost!!.id) },
+                        post = displayPost.quotedPost,
+                        onClick = { onQuotedPostClick?.invoke(displayPost.quotedPost.id) },
                         onProfileClick = onProfileClick
                     )
                 }
@@ -873,21 +877,37 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
     when (media.size) {
         0 -> {}
         1 -> {
-            GridMediaItem(media[0], Modifier
-                .fillMaxWidth()
-                .height(gridHeight)
-                .clip(RoundedCornerShape(AppShapes.mediaRadius)))
+            GridMediaItem(
+                media[0], Modifier
+                    .fillMaxWidth()
+                    .height(gridHeight)
+                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
+            )
         }
+
         2 -> {
             // a | b
             Row(
                 horizontalArrangement = Arrangement.spacedBy(gap),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                GridMediaItem(media[0], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
-                GridMediaItem(media[1], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                GridMediaItem(
+                    media[0],
+                    Modifier
+                        .weight(1f)
+                        .height(gridHeight)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
+                GridMediaItem(
+                    media[1],
+                    Modifier
+                        .weight(1f)
+                        .height(gridHeight)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
             }
         }
+
         3 -> {
             // a | (b / c)
             val halfHeight = (gridHeight - gap) / 2
@@ -895,16 +915,35 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                 horizontalArrangement = Arrangement.spacedBy(gap),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                GridMediaItem(media[0], Modifier.weight(1f).height(gridHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                GridMediaItem(
+                    media[0],
+                    Modifier
+                        .weight(1f)
+                        .height(gridHeight)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                )
                 Column(
                     verticalArrangement = Arrangement.spacedBy(gap),
                     modifier = Modifier.weight(1f)
                 ) {
-                    GridMediaItem(media[1], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
-                    GridMediaItem(media[2], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(
+                        media[1],
+                        Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
+                    GridMediaItem(
+                        media[2],
+                        Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
                 }
             }
         }
+
         else -> {
             // (a / c) | (b / d+)
             val remaining = media.size - 4
@@ -917,14 +956,32 @@ fun MediaGrid(media: List<pub.hackers.android.domain.model.Media>) {
                     verticalArrangement = Arrangement.spacedBy(gap),
                     modifier = Modifier.weight(1f)
                 ) {
-                    GridMediaItem(media[0], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
-                    GridMediaItem(media[2], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(
+                        media[0],
+                        Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
+                    GridMediaItem(
+                        media[2],
+                        Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
                 }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(gap),
                     modifier = Modifier.weight(1f)
                 ) {
-                    GridMediaItem(media[1], Modifier.fillMaxWidth().height(halfHeight).clip(RoundedCornerShape(AppShapes.mediaRadius)))
+                    GridMediaItem(
+                        media[1],
+                        Modifier
+                            .fillMaxWidth()
+                            .height(halfHeight)
+                            .clip(RoundedCornerShape(AppShapes.mediaRadius))
+                    )
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1111,8 +1168,9 @@ private fun MediaPreviewDialog(
                                     android.os.Environment.DIRECTORY_DOWNLOADS,
                                     url.substringAfterLast('/')
                                 )
-                            val dm = context.getSystemService(android.content.Context.DOWNLOAD_SERVICE)
-                                as android.app.DownloadManager
+                            val dm =
+                                context.getSystemService(android.content.Context.DOWNLOAD_SERVICE)
+                                        as android.app.DownloadManager
                             dm.enqueue(request)
                         },
                         leadingIcon = {

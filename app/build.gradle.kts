@@ -62,6 +62,12 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
@@ -117,6 +123,9 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
 
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
