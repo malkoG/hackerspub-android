@@ -6,7 +6,8 @@ data class Actor(
     val id: String,
     val name: String?,
     val handle: String,
-    val avatarUrl: String
+    val avatarUrl: String,
+    val bio: String? = null
 )
 
 data class ActorField(
