@@ -5,6 +5,8 @@ import com.apollographql.apollo.api.Optional
 import com.apollographql.apollo.cache.normalized.FetchPolicy
 import com.apollographql.apollo.cache.normalized.fetchPolicy
 import pub.hackers.android.domain.model.*
+import pub.hackers.android.graphql.ArticleDraftQuery
+import pub.hackers.android.graphql.ArticleDraftsQuery
 import pub.hackers.android.graphql.ActorArticlesQuery
 import pub.hackers.android.graphql.ActorByHandleQuery
 import pub.hackers.android.graphql.ActorNotesQuery
@@ -12,6 +14,7 @@ import pub.hackers.android.graphql.AddReactionToPostMutation
 import pub.hackers.android.graphql.BlockActorMutation
 import pub.hackers.android.graphql.CompleteLoginChallengeMutation
 import pub.hackers.android.graphql.CreateNoteMutation
+import pub.hackers.android.graphql.DeleteArticleDraftMutation
 import pub.hackers.android.graphql.DeletePostMutation
 import pub.hackers.android.graphql.GetPasskeyAuthenticationOptionsMutation
 import pub.hackers.android.graphql.GetPasskeyRegistrationOptionsMutation
@@ -30,6 +33,7 @@ import pub.hackers.android.graphql.RemoveFollowerMutation
 import pub.hackers.android.graphql.RemoveReactionFromPostMutation
 import pub.hackers.android.graphql.RevokePasskeyMutation
 import pub.hackers.android.graphql.RevokeSessionMutation
+import pub.hackers.android.graphql.SaveArticleDraftMutation
 import pub.hackers.android.graphql.ViewerPasskeysQuery
 import pub.hackers.android.graphql.VerifyPasskeyRegistrationMutation
 import pub.hackers.android.graphql.SearchActorsByHandleQuery
@@ -1018,6 +1022,130 @@ class HackersPubRepository @Inject constructor(
                         Result.failure(Exception("Cannot delete a shared post"))
                     else -> Result.failure(Exception("Unknown error"))
                 }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun saveArticleDraft(
+        title: String,
+        content: String,
+        tags: List<String>,
+        id: String? = null
+    ): Result<ArticleDraft> {
+        return try {
+            val response = apolloClient.mutation(
+                SaveArticleDraftMutation(
+                    title = title,
+                    content = content,
+                    tags = tags,
+                    id = Optional.presentIfNotNull(id)
+                )
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.saveArticleDraft
+                when {
+                    result?.onSaveArticleDraftPayload != null -> {
+                        val draft = result.onSaveArticleDraftPayload.draft
+                        Result.success(
+                            ArticleDraft(
+                                id = draft.id,
+                                title = draft.title,
+                                content = draft.content.toString(),
+                                tags = draft.tags,
+                                created = Instant.parse(draft.created.toString()),
+                                updated = Instant.parse(draft.updated.toString())
+                            )
+                        )
+                    }
+                    result?.onInvalidInputError != null -> {
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    }
+                    result?.onNotAuthenticatedError != null -> {
+                        Result.failure(Exception("Not authenticated"))
+                    }
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteArticleDraft(id: String): Result<Unit> {
+        return try {
+            val response = apolloClient.mutation(DeleteArticleDraftMutation(id)).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.deleteArticleDraft
+                when {
+                    result?.onDeleteArticleDraftPayload != null -> Result.success(Unit)
+                    result?.onInvalidInputError != null ->
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    result?.onNotAuthenticatedError != null ->
+                        Result.failure(Exception("Not authenticated"))
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getArticleDrafts(): Result<List<ArticleDraft>> {
+        return try {
+            val response = apolloClient.query(ArticleDraftsQuery())
+                .fetchPolicy(FetchPolicy.NetworkOnly)
+                .execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val drafts = response.data?.viewer?.articleDrafts?.edges?.map { edge ->
+                    val node = edge.node
+                    ArticleDraft(
+                        id = node.id,
+                        title = node.title,
+                        content = node.content.toString(),
+                        tags = node.tags,
+                        created = Instant.parse(node.created.toString()),
+                        updated = Instant.parse(node.updated.toString())
+                    )
+                } ?: emptyList()
+                Result.success(drafts)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getArticleDraft(id: String): Result<ArticleDraft> {
+        return try {
+            val response = apolloClient.query(ArticleDraftQuery(id))
+                .fetchPolicy(FetchPolicy.NetworkOnly)
+                .execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val draft = response.data?.articleDraft
+                    ?: return Result.failure(Exception("Draft not found"))
+                Result.success(
+                    ArticleDraft(
+                        id = draft.id,
+                        title = draft.title,
+                        content = draft.content.toString(),
+                        tags = draft.tags,
+                        created = Instant.parse(draft.created.toString()),
+                        updated = Instant.parse(draft.updated.toString())
+                    )
+                )
             }
         } catch (e: Exception) {
             Result.failure(e)
