@@ -19,6 +19,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -129,27 +130,43 @@ sealed class DetailScreen(val route: String) {
 fun HackersPubApp(
     deepLinkData: pub.hackers.android.DeepLinkData? = null,
     navigationIntent: pub.hackers.android.NavigationIntent? = null,
+    onDeepLinkConsumed: () -> Unit = {},
+    onNavigationIntentConsumed: () -> Unit = {},
     viewModel: AppViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState(initial = false)
+    val isLoggedInState by viewModel.isLoggedIn.collectAsState(initial = null as Boolean?)
 
     val fontSizePercent by viewModel.preferencesManager.fontSizePercent.collectAsState(initial = 100)
     val hasUnread by viewModel.hasUnread.collectAsState()
+
+    // Wait for auth state to resolve from DataStore before rendering navigation.
+    // This prevents NavHost graph recreation when isLoggedIn transitions from the
+    // initial value to the actual value, which would reset the back stack.
+    if (isLoggedInState == null) return
+    val isLoggedIn = isLoggedInState!!
+
+    // Pin startDestination so it never changes after first resolution.
+    // Login/logout transitions are handled imperatively with popUpTo(0).
+    val startDestination = remember {
+        if (isLoggedIn) Screen.Timeline.route else Screen.Explore.route
+    }
 
     // Handle deep link for verification
     LaunchedEffect(deepLinkData) {
         deepLinkData?.let {
             navController.navigate("signin?token=${it.token}&code=${it.code}")
+            onDeepLinkConsumed()
         }
     }
 
-    // Handle navigation intent from system notifications
+    // Handle navigation intent from system notifications or deep links
     LaunchedEffect(navigationIntent) {
         navigationIntent?.let {
             navController.navigate(it.route) {
                 launchSingleTop = true
             }
+            onNavigationIntentConsumed()
         }
     }
 
@@ -273,7 +290,7 @@ fun HackersPubApp(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = if (isLoggedIn) Screen.Timeline.route else Screen.Explore.route,
+            startDestination = startDestination,
             modifier = Modifier
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding)

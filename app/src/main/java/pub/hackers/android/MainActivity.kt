@@ -54,8 +54,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleDeepLink(intent)
-        handleNavigationIntent(intent)
+        if (savedInstanceState == null) {
+            handleDeepLink(intent)
+            handleNavigationIntent(intent)
+        }
         requestNotificationPermissionIfNeeded()
         enableEdgeToEdge()
         setContent {
@@ -66,7 +68,9 @@ class MainActivity : ComponentActivity() {
                 ) {
                     HackersPubApp(
                         deepLinkData = deepLinkData,
-                        navigationIntent = navigationIntent
+                        navigationIntent = navigationIntent,
+                        onDeepLinkConsumed = { deepLinkData = null },
+                        onNavigationIntentConsumed = { navigationIntent = null }
                     )
                 }
             }
@@ -115,7 +119,8 @@ class MainActivity : ComponentActivity() {
             is HackersPubRoute.SignInVerification -> {
                 deepLinkData = DeepLinkData(token = route.token, code = route.code)
             }
-            is HackersPubRoute.Profile, is HackersPubRoute.NoteDetail, is HackersPubRoute.TagSearch -> {
+            is HackersPubRoute.Profile, is HackersPubRoute.NoteDetail,
+            is HackersPubRoute.TagSearch, is HackersPubRoute.Notifications -> {
                 navigationIntent = NavigationIntent(route = route.toNavRoute())
             }
             null -> { /* Not a recognized URL, ignore */ }
