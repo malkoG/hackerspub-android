@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.apollo)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -117,6 +119,10 @@ dependencies {
 
     implementation(libs.mlkit.translate)
     implementation(libs.mlkit.language.id)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.credentials:credentials:1.5.0-rc01")
