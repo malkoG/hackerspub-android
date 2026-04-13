@@ -1,0 +1,158 @@
+❯ Web link not correctly works.
+  For example,
+  - Clicking on hackers.pub/@<handle>, flashes profile page, but redirects to
+  profile
+  - Clicking on /notifications, flashes, and fallback to profile
+  - Same for /@<Handle>/<postuuid>
+
+---
+
+[Request interrupted by user]
+
+---
+
+Install release
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+No, it should be release
+
+---
+
+[Request interrupted by user]
+
+---
+
+Hackers'Pub Keystore generation
+
+ # 2. Generate a keystore (one-time only)
+  keytool -genkey -v \
+    -keystore hackerspub-release.jks \
+    -keyalg RSA -keysize 2048 \
+    -validity 10000 \
+    -alias hackerspub
+
+  # 1. Build signed APK
+  export KEYSTORE_FILE="$(pwd)/hackerspub-release.jks"
+  export STORE_PASSWORD="REDACTED"
+  export KEY_ALIAS="hackerspub"
+  export KEY_PASSWORD="$STORE_PASSWORD"
+
+  ./gradlew assembleRelease
+## Base 64 keystore (KEYSTORE_BASE64)
+
+
+```
+REDACTED
+
+```
+ Here is secret
+
+---
+
+Install again
+
+---
+
+How can I trigger weblink?
+
+---
+
+How can I do it in app?
+
+---
+
+With installedrelease, clicking from mobile device didn't trigger
+
+---
+
+What???? how is the docs/
+
+---
+
+Try again this
+
+
+Hackers'Pub Keystore generation
+
+ # 2. Generate a keystore (one-time only)
+  keytool -genkey -v \
+    -keystore hackerspub-release.jks \
+    -keyalg RSA -keysize 2048 \
+    -validity 10000 \
+    -alias hackerspub
+
+  # 1. Build signed APK
+  export KEYSTORE_FILE="$(pwd)/hackerspub-release.jks"
+  export STORE_PASSWORD="REDACTED"
+  export KEY_ALIAS="hackerspub"
+  export KEY_PASSWORD="$STORE_PASSWORD"
+
+  ./gradlew assembleRelease
+## Base 64 keystore (KEYSTORE_BASE64)
+
+
+```
+REDACTED
+
+```
+
+---
+
+Where has been assetlinks go off? Find the cause
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+I mean, in this codebase
+
+---
+
+Could you also check ../hackerspub-android-prod?
+
+---
+
+Where did "AD:C6" came from
+
+---
+
+How it became?
+
+---
+
+But, it worked before the change
+
+---
+
+No, fit to AD:C6
+
+---
+
+See ../hackerspub, This is the source of truth.
+
+---
+
+Don't edit. You can take a look for history.
+
+---
+
+Wait, so, was it a valid change? How about supporting passkey again?
+
+---
+
+So, I just can see the result only if i install?
+
+---
+
+Second
+
+---
+
+Okay, I can only know by install from appstore. right?

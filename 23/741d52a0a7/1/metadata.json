@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "23741d52a0a7",
+  "session_id": "467ddb9c-c5ee-4321-b220-ed2d50c763d6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T13:09:40.845539Z",
+  "branch": "fix/weblink",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "533b7327-6bdd-4e9e-ba6f-0be1319c7ad6",
+  "token_usage": {
+    "input_tokens": 6680,
+    "cache_creation_tokens": 109053,
+    "cache_read_tokens": 7750981,
+    "output_tokens": 45567,
+    "api_call_count": 89
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T13:09:40.52404Z",
+    "agent_lines": 0,
+    "human_added": 72359,
+    "human_modified": 7,
+    "human_removed": 0,
+    "total_committed": 72366,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/467ddb9c-c5ee-4321-b220-ed2d50c763d6.jsonl"
+}
