@@ -120,6 +120,12 @@ fun PostCard(
             post = post,
             onClick = onClick,
             onProfileClick = onProfileClick,
+            onReplyClick = onReplyClick,
+            onShareClick = onShareClick,
+            onQuoteClick = onQuoteClick,
+            onReactionClick = onReactionClick,
+            onReactionLongPress = onReactionLongPress,
+            onExternalShareClick = onExternalShareClick,
             modifier = modifier
         )
     } else {
