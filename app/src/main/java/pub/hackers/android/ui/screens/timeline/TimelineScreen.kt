@@ -13,14 +13,18 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -71,6 +75,11 @@ fun TimelineScreen(
     val context = LocalContext.current
     val colors = LocalAppColors.current
     val coroutineScope = rememberCoroutineScope()
+
+    // Refresh draft count when screen becomes visible
+    LaunchedEffect(Unit) {
+        viewModel.loadDraftCount()
+    }
 
     LaunchedEffect(postedAt) {
         if (postedAt > 0L) {
@@ -130,6 +139,30 @@ fun TimelineScreen(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             LargeTitleHeader(title = stringResource(R.string.personal_timeline)) {
+                // New article button with draft badge
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(color = colors.surface, shape = CircleShape)
+                        .clickable { onComposeArticleClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    BadgedBox(
+                        badge = {
+                            if (uiState.draftCount > 0) {
+                                Badge { Text(uiState.draftCount.toString()) }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.Article,
+                            contentDescription = stringResource(R.string.new_article),
+                            tint = colors.accent,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
                 // Recommended actors button
                 Box(
                     modifier = Modifier

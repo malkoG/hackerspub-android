@@ -23,7 +23,8 @@ data class TimelineUiState(
     val hasNextPage: Boolean = false,
     val endCursor: String? = null,
     val error: String? = null,
-    val reactionPickerPostId: String? = null
+    val reactionPickerPostId: String? = null,
+    val draftCount: Int = 0
 )
 
 @HiltViewModel
@@ -40,6 +41,16 @@ class TimelineViewModel @Inject constructor(
 
     init {
         loadTimeline()
+        loadDraftCount()
+    }
+
+    fun loadDraftCount() {
+        viewModelScope.launch {
+            repository.getArticleDrafts()
+                .onSuccess { drafts ->
+                    _uiState.update { it.copy(draftCount = drafts.size) }
+                }
+        }
     }
 
     fun refreshIfStale() {
