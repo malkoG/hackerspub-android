@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "84143a94efec",
+  "session_id": "8eb11fb8-1b2e-448e-8eca-61c23f553e13",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T02:25:08.60292Z",
+  "branch": "chore/firebase-crashlytics",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".claude/settings.local.json",
+    ".gitignore",
+    "app/build.gradle.kts",
+    "app/google-services.json",
+    "app/src/main/java/pub/hackers/android/MainActivity.kt",
+    "build.gradle.kts",
+    "gradle/libs.versions.toml"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 74,
+    "cache_creation_tokens": 39881,
+    "cache_read_tokens": 1791373,
+    "output_tokens": 13167,
+    "api_call_count": 49
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T02:25:08.407402Z",
+    "agent_lines": 45,
+    "human_added": 0,
+    "human_modified": 16,
+    "human_removed": 7,
+    "total_committed": 45,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-chore-firebase-crashlytics/8eb11fb8-1b2e-448e-8eca-61c23f553e13.jsonl"
+}

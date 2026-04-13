@@ -1,0 +1,73 @@
+https://firebase.google.com/docs/crashlytics/android/get-started?hl=ko Follow this
+
+---
+
+for google.service.json, is it okay to exclude from gitignore?
+
+---
+
+Yes
+
+---
+
+Mv latest downloaded google-services.json
+
+---
+
+Now, Can we test crash?
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Wait, also you can val crashButton = Button(this)
+crashButton.text = "Test Crash"
+crashButton.setOnClickListener {
+   throw RuntimeException("Test Crash") // Force a crash
+}
+
+addContentView(crashButton, ViewGroup.LayoutParams(
+       ViewGroup.LayoutParams.MATCH_PARENT,
+       ViewGroup.LayoutParams.WRAP_CONTENT))
+
+---
+
+Okay do it
+
+---
+
+How about testing with prod?
+
+---
+
+See 
+
+
+
+  export KEYSTORE_FILE="$(pwd)/hackerspub-release.jks"
+  export STORE_PASSWORD="REDACTED"
+  export KEY_ALIAS="hackerspub"
+  export KEY_PASSWORD="$STORE_PASSWORD"
+
+  ./gradlew assembleRelease
+## Base 64 keystore (KEYSTORE_BASE64)
+
+
+```
+REDACTED
+
+```
+
+---
+
+Where can I test?
+
+---
+
+I can't see
+
+---
+
+Okay, now fine-grained commit
