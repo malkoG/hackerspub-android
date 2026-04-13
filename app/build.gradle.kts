@@ -87,6 +87,10 @@ apollo {
     }
 }
 
+tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+    enabled = false
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
