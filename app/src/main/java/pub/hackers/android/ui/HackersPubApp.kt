@@ -45,6 +45,7 @@ import pub.hackers.android.ui.screens.explore.ExploreScreen
 import pub.hackers.android.ui.screens.notifications.NotificationsScreen
 import pub.hackers.android.ui.screens.postdetail.PostDetailScreen
 import pub.hackers.android.ui.screens.profile.ProfileScreen
+import pub.hackers.android.ui.screens.recommendedactors.RecommendedActorsScreen
 import pub.hackers.android.ui.screens.search.SearchScreen
 import pub.hackers.android.ui.screens.settings.SettingsScreen
 import pub.hackers.android.ui.screens.timeline.TimelineScreen
@@ -121,6 +122,7 @@ sealed class DetailScreen(val route: String) {
     data object Profile : DetailScreen("profile/{handle}") {
         fun createRoute(handle: String) = "profile/$handle"
     }
+    data object RecommendedActors : DetailScreen("recommended-actors")
 }
 
 @Composable
@@ -300,6 +302,9 @@ fun HackersPubApp(
                     },
                     onSettingsClick = {
                         navController.navigate(Screen.Settings.route)
+                    },
+                    onRecommendedActorsClick = {
+                        navController.navigate(DetailScreen.RecommendedActors.route)
                     }
                 )
             }
@@ -488,6 +493,17 @@ fun HackersPubApp(
                     },
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
+                    }
+                )
+            }
+
+            composable(DetailScreen.RecommendedActors.route) {
+                RecommendedActorsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onProfileClick = { handle ->
+                        navController.navigate(DetailScreen.Profile.createRoute(handle))
                     }
                 )
             }

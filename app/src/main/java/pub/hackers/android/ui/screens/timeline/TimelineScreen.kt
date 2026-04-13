@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -58,6 +59,7 @@ fun TimelineScreen(
     onComposeClick: (String?) -> Unit,
     onQuoteClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit,
+    onRecommendedActorsClick: () -> Unit = {},
     postedAt: Long = 0L,
     tabRetapped: Long = 0L,
     userAvatarUrl: String? = null,
@@ -127,6 +129,22 @@ fun TimelineScreen(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             LargeTitleHeader(title = stringResource(R.string.personal_timeline)) {
+                // Recommended actors button
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(color = colors.surface, shape = CircleShape)
+                        .clickable { onRecommendedActorsClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PersonAdd,
+                        contentDescription = stringResource(R.string.recommended_actors),
+                        tint = colors.accent,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
                 // Settings gear icon
                 Box(
                     modifier = Modifier

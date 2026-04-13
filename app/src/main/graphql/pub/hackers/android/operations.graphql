@@ -767,3 +767,13 @@ mutation RemoveReactionFromPost($postId: ID!, $emoji: String!) {
         }
     }
 }
+
+query RecommendedActors($limit: Int = 10) {
+    recommendedActors(limit: $limit) {
+        id
+        name
+        handle
+        avatarUrl
+        bio
+    }
+}

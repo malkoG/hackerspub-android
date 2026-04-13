@@ -25,6 +25,7 @@ import pub.hackers.android.graphql.PostQuotesQuery
 import pub.hackers.android.graphql.PostSharesQuery
 import pub.hackers.android.graphql.PostDetailQuery
 import pub.hackers.android.graphql.PublicTimelineQuery
+import pub.hackers.android.graphql.RecommendedActorsQuery
 import pub.hackers.android.graphql.RemoveFollowerMutation
 import pub.hackers.android.graphql.RemoveReactionFromPostMutation
 import pub.hackers.android.graphql.RevokePasskeyMutation
@@ -747,6 +748,31 @@ class HackersPubRepository @Inject constructor(
                         name = actor.name?.toString(),
                         handle = actor.handle,
                         avatarUrl = actor.avatarUrl.toString()
+                    )
+                } ?: emptyList()
+                Result.success(actors)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getRecommendedActors(limit: Int = 10): Result<List<Actor>> {
+        return try {
+            val response = apolloClient.query(
+                RecommendedActorsQuery(limit = Optional.present(limit))
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val actors = response.data?.recommendedActors?.map { actor ->
+                    Actor(
+                        id = actor.id,
+                        name = actor.name?.toString(),
+                        handle = actor.handle,
+                        avatarUrl = actor.avatarUrl.toString(),
+                        bio = actor.bio?.toString()
                     )
                 } ?: emptyList()
                 Result.success(actors)

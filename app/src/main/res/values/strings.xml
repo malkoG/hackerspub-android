@@ -133,6 +133,11 @@
     <string name="share_confirm_action">Share</string>
     <string name="unshare_confirm_action">Unshare</string>
 
+    <!-- Recommended Actors -->
+    <string name="recommended_actors">Recommended</string>
+    <string name="recommended_actors_empty">No recommendations available</string>
+    <string name="dismiss">Dismiss</string>
+
     <!-- Errors -->
     <string name="error_generic">Something went wrong</string>
     <string name="error_network">Network error. Please check your connection.</string>
