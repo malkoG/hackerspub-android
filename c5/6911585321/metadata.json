@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "c56911585321",
+  "strategy": "manual-commit",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeArticleScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeArticleViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/drafts/DraftsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/drafts/DraftsViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/settings/SettingsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineViewModel.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/c5/6911585321/0/metadata.json",
+      "transcript": "/c5/6911585321/0/full.jsonl",
+      "context": "/c5/6911585321/0/context.md",
+      "content_hash": "/c5/6911585321/0/content_hash.txt",
+      "prompt": "/c5/6911585321/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 218,
+    "cache_creation_tokens": 202158,
+    "cache_read_tokens": 13249660,
+    "output_tokens": 50133,
+    "api_call_count": 134
+  }
+}

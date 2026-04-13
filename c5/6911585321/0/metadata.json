@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "c56911585321",
+  "session_id": "190e1426-fef2-447b-9bdc-3c6376e2aecf",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T14:37:15.886488Z",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeArticleScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeArticleViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/drafts/DraftsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/drafts/DraftsViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/settings/SettingsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineViewModel.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "cd80de7c-55b2-4b7f-b72f-7a90218167e5",
+  "token_usage": {
+    "input_tokens": 218,
+    "cache_creation_tokens": 202158,
+    "cache_read_tokens": 13249660,
+    "output_tokens": 50133,
+    "api_call_count": 134
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T14:37:15.263441Z",
+    "agent_lines": 926,
+    "human_added": 0,
+    "human_modified": 35,
+    "human_removed": 38,
+    "total_committed": 961,
+    "agent_percentage": 96.3579604578564
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-feature-add-create-article/190e1426-fef2-447b-9bdc-3c6376e2aecf.jsonl"
+}

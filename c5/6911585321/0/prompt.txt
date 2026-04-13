@@ -1,0 +1,9 @@
+How can we add add article button from home screen?
+
+---
+
+[Request interrupted by user]
+
+---
+
+Don't care about the Schema. Just care about how the UX would be when article create functionally added. Also for draft maangement
