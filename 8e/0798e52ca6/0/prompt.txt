@@ -1,0 +1,21 @@
+Add link to my profile page from setting page.
+
+---
+
+Instasll
+
+---
+
+How can I optionally build google-service.json>?
+
+---
+
+Yes.
+
+---
+
+Install again
+
+---
+
+commit only gradle build file
