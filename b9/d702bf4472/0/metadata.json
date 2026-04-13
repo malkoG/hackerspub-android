@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "b9d702bf4472",
+  "session_id": "8183c18d-7050-4db3-85a9-36330a92b042",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T01:38:17.388779Z",
+  "branch": "feature/empty-screen-refresh",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/ErrorMessage.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/explore/ExploreScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 28,
+    "cache_creation_tokens": 31640,
+    "cache_read_tokens": 775943,
+    "output_tokens": 6909,
+    "api_call_count": 23
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T01:38:17.259064Z",
+    "agent_lines": 31,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 31,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-feature-empty-screen-refresh/8183c18d-7050-4db3-85a9-36330a92b042.jsonl"
+}
