@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a859f0b667ec",
+  "session_id": "38c4c535-5a5e-45fc-9d40-f32794dfacac",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T01:50:59.00017Z",
+  "branch": "feature/recommended-actors",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/recommendedactors/RecommendedActorsViewModel.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "4ebc1e9d-d5e5-419d-b4e3-4ebf21c40893",
+  "checkpoint_transcript_start": 456,
+  "transcript_lines_at_start": 456,
+  "token_usage": {
+    "input_tokens": 8,
+    "cache_creation_tokens": 7108,
+    "cache_read_tokens": 593474,
+    "output_tokens": 2956,
+    "api_call_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T01:50:58.6643Z",
+    "agent_lines": 25,
+    "human_added": 14,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 39,
+    "agent_percentage": 64.1025641025641
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-feature-recommended-actors/38c4c535-5a5e-45fc-9d40-f32794dfacac.jsonl"
+}

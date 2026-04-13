@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a859f0b667ec",
+  "strategy": "manual-commit",
+  "branch": "feature/recommended-actors",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/recommendedactors/RecommendedActorsViewModel.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a8/59f0b667ec/0/metadata.json",
+      "transcript": "/a8/59f0b667ec/0/full.jsonl",
+      "context": "/a8/59f0b667ec/0/context.md",
+      "content_hash": "/a8/59f0b667ec/0/content_hash.txt",
+      "prompt": "/a8/59f0b667ec/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8,
+    "cache_creation_tokens": 7108,
+    "cache_read_tokens": 593474,
+    "output_tokens": 2956,
+    "api_call_count": 6
+  }
+}
