@@ -396,6 +396,9 @@ fun HackersPubApp(
                             popUpTo(0) { inclusive = true }
                         }
                     },
+                    onProfileClick = { handle ->
+                        navController.navigate(DetailScreen.Profile.createRoute(handle))
+                    },
                     isLoggedIn = isLoggedIn
                 )
             }
