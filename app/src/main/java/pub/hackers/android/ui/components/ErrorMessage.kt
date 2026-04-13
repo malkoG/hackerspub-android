@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +29,7 @@ import pub.hackers.android.R
 fun ErrorMessage(
     message: String,
     onRetry: (() -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
     icon: ImageVector? = Icons.Outlined.ErrorOutline,
     modifier: Modifier = Modifier
 ) {
@@ -57,6 +61,25 @@ fun ErrorMessage(
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRetry) {
                 Text(stringResource(R.string.retry))
+            }
+        }
+
+        if (onRefresh != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onRefresh,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.refresh))
             }
         }
     }

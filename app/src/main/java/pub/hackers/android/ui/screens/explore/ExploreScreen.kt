@@ -174,7 +174,8 @@ fun ExploreScreen(
                     }
                     uiState.posts.isEmpty() -> {
                         ErrorMessage(
-                            message = stringResource(R.string.no_posts)
+                            message = stringResource(R.string.no_posts),
+                            onRefresh = { viewModel.refresh() }
                         )
                     }
                     else -> {
