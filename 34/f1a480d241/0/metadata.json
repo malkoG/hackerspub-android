@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "34f1a480d241",
+  "session_id": "70873a32-f06f-4b64-b11d-f61802ce59e2",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T01:43:22.422832Z",
+  "branch": "fix/article-border-radius",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/ui/components/ArticleCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 46,
+    "cache_creation_tokens": 52057,
+    "cache_read_tokens": 1784158,
+    "output_tokens": 12928,
+    "api_call_count": 42
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T01:43:22.22079Z",
+    "agent_lines": 128,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 7,
+    "total_committed": 128,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-article-border-radius/70873a32-f06f-4b64-b11d-f61802ce59e2.jsonl"
+}

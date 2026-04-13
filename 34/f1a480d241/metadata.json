@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "34f1a480d241",
+  "strategy": "manual-commit",
+  "branch": "fix/article-border-radius",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/ui/components/ArticleCard.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/PostCard.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/34/f1a480d241/0/metadata.json",
+      "transcript": "/34/f1a480d241/0/full.jsonl",
+      "context": "/34/f1a480d241/0/context.md",
+      "content_hash": "/34/f1a480d241/0/content_hash.txt",
+      "prompt": "/34/f1a480d241/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 46,
+    "cache_creation_tokens": 52057,
+    "cache_read_tokens": 1784158,
+    "output_tokens": 12928,
+    "api_call_count": 42
+  }
+}
