@@ -1,0 +1,12 @@
+See ../hackerspub
+
+And then Add recommended actor screen
+1. If we want to navigate to Recommended Actors Screen, We can click on person add button which is left to settings page
+2. For Recommended Actor, It should be windowed. It means, displaying only 6 actors. but, if window is 10, only after 5 actors removed, pagination should be occured and queue is used to adding element to actor window
+3. For recommended Actor, display name / handle / bio / delete button. 
+
+For each work unit, commit fine-grained
+
+---
+
+Crashed after pagination
