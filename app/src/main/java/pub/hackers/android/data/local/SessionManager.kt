@@ -4,8 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +28,8 @@ class SessionManager @Inject constructor(
         private val USER_AVATAR_KEY = stringPreferencesKey("user_avatar")
     }
 
+    private val appScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     val sessionToken: Flow<String?> = dataStore.data.map { preferences ->
         preferences[SESSION_TOKEN_KEY]
     }
@@ -29,6 +37,12 @@ class SessionManager @Inject constructor(
     val isLoggedIn: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[SESSION_TOKEN_KEY] != null
     }
+
+    val sessionTokenState: StateFlow<String?> =
+        sessionToken.stateIn(appScope, SharingStarted.Eagerly, null)
+
+    val isLoggedInState: StateFlow<Boolean> =
+        isLoggedIn.stateIn(appScope, SharingStarted.Eagerly, false)
 
     val username: Flow<String?> = dataStore.data.map { preferences ->
         preferences[USERNAME_KEY]
