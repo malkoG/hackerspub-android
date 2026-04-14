@@ -72,15 +72,17 @@ class HackersPubRepository @Inject constructor(
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
                 val data = response.data?.publicTimeline
-                Result.success(
-                    TimelineResult(
-                        posts = data?.edges?.mapNotNull { edge ->
-                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
-                        }?.distinctBy { it.id } ?: emptyList(),
-                        hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                        endCursor = data?.pageInfo?.endCursor
+                withContext(Dispatchers.Default) {
+                    Result.success(
+                        TimelineResult(
+                            posts = data?.edges?.mapNotNull { edge ->
+                                edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                            }?.distinctBy { it.id } ?: emptyList(),
+                            hasNextPage = data?.pageInfo?.hasNextPage ?: false,
+                            endCursor = data?.pageInfo?.endCursor
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -97,15 +99,17 @@ class HackersPubRepository @Inject constructor(
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
                 val data = response.data?.publicTimeline
-                Result.success(
-                    TimelineResult(
-                        posts = data?.edges?.mapNotNull { edge ->
-                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
-                        }?.distinctBy { it.id } ?: emptyList(),
-                        hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                        endCursor = data?.pageInfo?.endCursor
+                withContext(Dispatchers.Default) {
+                    Result.success(
+                        TimelineResult(
+                            posts = data?.edges?.mapNotNull { edge ->
+                                edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                            }?.distinctBy { it.id } ?: emptyList(),
+                            hasNextPage = data?.pageInfo?.hasNextPage ?: false,
+                            endCursor = data?.pageInfo?.endCursor
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -122,21 +126,23 @@ class HackersPubRepository @Inject constructor(
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
                 val data = response.data?.personalTimeline
-                Result.success(
-                    TimelineResult(
-                        posts = data?.edges?.mapNotNull { edge ->
-                            edge.node.postFields.toPost(
-                                sharedPost = edge.node.sharedPost?.sharedPostFields?.toPost(),
-                                replyTarget = edge.node.replyTarget?.postFields?.toPost(),
-                                visibility = edge.node.visibility.toPostVisibility(),
-                                lastSharer = edge.lastSharer?.actorFields?.toActor(),
-                                sharersCount = edge.sharersCount
-                            )
-                        } ?: emptyList(),
-                        hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                        endCursor = data?.pageInfo?.endCursor
+                withContext(Dispatchers.Default) {
+                    Result.success(
+                        TimelineResult(
+                            posts = data?.edges?.mapNotNull { edge ->
+                                edge.node.postFields.toPost(
+                                    sharedPost = edge.node.sharedPost?.sharedPostFields?.toPost(),
+                                    replyTarget = edge.node.replyTarget?.postFields?.toPost(),
+                                    visibility = edge.node.visibility.toPostVisibility(),
+                                    lastSharer = edge.lastSharer?.actorFields?.toActor(),
+                                    sharersCount = edge.sharersCount
+                                )
+                            } ?: emptyList(),
+                            hasNextPage = data?.pageInfo?.hasNextPage ?: false,
+                            endCursor = data?.pageInfo?.endCursor
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -153,15 +159,17 @@ class HackersPubRepository @Inject constructor(
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
                 val data = response.data?.viewer?.notifications
-                Result.success(
-                    NotificationsResult(
-                        notifications = data?.edges?.mapNotNull { edge ->
-                            edge.node.toNotification()
-                        } ?: emptyList(),
-                        hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                        endCursor = data?.pageInfo?.endCursor
+                withContext(Dispatchers.Default) {
+                    Result.success(
+                        NotificationsResult(
+                            notifications = data?.edges?.mapNotNull { edge ->
+                                edge.node.toNotification()
+                            } ?: emptyList(),
+                            hasNextPage = data?.pageInfo?.hasNextPage ?: false,
+                            endCursor = data?.pageInfo?.endCursor
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -194,56 +202,58 @@ class HackersPubRepository @Inject constructor(
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
-                val node = response.data?.node?.onPost
-                    ?: return Result.failure(Exception("Post not found"))
+                withContext(Dispatchers.Default) {
+                    val node = response.data?.node?.onPost
+                        ?: return@withContext Result.failure(Exception("Post not found"))
 
-                val post = node.postFields.toPost(
-                    sharedPost = node.sharedPost?.sharedPostFields?.toPost(),
-                    replyTarget = node.replyTarget?.postFields?.toPost(),
-                    visibility = node.visibility.toPostVisibility()
-                )
-
-                val reactionGroups = node.reactionGroups.mapNotNull { group ->
-                    when {
-                        group.onEmojiReactionGroup != null -> ReactionGroup(
-                            emoji = group.onEmojiReactionGroup.emoji,
-                            customEmoji = null,
-                            count = group.onEmojiReactionGroup.reactors.totalCount,
-                            reactors = group.onEmojiReactionGroup.reactors.edges.map {
-                                it.node.actorFields.toActor()
-                            },
-                            viewerHasReacted = group.onEmojiReactionGroup.reactors.viewerHasReacted
-                        )
-                        group.onCustomEmojiReactionGroup != null -> ReactionGroup(
-                            emoji = null,
-                            customEmoji = CustomEmoji(
-                                id = group.onCustomEmojiReactionGroup.customEmoji.id,
-                                name = group.onCustomEmojiReactionGroup.customEmoji.name,
-                                imageUrl = group.onCustomEmojiReactionGroup.customEmoji.imageUrl
-                            ),
-                            count = group.onCustomEmojiReactionGroup.reactors.totalCount,
-                            reactors = group.onCustomEmojiReactionGroup.reactors.edges.map {
-                                it.node.actorFields.toActor()
-                            },
-                            viewerHasReacted = group.onCustomEmojiReactionGroup.reactors.viewerHasReacted
-                        )
-                        else -> null
-                    }
-                }
-
-                val replies = node.replies.edges.mapNotNull { edge ->
-                    edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
-                }
-
-                Result.success(
-                    PostDetailResult(
-                        post = post,
-                        reactionGroups = reactionGroups,
-                        replies = replies,
-                        hasMoreReplies = node.replies.pageInfo.hasNextPage,
-                        repliesEndCursor = node.replies.pageInfo.endCursor
+                    val post = node.postFields.toPost(
+                        sharedPost = node.sharedPost?.sharedPostFields?.toPost(),
+                        replyTarget = node.replyTarget?.postFields?.toPost(),
+                        visibility = node.visibility.toPostVisibility()
                     )
-                )
+
+                    val reactionGroups = node.reactionGroups.mapNotNull { group ->
+                        when {
+                            group.onEmojiReactionGroup != null -> ReactionGroup(
+                                emoji = group.onEmojiReactionGroup.emoji,
+                                customEmoji = null,
+                                count = group.onEmojiReactionGroup.reactors.totalCount,
+                                reactors = group.onEmojiReactionGroup.reactors.edges.map {
+                                    it.node.actorFields.toActor()
+                                },
+                                viewerHasReacted = group.onEmojiReactionGroup.reactors.viewerHasReacted
+                            )
+                            group.onCustomEmojiReactionGroup != null -> ReactionGroup(
+                                emoji = null,
+                                customEmoji = CustomEmoji(
+                                    id = group.onCustomEmojiReactionGroup.customEmoji.id,
+                                    name = group.onCustomEmojiReactionGroup.customEmoji.name,
+                                    imageUrl = group.onCustomEmojiReactionGroup.customEmoji.imageUrl
+                                ),
+                                count = group.onCustomEmojiReactionGroup.reactors.totalCount,
+                                reactors = group.onCustomEmojiReactionGroup.reactors.edges.map {
+                                    it.node.actorFields.toActor()
+                                },
+                                viewerHasReacted = group.onCustomEmojiReactionGroup.reactors.viewerHasReacted
+                            )
+                            else -> null
+                        }
+                    }
+
+                    val replies = node.replies.edges.mapNotNull { edge ->
+                        edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                    }
+
+                    Result.success(
+                        PostDetailResult(
+                            post = post,
+                            reactionGroups = reactionGroups,
+                            replies = replies,
+                            hasMoreReplies = node.replies.pageInfo.hasNextPage,
+                            repliesEndCursor = node.replies.pageInfo.endCursor
+                        )
+                    )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -259,39 +269,41 @@ class HackersPubRepository @Inject constructor(
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
-                val actor = response.data?.actorByHandle
-                    ?: return Result.failure(Exception("Actor not found"))
+                withContext(Dispatchers.Default) {
+                    val actor = response.data?.actorByHandle
+                        ?: return@withContext Result.failure(Exception("Actor not found"))
 
-                Result.success(
-                    ProfileResult(
-                        actor = Actor(
-                            id = actor.id,
-                            name = actor.name?.toString(),
-                            handle = actor.handle,
-                            avatarUrl = actor.avatarUrl.toString()
-                        ),
-                        bio = actor.bio?.toString(),
-                        fields = actor.fields.map { field ->
-                            ActorField(
-                                name = field.name,
-                                value = field.value.toString()
-                            )
-                        },
-                        accountLinks = actor.account?.links?.map { link ->
-                            AccountLink(
-                                name = link.name,
-                                handle = link.handle,
-                                icon = link.icon.name.lowercase(),
-                                url = link.url.toString(),
-                                verified = link.verified?.toString()
-                            )
-                        } ?: emptyList(),
-                        isViewer = actor.isViewer,
-                        viewerFollows = actor.viewerFollows,
-                        followsViewer = actor.followsViewer,
-                        viewerBlocks = actor.viewerBlocks
+                    Result.success(
+                        ProfileResult(
+                            actor = Actor(
+                                id = actor.id,
+                                name = actor.name?.toString(),
+                                handle = actor.handle,
+                                avatarUrl = actor.avatarUrl.toString()
+                            ),
+                            bio = actor.bio?.toString(),
+                            fields = actor.fields.map { field ->
+                                ActorField(
+                                    name = field.name,
+                                    value = field.value.toString()
+                                )
+                            },
+                            accountLinks = actor.account?.links?.map { link ->
+                                AccountLink(
+                                    name = link.name,
+                                    handle = link.handle,
+                                    icon = link.icon.name.lowercase(),
+                                    url = link.url.toString(),
+                                    verified = link.verified?.toString()
+                                )
+                            } ?: emptyList(),
+                            isViewer = actor.isViewer,
+                            viewerFollows = actor.viewerFollows,
+                            followsViewer = actor.followsViewer,
+                            viewerBlocks = actor.viewerBlocks
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -385,18 +397,20 @@ class HackersPubRepository @Inject constructor(
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
-                val articles = response.data?.actorByHandle?.articles
-                    ?: return Result.failure(Exception("Actor not found"))
+                withContext(Dispatchers.Default) {
+                    val articles = response.data?.actorByHandle?.articles
+                        ?: return@withContext Result.failure(Exception("Actor not found"))
 
-                Result.success(
-                    TimelineResult(
-                        posts = articles.edges.mapNotNull { edge ->
-                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
-                        },
-                        hasNextPage = articles.pageInfo.hasNextPage,
-                        endCursor = articles.pageInfo.endCursor
+                    Result.success(
+                        TimelineResult(
+                            posts = articles.edges.mapNotNull { edge ->
+                                edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                            },
+                            hasNextPage = articles.pageInfo.hasNextPage,
+                            endCursor = articles.pageInfo.endCursor
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -412,18 +426,20 @@ class HackersPubRepository @Inject constructor(
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
-                val notes = response.data?.actorByHandle?.notes
-                    ?: return Result.failure(Exception("Actor not found"))
+                withContext(Dispatchers.Default) {
+                    val notes = response.data?.actorByHandle?.notes
+                        ?: return@withContext Result.failure(Exception("Actor not found"))
 
-                Result.success(
-                    TimelineResult(
-                        posts = notes.edges.mapNotNull { edge ->
-                            edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
-                        },
-                        hasNextPage = notes.pageInfo.hasNextPage,
-                        endCursor = notes.pageInfo.endCursor
+                    Result.success(
+                        TimelineResult(
+                            posts = notes.edges.mapNotNull { edge ->
+                                edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                            },
+                            hasNextPage = notes.pageInfo.hasNextPage,
+                            endCursor = notes.pageInfo.endCursor
+                        )
                     )
-                )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
