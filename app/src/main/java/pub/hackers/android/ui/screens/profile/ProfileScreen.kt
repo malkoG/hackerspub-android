@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,9 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,8 +60,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
+import kotlinx.coroutines.flow.Flow
+import androidx.paging.PagingData
 import pub.hackers.android.R
+import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.AccountLink
 import pub.hackers.android.domain.model.ActorField
 import pub.hackers.android.ui.components.ErrorMessage
@@ -89,22 +92,19 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val selectedTab by viewModel.selectedTab.collectAsState()
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
 
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= listState.layoutInfo.totalItemsCount - 3
+    val activeFlow: Flow<PagingData<Post>> = remember(selectedTab, viewModel) {
+        when (selectedTab) {
+            ProfileTab.POSTS -> viewModel.postsTab
+            ProfileTab.NOTES -> viewModel.notesTab
+            ProfileTab.ARTICLES -> viewModel.articlesTab
         }
     }
-
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore && uiState.hasNextPage && !uiState.isLoadingMore) {
-            viewModel.loadMore()
-        }
-    }
+    val items = activeFlow.collectAsLazyPagingItems()
 
     if (uiState.actionError != null) {
         AlertDialog(
@@ -179,11 +179,14 @@ fun ProfileScreen(
                 actor = actor,
                 isLoading = uiState.isLoading,
                 error = uiState.error,
-                onRetry = { viewModel.loadProfile(handle) },
+                onRetry = { viewModel.loadProfile() },
             ) { resolvedActor ->
                 PullToRefreshBox(
                     isRefreshing = uiState.isRefreshing,
-                    onRefresh = { viewModel.refresh() }
+                    onRefresh = {
+                        viewModel.refresh()
+                        items.refresh()
+                    }
                 ) {
                     LazyColumn(state = listState) {
                         item {
@@ -207,59 +210,86 @@ fun ProfileScreen(
 
                         item {
                             ProfileTabBar(
-                                selectedTab = uiState.selectedTab,
+                                selectedTab = selectedTab,
                                 onTabSelected = { viewModel.selectTab(it) }
                             )
                         }
 
-                        items(
-                            items = uiState.posts,
-                            key = { it.id }
-                        ) { post ->
-                            PostCard(
-                                post = post,
-                                onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
-                                onProfileClick = onProfileClick,
-                                onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
-                                onShareClick = {
-                                    val targetId = post.sharedPost?.id ?: post.id
-                                    if (post.viewerHasShared) {
-                                        viewModel.unsharePost(targetId)
-                                    } else {
-                                        viewModel.sharePost(targetId)
-                                    }
-                                },
-                                onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
-                                onReactionClick = null,
-                                onExternalShareClick = {
-                                    val displayPost = post.sharedPost ?: post
-                                    val shareUrl = displayPost.url ?: displayPost.iri
-                                    if (shareUrl != null) {
-                                        val sendIntent = Intent().apply {
-                                            action = Intent.ACTION_SEND
-                                            putExtra(Intent.EXTRA_TEXT, shareUrl)
-                                            type = "text/plain"
-                                        }
-                                        context.startActivity(
-                                            Intent.createChooser(
-                                                sendIntent,
-                                                null
-                                            )
-                                        )
-                                    }
-                                },
-                                onQuotedPostClick = onPostClick
-                            )
-                            HorizontalDivider(
-                                color = LocalAppColors.current.divider,
-                                thickness = 1.dp,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                        }
+                        val refresh = items.loadState.refresh
+                        when {
+                            refresh is LoadState.Error && items.itemCount == 0 -> {
+                                item {
+                                    ErrorMessage(
+                                        message = refresh.error.message
+                                            ?: stringResource(R.string.error_generic),
+                                        onRetry = { items.refresh() }
+                                    )
+                                }
+                            }
 
-                        if (uiState.isLoadingMore) {
-                            item {
-                                LoadingItem()
+                            items.itemCount == 0 && refresh is LoadState.NotLoading && refresh.endOfPaginationReached -> {
+                                item {
+                                    ErrorMessage(
+                                        message = stringResource(R.string.no_posts),
+                                        onRefresh = { items.refresh() }
+                                    )
+                                }
+                            }
+
+                            items.itemCount == 0 && refresh is LoadState.Loading -> {
+                                item { LoadingItem() }
+                            }
+
+                            else -> {
+                                items(
+                                    count = items.itemCount,
+                                    key = items.itemKey { it.sharedPost?.id ?: it.id }
+                                ) { index ->
+                                    val post = items[index] ?: return@items
+                                    PostCard(
+                                        post = post,
+                                        onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                        onProfileClick = onProfileClick,
+                                        onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
+                                        onShareClick = {
+                                            val targetId = post.sharedPost?.id ?: post.id
+                                            if (post.viewerHasShared) {
+                                                viewModel.unsharePost(targetId)
+                                            } else {
+                                                viewModel.sharePost(targetId)
+                                            }
+                                        },
+                                        onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                        onReactionClick = null,
+                                        onExternalShareClick = {
+                                            val displayPost = post.sharedPost ?: post
+                                            val shareUrl = displayPost.url ?: displayPost.iri
+                                            if (shareUrl != null) {
+                                                val sendIntent = Intent().apply {
+                                                    action = Intent.ACTION_SEND
+                                                    putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                                    type = "text/plain"
+                                                }
+                                                context.startActivity(
+                                                    Intent.createChooser(
+                                                        sendIntent,
+                                                        null
+                                                    )
+                                                )
+                                            }
+                                        },
+                                        onQuotedPostClick = onPostClick
+                                    )
+                                    HorizontalDivider(
+                                        color = LocalAppColors.current.divider,
+                                        thickness = 1.dp,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                }
+
+                                if (items.loadState.append is LoadState.Loading) {
+                                    item { LoadingItem() }
+                                }
                             }
                         }
                     }

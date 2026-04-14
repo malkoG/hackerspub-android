@@ -284,7 +284,7 @@ query SearchObject($query: String!) {
     }
 }
 
-query ActorByHandle($handle: String!, $after: String) {
+query ActorByHandle($handle: String!) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
         id
         handle
@@ -306,21 +306,6 @@ query ActorByHandle($handle: String!, $after: String) {
                 icon
                 url
                 verified
-            }
-        }
-        posts(first: 20, after: $after) {
-            edges {
-                cursor
-                node {
-                    ...PostFields
-                    sharedPost {
-                        ...SharedPostFields
-                    }
-                }
-            }
-            pageInfo {
-                hasNextPage
-                endCursor
             }
         }
     }
