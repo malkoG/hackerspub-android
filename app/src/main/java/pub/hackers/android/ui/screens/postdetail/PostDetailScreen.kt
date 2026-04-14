@@ -429,8 +429,10 @@ internal fun PostDetailContent(
     var isTranslating by remember(post.id) { mutableStateOf(false) }
     var showTranslated by remember(post.id) { mutableStateOf(false) }
 
-    val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
-        .withZone(ZoneId.systemDefault())
+    val dateFormatter = remember {
+        DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
+            .withZone(ZoneId.systemDefault())
+    }
 
     LazyColumn {
         item {

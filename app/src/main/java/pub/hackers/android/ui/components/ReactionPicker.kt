@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,16 +47,20 @@ fun ReactionPicker(
     onEmojiSelect: (String) -> Unit,
     onClose: () -> Unit
 ) {
-    val groupsByEmoji = reactionGroups
-        .filter { it.emoji != null }
-        .associateBy { it.emoji!! }
+    val groupsByEmoji = remember(reactionGroups) {
+        reactionGroups
+            .filter { it.emoji != null }
+            .associateBy { it.emoji!! }
+    }
 
-    val selectedGroups = reactionGroups
-        .filter { it.viewerHasReacted }
-        .sortedWith(compareBy { group ->
-            group.emoji?.let { SUPPORTED_REACTION_EMOJIS.indexOf(it).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
-                ?: Int.MAX_VALUE
-        })
+    val selectedGroups = remember(reactionGroups) {
+        reactionGroups
+            .filter { it.viewerHasReacted }
+            .sortedWith(compareBy { group ->
+                group.emoji?.let { SUPPORTED_REACTION_EMOJIS.indexOf(it).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
+                    ?: Int.MAX_VALUE
+            })
+    }
 
     Column(
         modifier = Modifier
