@@ -1,5 +1,6 @@
 package pub.hackers.android.ui.screens.explore
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -24,16 +24,16 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import android.content.Intent
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import pub.hackers.android.R
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
@@ -55,33 +55,23 @@ fun ExploreScreen(
     isLoggedIn: Boolean,
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
+    val items = viewModel.posts.collectAsLazyPagingItems()
+    val selectedTab by viewModel.selectedTab.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
 
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= listState.layoutInfo.totalItemsCount - 3
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore && uiState.hasNextPage && !uiState.isLoadingMore) {
-            viewModel.loadMore()
-        }
-    }
-
-    LaunchedEffect(uiState.selectedTab) {
+    // Scroll to top when tab changes.
+    LaunchedEffect(selectedTab) {
         listState.scrollToItem(0)
     }
 
-    // Reaction picker bottom sheet
+    // Reaction picker bottom sheet — look up the currently-loaded post.
     val pickerPostId = uiState.reactionPickerPostId
     if (pickerPostId != null) {
-        val pickerPost = uiState.posts.find {
+        val pickerPost = items.itemSnapshotList.items.find {
             it.id == pickerPostId || it.sharedPost?.id == pickerPostId
         }
         val targetPost = pickerPost?.sharedPost ?: pickerPost
@@ -92,7 +82,9 @@ fun ExploreScreen(
             ReactionPicker(
                 reactionGroups = targetPost?.reactionGroups ?: emptyList(),
                 isSubmitting = false,
-                onEmojiSelect = { emoji -> viewModel.toggleReaction(pickerPostId, emoji) },
+                onEmojiSelect = { emoji ->
+                    pickerPost?.let { viewModel.toggleReaction(it, emoji) }
+                },
                 onClose = { viewModel.hideReactionPicker() }
             )
         }
@@ -121,7 +113,7 @@ fun ExploreScreen(
             // Custom tab row
             Row(modifier = Modifier.fillMaxWidth()) {
                 ExploreTab.entries.forEach { tab ->
-                    val isSelected = uiState.selectedTab == tab
+                    val isSelected = selectedTab == tab
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -162,34 +154,38 @@ fun ExploreScreen(
             )
 
             Box(modifier = Modifier.fillMaxSize()) {
+                val refresh = items.loadState.refresh
                 when {
-                    uiState.isLoading && uiState.posts.isEmpty() -> {
-                        FullScreenLoading()
-                    }
-                    uiState.error != null && uiState.posts.isEmpty() -> {
+                    refresh is LoadState.Error && items.itemCount == 0 -> {
                         ErrorMessage(
-                            message = uiState.error ?: stringResource(R.string.error_generic),
-                            onRetry = { viewModel.refresh() }
+                            message = refresh.error.message
+                                ?: stringResource(R.string.error_generic),
+                            onRetry = { items.refresh() }
                         )
                     }
-                    uiState.posts.isEmpty() -> {
+
+                    items.itemCount == 0 && refresh is LoadState.NotLoading && refresh.endOfPaginationReached -> {
                         ErrorMessage(
                             message = stringResource(R.string.no_posts),
-                            onRefresh = { viewModel.refresh() }
+                            onRefresh = { items.refresh() }
                         )
                     }
+
+                    items.itemCount == 0 -> {
+                        FullScreenLoading()
+                    }
+
                     else -> {
                         PullToRefreshBox(
-                            isRefreshing = uiState.isRefreshing,
-                            onRefresh = { viewModel.refresh() }
+                            isRefreshing = refresh is LoadState.Loading,
+                            onRefresh = { items.refresh() }
                         ) {
-                            LazyColumn(
-                                state = listState
-                            ) {
+                            LazyColumn(state = listState) {
                                 items(
-                                    items = uiState.posts,
-                                    key = { it.id }
-                                ) { post ->
+                                    count = items.itemCount,
+                                    key = items.itemKey { it.id }
+                                ) { index ->
+                                    val post = items[index] ?: return@items
                                     PostCard(
                                         post = post,
                                         onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
@@ -210,10 +206,14 @@ fun ExploreScreen(
                                             { onQuoteClick(post.sharedPost?.id ?: post.id) }
                                         } else null,
                                         onReactionClick = if (isLoggedIn) {
-                                            { viewModel.toggleFavourite(post.sharedPost?.id ?: post.id) }
+                                            { viewModel.toggleFavourite(post) }
                                         } else null,
                                         onReactionLongPress = if (isLoggedIn) {
-                                            { viewModel.showReactionPicker(post.sharedPost?.id ?: post.id) }
+                                            {
+                                                viewModel.showReactionPicker(
+                                                    post.sharedPost?.id ?: post.id
+                                                )
+                                            }
                                         } else null,
                                         onExternalShareClick = {
                                             val displayPost = post.sharedPost ?: post
@@ -224,7 +224,9 @@ fun ExploreScreen(
                                                     putExtra(Intent.EXTRA_TEXT, shareUrl)
                                                     type = "text/plain"
                                                 }
-                                                context.startActivity(Intent.createChooser(sendIntent, null))
+                                                context.startActivity(
+                                                    Intent.createChooser(sendIntent, null)
+                                                )
                                             }
                                         },
                                         onQuotedPostClick = onPostClick
@@ -236,10 +238,8 @@ fun ExploreScreen(
                                     )
                                 }
 
-                                if (uiState.isLoadingMore) {
-                                    item {
-                                        LoadingItem()
-                                    }
+                                if (items.loadState.append is LoadState.Loading) {
+                                    item { LoadingItem() }
                                 }
                             }
                         }
