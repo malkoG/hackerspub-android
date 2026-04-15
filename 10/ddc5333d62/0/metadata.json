@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "10ddc5333d62",
+  "session_id": "99f451a1-2da7-447e-8b6a-d3de095a5769",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T05:59:33.127639Z",
+  "branch": "fix/highlight-hashtag",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/ui/components/HtmlContent.kt",
+    "app/src/main/java/pub/hackers/android/ui/theme/Colors.kt",
+    "app/src/test/java/pub/hackers/android/ui/components/HtmlContentKtTest.kt"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 44,
+    "cache_creation_tokens": 37618,
+    "cache_read_tokens": 1378711,
+    "output_tokens": 9548,
+    "api_call_count": 41
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T05:59:32.954566Z",
+    "agent_lines": 32,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 7,
+    "total_committed": 32,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-highlight-hashtag/99f451a1-2da7-447e-8b6a-d3de095a5769.jsonl"
+}

@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "10ddc5333d62",
+  "strategy": "manual-commit",
+  "branch": "fix/highlight-hashtag",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/ui/components/HtmlContent.kt",
+    "app/src/main/java/pub/hackers/android/ui/theme/Colors.kt",
+    "app/src/test/java/pub/hackers/android/ui/components/HtmlContentKtTest.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/10/ddc5333d62/0/metadata.json",
+      "transcript": "/10/ddc5333d62/0/full.jsonl",
+      "context": "/10/ddc5333d62/0/context.md",
+      "content_hash": "/10/ddc5333d62/0/content_hash.txt",
+      "prompt": "/10/ddc5333d62/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44,
+    "cache_creation_tokens": 37618,
+    "cache_read_tokens": 1378711,
+    "output_tokens": 9548,
+    "api_call_count": 41
+  }
+}
