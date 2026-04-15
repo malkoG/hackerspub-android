@@ -250,7 +250,7 @@ class ComposeArticleViewModel @Inject constructor(
         fun generateSlug(title: String): String {
             return title
                 .lowercase()
-                .replace(Regex("[^a-z0-9\\s-]"), "")
+                .replace(Regex("[^\\p{L}\\p{N}\\s-]"), "")
                 .replace(Regex("\\s+"), "-")
                 .replace(Regex("-+"), "-")
                 .trim('-')
