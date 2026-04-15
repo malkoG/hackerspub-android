@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "014862614e4f",
+  "strategy": "manual-commit",
+  "branch": "feature/rss-subscription-button-for-local-actor",
+  "checkpoints_count": 16,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/navigation/HackersPubUrlRouter.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/01/4862614e4f/0/metadata.json",
+      "transcript": "/01/4862614e4f/0/full.jsonl",
+      "context": "/01/4862614e4f/0/context.md",
+      "content_hash": "/01/4862614e4f/0/content_hash.txt",
+      "prompt": "/01/4862614e4f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3065,
+    "cache_creation_tokens": 78384,
+    "cache_read_tokens": 5638474,
+    "output_tokens": 29475,
+    "api_call_count": 93
+  }
+}

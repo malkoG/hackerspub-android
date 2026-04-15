@@ -1,0 +1,203 @@
+Could you add RSS subscription button for local actor in ProfileScreen? 
+
+URL pattern is /@<handle>/feed.xml
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Just add icon button
+
+---
+
+Can we also trigger RSS reader?
+
+---
+
+If there are not, add option to copy the feed url
+
+---
+
+Even though we have RSS reader app, still it did not triggered
+
+---
+
+Adding to Rss Reader itself is not possible?
+
+---
+
+It still not triggered. Okay, could you see the intent or possible way using adb?
+
+---
+
+Also, show bottomsheet so that, "Add to Feed" button should be displayed. also we can also display article only. See ../hackerspub for detail
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+It redirects to @/feeds.xml
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+
+Co-authored-by: <agenting tool name> <noreply@<vendor domain>>
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+- The `Co-authored-by` trailer is a git standard recognized by GitHub. Use the agent's name and vendor no-reply email (e.g., `Co-authored-by: Claude Code <noreply@anthropic.com>`).
+- The `Assisted-By` trailer credits the AI agent and model. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Wait, how about pass hackers.pub? instead of https://hackers.pub?
+
+---
+
+[Request interrupted by user]
+
+---
+
+I mean, In RSS feed passing
+
+---
+
+Openfeed parameter, omit the scheme
+
+---
+
+don't fully add https://
+
+---
+
+Hmmmmm.... But, RSS Reader can't accept https://
+
+---
+
+Also add copyable text and button upper buttons
+
+---
+
+Okay, we needed to prepend https://
+
+---
+
+Why RSS Reader (Feedly) throws with Failed load?
+
+---
+
+Sending text, it just fetches all xml body
+
+---
+
+Sending text, it just fetches all xml body. not subscrivbe
+
+---
+
+Okay, then just add copy buttons for each path
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+
+Co-authored-by: <agenting tool name> <noreply@<vendor domain>>
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+- The `Co-authored-by` trailer is a git standard recognized by GitHub. Use the agent's name and vendor no-reply email (e.g., `Co-authored-by: Claude Code <noreply@anthropic.com>`).
+- The `Assisted-By` trailer credits the AI agent and model. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
