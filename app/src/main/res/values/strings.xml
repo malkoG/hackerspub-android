@@ -60,6 +60,14 @@
     <string name="draft_saved">Draft saved</string>
     <string name="article_title_required">Title is required</string>
     <string name="article_content_required">Content is required</string>
+    <string name="publish_article">Publish</string>
+    <string name="publishing_article">Publishing…</string>
+    <string name="article_published">Article published</string>
+    <string name="article_slug_hint">URL slug</string>
+    <string name="article_language_label">Language</string>
+    <string name="publish_confirm_title">Publish Article</string>
+    <string name="article_slug_required">Slug is required</string>
+    <string name="allow_llm_translation">Allow LLM translation</string>
 
     <!-- Drafts -->
     <string name="my_drafts">My Drafts</string>

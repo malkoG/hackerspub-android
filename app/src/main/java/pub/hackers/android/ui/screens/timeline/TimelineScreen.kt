@@ -2,7 +2,9 @@ package pub.hackers.android.ui.screens.timeline
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,7 +53,7 @@ import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.theme.LocalAppColors
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TimelineScreen(
     onPostClick: (String) -> Unit,
@@ -61,6 +63,7 @@ fun TimelineScreen(
     onSettingsClick: () -> Unit,
     onRecommendedActorsClick: () -> Unit = {},
     onComposeArticleClick: () -> Unit = {},
+    onComposeArticleLongClick: () -> Unit = {},
     tabRetapped: Long = 0L,
     userAvatarUrl: String? = null,
     viewModel: TimelineViewModel = hiltViewModel()
@@ -126,7 +129,10 @@ fun TimelineScreen(
                     modifier = Modifier
                         .size(28.dp)
                         .background(color = colors.surface, shape = CircleShape)
-                        .clickable { onComposeArticleClick() },
+                        .combinedClickable(
+                            onClick = { onComposeArticleClick() },
+                            onLongClick = { onComposeArticleLongClick() }
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     BadgedBox(

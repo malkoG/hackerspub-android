@@ -31,6 +31,7 @@ import pub.hackers.android.graphql.PostQuotesQuery
 import pub.hackers.android.graphql.PostRepliesQuery
 import pub.hackers.android.graphql.PostSharesQuery
 import pub.hackers.android.graphql.PostDetailQuery
+import pub.hackers.android.graphql.PublishArticleDraftMutation
 import pub.hackers.android.graphql.PublicTimelineQuery
 import pub.hackers.android.graphql.RecommendedActorsQuery
 import pub.hackers.android.graphql.RemoveFollowerMutation
@@ -1174,6 +1175,51 @@ class HackersPubRepository @Inject constructor(
                         Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
                     result?.onNotAuthenticatedError != null ->
                         Result.failure(Exception("Not authenticated"))
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun publishArticleDraft(
+        id: String,
+        slug: String,
+        language: String,
+        allowLlmTranslation: Boolean = true
+    ): Result<PublishedArticle> {
+        return try {
+            val response = apolloClient.mutation(
+                PublishArticleDraftMutation(
+                    id = id,
+                    slug = slug,
+                    language = language,
+                    allowLlmTranslation = Optional.present(allowLlmTranslation)
+                )
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.publishArticleDraft
+                when {
+                    result?.onPublishArticleDraftPayload != null -> {
+                        val article = result.onPublishArticleDraftPayload.article
+                        Result.success(
+                            PublishedArticle(
+                                id = article.id,
+                                name = article.name,
+                                url = article.url?.toString()
+                            )
+                        )
+                    }
+                    result?.onInvalidInputError != null -> {
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    }
+                    result?.onNotAuthenticatedError != null -> {
+                        Result.failure(Exception("Not authenticated"))
+                    }
                     else -> Result.failure(Exception("Unknown error"))
                 }
             }

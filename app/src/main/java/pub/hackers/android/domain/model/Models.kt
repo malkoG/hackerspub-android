@@ -272,6 +272,13 @@ data class ArticleDraft(
 )
 
 @Immutable
+data class PublishedArticle(
+    val id: String,
+    val name: String?,
+    val url: String?
+)
+
+@Immutable
 data class ProfileResult(
     val actor: Actor,
     val bio: String?,
