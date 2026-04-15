@@ -52,6 +52,7 @@ import pub.hackers.android.ui.screens.recommendedactors.RecommendedActorsScreen
 import pub.hackers.android.ui.screens.search.SearchScreen
 import pub.hackers.android.ui.screens.settings.SettingsScreen
 import pub.hackers.android.ui.screens.timeline.TimelineScreen
+import pub.hackers.android.ui.screens.webview.WebViewScreen
 
 sealed class Screen(
     val route: String,
@@ -132,6 +133,12 @@ sealed class DetailScreen(val route: String) {
         }
     }
     data object Drafts : DetailScreen("drafts")
+    data object WebView : DetailScreen("webview?url={url}") {
+        fun createRoute(url: String): String {
+            val encoded = android.net.Uri.encode(url)
+            return "webview?url=$encoded"
+        }
+    }
 }
 
 @Composable
@@ -580,6 +587,21 @@ fun HackersPubApp(
                     },
                     onProfileClick = { handle ->
                         navController.navigate(DetailScreen.Profile.createRoute(handle))
+                    }
+                )
+            }
+
+            composable(
+                route = DetailScreen.WebView.route,
+                arguments = listOf(
+                    navArgument("url") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val url = backStackEntry.arguments?.getString("url") ?: return@composable
+                WebViewScreen(
+                    url = url,
+                    onNavigateBack = {
+                        navController.popBackStack()
                     }
                 )
             }

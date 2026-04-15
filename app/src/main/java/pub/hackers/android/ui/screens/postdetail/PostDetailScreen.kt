@@ -1,7 +1,9 @@
 package pub.hackers.android.ui.screens.postdetail
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.text.Html
+import android.webkit.WebView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +52,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -61,6 +65,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,10 +77,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.google.mlkit.common.model.DownloadConditions
@@ -127,11 +133,22 @@ fun PostDetailScreen(
     val confirmBeforeShare by viewModel.preferencesManager.confirmBeforeShare.collectAsState(initial = false)
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showShareConfirmation by remember { mutableStateOf(false) }
+    var webViewUrl by remember { mutableStateOf<String?>(null) }
 
     // Navigate back after successful deletion
     LaunchedEffect(uiState.isDeleted) {
         if (uiState.isDeleted) {
             onNavigateBack()
+        }
+    }
+
+    // WebView bottom sheet
+    if (webViewUrl != null) {
+        ModalBottomSheet(
+            onDismissRequest = { webViewUrl = null },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            WebViewSheetContent(url = webViewUrl!!)
         }
     }
 
@@ -349,7 +366,8 @@ fun PostDetailScreen(
                                 }
                                 context.startActivity(Intent.createChooser(sendIntent, null))
                             }
-                        }
+                        },
+                        onWebViewClick = { url -> webViewUrl = url }
                     )
                 }
             }
@@ -417,6 +435,7 @@ internal fun PostDetailContent(
     onSharesClick: () -> Unit,
     onQuotesClick: () -> Unit,
     onExternalShareClick: () -> Unit,
+    onWebViewClick: (String) -> Unit = {},
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -616,10 +635,9 @@ internal fun PostDetailContent(
                 }
 
                 if (post.typename == "Article" && post.url != null) {
-                    val uriHandler = LocalUriHandler.current
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedButton(
-                        onClick = { uriHandler.openUri(post.url) },
+                        onClick = { onWebViewClick(post.url) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(
@@ -1165,5 +1183,72 @@ internal fun PostDetailStateDispatch(
         post != null -> {
             content(post)
         }
+    }
+}
+
+@SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
+@Composable
+private fun WebViewSheetContent(url: String) {
+    var pageTitle by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+    var progress by remember { mutableIntStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.9f)
+    ) {
+        Text(
+            text = pageTitle.ifEmpty { url },
+            style = MaterialTheme.typography.titleSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        if (isLoading) {
+            LinearProgressIndicator(
+                progress = { progress / 100f },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        AndroidView(
+            factory = { context ->
+                WebView(context).apply {
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+
+                    setOnTouchListener { v, event ->
+                        // Prevent the bottom sheet from intercepting scroll events
+                        v.parent?.requestDisallowInterceptTouchEvent(true)
+                        false
+                    }
+
+                    webViewClient = object : android.webkit.WebViewClient() {
+                        override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                            isLoading = true
+                        }
+
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            isLoading = false
+                        }
+                    }
+
+                    webChromeClient = object : android.webkit.WebChromeClient() {
+                        override fun onReceivedTitle(view: WebView?, title: String?) {
+                            pageTitle = title ?: ""
+                        }
+
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                            progress = newProgress
+                        }
+                    }
+
+                    loadUrl(url)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
