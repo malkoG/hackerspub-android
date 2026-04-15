@@ -1,10 +1,15 @@
 package pub.hackers.android.ui.screens.compose
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -23,6 +29,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -77,6 +86,13 @@ fun ComposeArticleScreen(
         }
     }
 
+    LaunchedEffect(uiState.isPublished) {
+        if (uiState.isPublished) {
+            snackbarHostState.showSnackbar("Article published")
+            onSaveSuccess()
+        }
+    }
+
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
@@ -90,7 +106,8 @@ fun ComposeArticleScreen(
         }
     }
 
-    val saveEnabled = uiState.title.isNotBlank() && !uiState.isSaving
+    val saveEnabled = uiState.title.isNotBlank() && !uiState.isSaving && !uiState.isPublishing
+    val publishEnabled = uiState.title.isNotBlank() && !uiState.isSaving && !uiState.isPublishing
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -139,7 +156,7 @@ fun ComposeArticleScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(titleFocusRequester),
-                    enabled = !uiState.isSaving,
+                    enabled = !uiState.isSaving && !uiState.isPublishing,
                     textStyle = typography.titleLarge.copy(
                         color = colors.textPrimary
                     ),
@@ -166,7 +183,7 @@ fun ComposeArticleScreen(
                     value = uiState.tags,
                     onValueChange = { viewModel.updateTags(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !uiState.isSaving,
+                    enabled = !uiState.isSaving && !uiState.isPublishing,
                     textStyle = typography.bodyMedium.copy(
                         color = colors.textSecondary
                     ),
@@ -216,7 +233,7 @@ fun ComposeArticleScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .focusRequester(contentFocusRequester),
-                            enabled = !uiState.isSaving,
+                            enabled = !uiState.isSaving && !uiState.isPublishing,
                             textStyle = typography.bodyLarge.copy(
                                 color = colors.textBody
                             ),
@@ -238,34 +255,154 @@ fun ComposeArticleScreen(
                 }
             }
 
-            // Bottom bar with Save Draft button
-            HorizontalDivider(color = colors.divider)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.CenterEnd
+            // Publish fields (slug + language)
+            AnimatedVisibility(
+                visible = uiState.showPublishFields,
+                enter = expandVertically(),
+                exit = shrinkVertically()
             ) {
-                Button(
-                    onClick = { viewModel.saveDraft() },
-                    enabled = saveEnabled,
-                    shape = RoundedCornerShape(AppShapes.pillRadius),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.composeAccent,
-                        contentColor = Color.White,
-                        disabledContainerColor = colors.composeAccent,
-                        disabledContentColor = Color.White,
-                    ),
-                    modifier = Modifier.alpha(if (saveEnabled) 1f else 0.4f)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
+                    HorizontalDivider(color = colors.divider)
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Text(
-                        text = if (uiState.isSaving) {
-                            stringResource(R.string.saving_draft)
-                        } else {
-                            stringResource(R.string.save_draft)
-                        },
-                        color = Color.White
+                        text = stringResource(R.string.publish_confirm_title),
+                        style = typography.titleMedium,
+                        color = colors.textPrimary
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = uiState.slug,
+                        onValueChange = { viewModel.updateSlug(it) },
+                        label = { Text(stringResource(R.string.article_slug_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        enabled = !uiState.isPublishing,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colors.composeAccent,
+                            focusedLabelColor = colors.composeAccent,
+                            cursorColor = colors.composeAccent,
+                            focusedTextColor = colors.textPrimary,
+                            unfocusedTextColor = colors.textPrimary,
+                            unfocusedBorderColor = colors.divider,
+                            unfocusedLabelColor = colors.textSecondary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = uiState.language,
+                        onValueChange = { viewModel.updateLanguage(it) },
+                        label = { Text(stringResource(R.string.article_language_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        enabled = !uiState.isPublishing,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colors.composeAccent,
+                            focusedLabelColor = colors.composeAccent,
+                            cursorColor = colors.composeAccent,
+                            focusedTextColor = colors.textPrimary,
+                            unfocusedTextColor = colors.textPrimary,
+                            unfocusedBorderColor = colors.divider,
+                            unfocusedLabelColor = colors.textSecondary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        OutlinedButton(
+                            onClick = { viewModel.hidePublishFields() },
+                            enabled = !uiState.isPublishing,
+                            shape = RoundedCornerShape(AppShapes.pillRadius)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cancel),
+                                color = colors.textSecondary
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { viewModel.publishDraft() },
+                            enabled = uiState.slug.isNotBlank() && !uiState.isPublishing,
+                            shape = RoundedCornerShape(AppShapes.pillRadius),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colors.composeAccent,
+                                contentColor = Color.White,
+                                disabledContainerColor = colors.composeAccent,
+                                disabledContentColor = Color.White,
+                            ),
+                            modifier = Modifier.alpha(
+                                if (uiState.slug.isNotBlank() && !uiState.isPublishing) 1f else 0.4f
+                            )
+                        ) {
+                            Text(
+                                text = if (uiState.isPublishing) {
+                                    stringResource(R.string.publishing_article)
+                                } else {
+                                    stringResource(R.string.publish_article)
+                                },
+                                color = Color.White
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+
+            // Bottom bar with Save Draft + Publish buttons
+            if (!uiState.showPublishFields) {
+                HorizontalDivider(color = colors.divider)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(
+                        onClick = { viewModel.saveDraft() },
+                        enabled = saveEnabled,
+                        shape = RoundedCornerShape(AppShapes.pillRadius),
+                        border = BorderStroke(
+                            1.dp,
+                            if (saveEnabled) colors.composeAccent else colors.composeAccent.copy(alpha = 0.4f)
+                        ),
+                        modifier = Modifier.alpha(if (saveEnabled) 1f else 0.4f)
+                    ) {
+                        Text(
+                            text = if (uiState.isSaving) {
+                                stringResource(R.string.saving_draft)
+                            } else {
+                                stringResource(R.string.save_draft)
+                            },
+                            color = colors.composeAccent
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = { viewModel.showPublishFields() },
+                        enabled = publishEnabled,
+                        shape = RoundedCornerShape(AppShapes.pillRadius),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.composeAccent,
+                            contentColor = Color.White,
+                            disabledContainerColor = colors.composeAccent,
+                            disabledContentColor = Color.White,
+                        ),
+                        modifier = Modifier.alpha(if (publishEnabled) 1f else 0.4f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.publish_article),
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }

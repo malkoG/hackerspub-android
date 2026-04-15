@@ -1,8 +1,13 @@
 package pub.hackers.android.ui.screens.compose
 
+import android.content.Context
+import android.os.Build
+import android.view.textclassifier.TextClassificationManager
+import android.view.textclassifier.TextLanguage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,12 +23,19 @@ data class ComposeArticleUiState(
     val draftId: String? = null,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
+    val slug: String = "",
+    val language: String = java.util.Locale.getDefault().language,
+    val showPublishFields: Boolean = false,
+    val isPublishing: Boolean = false,
+    val isPublished: Boolean = false,
+    val publishedArticleUrl: String? = null,
     val error: String? = null
 )
 
 @HiltViewModel
 class ComposeArticleViewModel @Inject constructor(
-    private val repository: HackersPubRepository
+    private val repository: HackersPubRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ComposeArticleUiState())
@@ -38,9 +50,11 @@ class ComposeArticleViewModel @Inject constructor(
                             title = draft.title,
                             content = draft.content,
                             tags = draft.tags.joinToString(", "),
-                            draftId = draft.id
+                            draftId = draft.id,
+                            slug = generateSlug(draft.title)
                         )
                     }
+                    detectLanguage(draft.content)
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(error = error.message) }
@@ -49,15 +63,29 @@ class ComposeArticleViewModel @Inject constructor(
     }
 
     fun updateTitle(title: String) {
-        _uiState.update { it.copy(title = title) }
+        _uiState.update {
+            it.copy(
+                title = title,
+                slug = if (!it.showPublishFields) generateSlug(title) else it.slug
+            )
+        }
     }
 
     fun updateContent(content: String) {
         _uiState.update { it.copy(content = content) }
+        detectLanguage(content)
     }
 
     fun updateTags(tags: String) {
         _uiState.update { it.copy(tags = tags) }
+    }
+
+    fun updateSlug(slug: String) {
+        _uiState.update { it.copy(slug = slug) }
+    }
+
+    fun updateLanguage(language: String) {
+        _uiState.update { it.copy(language = language) }
     }
 
     fun saveDraft() {
@@ -102,11 +130,121 @@ class ComposeArticleViewModel @Inject constructor(
         }
     }
 
+    fun showPublishFields() {
+        val state = _uiState.value
+        if (state.title.isBlank()) {
+            _uiState.update { it.copy(error = "Title is required") }
+            return
+        }
+        _uiState.update { it.copy(showPublishFields = true) }
+    }
+
+    fun hidePublishFields() {
+        _uiState.update { it.copy(showPublishFields = false) }
+    }
+
+    fun publishDraft() {
+        val state = _uiState.value
+        if (state.slug.isBlank()) {
+            _uiState.update { it.copy(error = "Slug is required") }
+            return
+        }
+        if (state.isPublishing) return
+
+        viewModelScope.launch {
+            // Save draft first if not yet saved
+            if (state.draftId == null) {
+                _uiState.update { it.copy(isSaving = true, error = null) }
+
+                val tagsList = state.tags
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+
+                val saveResult = repository.saveArticleDraft(
+                    title = state.title,
+                    content = state.content,
+                    tags = tagsList
+                )
+
+                saveResult.onFailure { error ->
+                    _uiState.update { it.copy(error = error.message, isSaving = false) }
+                    return@launch
+                }
+
+                saveResult.onSuccess { draft ->
+                    _uiState.update { it.copy(draftId = draft.id, isSaving = false) }
+                }
+            }
+
+            val draftId = _uiState.value.draftId ?: return@launch
+
+            _uiState.update { it.copy(isPublishing = true, error = null) }
+
+            repository.publishArticleDraft(
+                id = draftId,
+                slug = state.slug,
+                language = state.language
+            )
+                .onSuccess { article ->
+                    _uiState.update {
+                        it.copy(
+                            isPublishing = false,
+                            isPublished = true,
+                            publishedArticleUrl = article.url
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            error = error.message,
+                            isPublishing = false
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun detectLanguage(text: String) {
+        if (text.isBlank() || text.length < 20) return
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val tcm = context.getSystemService(Context.TEXT_CLASSIFICATION_SERVICE) as? TextClassificationManager
+                val classifier = tcm?.textClassifier ?: return
+                val request = TextLanguage.Request.Builder(text).build()
+                val result = classifier.detectLanguage(request)
+                if (result.localeHypothesisCount > 0) {
+                    val topLocale = result.getLocale(0)
+                    val lang = topLocale.language
+                    if (lang.isNotEmpty()) {
+                        _uiState.update { it.copy(language = lang) }
+                    }
+                }
+            }
+        } catch (_: Exception) {
+            // Fallback: keep current language
+        }
+    }
+
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
 
     fun clearSavedFlag() {
         _uiState.update { it.copy(isSaved = false) }
+    }
+
+    companion object {
+        fun generateSlug(title: String): String {
+            return title
+                .lowercase()
+                .replace(Regex("[^a-z0-9\\s-]"), "")
+                .replace(Regex("\\s+"), "-")
+                .replace(Regex("-+"), "-")
+                .trim('-')
+                .take(128)
+        }
     }
 }
