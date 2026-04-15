@@ -1,0 +1,13 @@
+Add article publish flow for draft. See ../hackerspub's web-next implementation
+
+---
+
+We do have publish phase as seperate step. right?
+
+---
+
+slug should be automatically generated. and where is the allow LLM translation option?
+
+---
+
+FOR CJK, its not auto generated
