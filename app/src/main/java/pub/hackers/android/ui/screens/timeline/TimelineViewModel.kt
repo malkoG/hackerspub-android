@@ -34,6 +34,7 @@ data class TimelineUiState(
 class TimelineViewModel @Inject constructor(
     private val repository: HackersPubRepository,
     val preferencesManager: PreferencesManager,
+    val refreshTrigger: TimelineRefreshTrigger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TimelineUiState())

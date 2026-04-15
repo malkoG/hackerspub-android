@@ -22,6 +22,7 @@ import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.data.worker.NotificationWorker
+import pub.hackers.android.ui.screens.timeline.TimelineRefreshTrigger
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -31,7 +32,8 @@ class AppViewModel @Inject constructor(
     val preferencesManager: PreferencesManager,
     private val notificationStateManager: NotificationStateManager,
     private val workManager: WorkManager,
-    private val repository: HackersPubRepository
+    private val repository: HackersPubRepository,
+    val timelineRefreshTrigger: TimelineRefreshTrigger,
 ) : ViewModel() {
 
     companion object {
