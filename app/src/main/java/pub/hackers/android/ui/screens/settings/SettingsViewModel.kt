@@ -2,6 +2,7 @@ package pub.hackers.android.ui.screens.settings
 
 import android.app.NotificationManager
 import android.content.Context
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.lifecycle.ViewModel
 import androidx.work.WorkManager
 import pub.hackers.android.data.local.NotificationStateManager
@@ -88,7 +89,10 @@ class SettingsViewModel @Inject constructor(
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             val version = packageInfo.versionName ?: "Unknown"
-            val versionCode = packageInfo.longVersionCode
+            // PackageInfo.longVersionCode is API 28+. PackageInfoCompat covers
+            // minSdk 26 by falling back to the deprecated versionCode on older
+            // devices.
+            val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
             _uiState.update { it.copy(appVersion = "$version ($versionCode)") }
         } catch (_: Exception) {
             _uiState.update { it.copy(appVersion = "Unknown") }

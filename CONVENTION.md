@@ -290,6 +290,31 @@ Do not commit KSP-generated Apollo code. Regenerate locally with `./gradlew gene
 
 ---
 
+## §13 API level compatibility
+
+The app ships with `minSdk = 26` (Android 8.0, Oreo). Any platform API referenced unconditionally must be available at API 26, or the call site must be gated with a `Build.VERSION.SDK_INT` check and a fallback.
+
+### §13.1 Check the API level for every platform call
+
+Before accepting code that touches `android.*`, `java.util.*`, or Kotlin stdlib extensions that alias newer JDK methods, verify the minimum API level on the official doc. Android Studio's `NewApi` lint catches most cases, but **Kotlin extension functions that delegate to newer Java methods can escape the detector**. Review such calls manually.
+
+### §13.2 Known traps
+
+Concrete cases that have bitten this codebase:
+
+- **`List.removeFirst()` / `List.removeLast()`** — Kotlin's `MutableList.removeFirst()` / `removeLast()` now resolve to `java.util.SequencedCollection` methods added in **API 35** (Android 15). They crash with `NoSuchMethodError` on older devices. Use `removeAt(0)` / `removeAt(lastIndex)` instead. See PR #84 for the `removeLast` incident on HTML parsing.
+- **`PackageInfo.longVersionCode`** — API 28+. Use `androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageInfo)` which falls back on older devices.
+- **`Icons.Filled.Reply` / `Icons.Filled.Login`** — have `AutoMirrored` replacements for RTL correctness. Not strictly API-level but same class of "newer API exists, older still works, lint warns". Prefer the `AutoMirrored` variants in new code.
+
+### §13.3 AI-assisted code is a specific risk vector
+
+AI code-completion tools frequently suggest API calls that match the intent but violate `minSdk`. They tend to pick the most idiomatic modern API regardless of the project's min-SDK constraint. Treat every AI-suggested platform call as requiring API-level verification, especially:
+
+- Collection operations (Kotlin stdlib increasingly delegates to newer Java methods)
+- Anything that looks like it might have a `*Compat` variant in `androidx.core` — if a Compat helper exists, it exists *because* the platform API has a version requirement.
+
+---
+
 ## Rule index (for review comments)
 
 | § | One-line summary |
@@ -311,3 +336,5 @@ Do not commit KSP-generated Apollo code. Regenerate locally with `./gradlew gene
 | §11.1 | No hardcoded user-facing strings |
 | §11.2 | `contentDescription` on interactive icons |
 | §12.2 | Don't commit generated Apollo code |
+| §13.1 | Verify API level for every platform call (minSdk = 26) |
+| §13.2 | Avoid `removeFirst/Last` (API 35), use `PackageInfoCompat` (API 28) |

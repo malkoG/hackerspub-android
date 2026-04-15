@@ -74,7 +74,10 @@ class RecommendedActorsViewModel @Inject constructor(
 
     private fun replaceActorAt(index: Int) {
         if (hiddenActors.isNotEmpty()) {
-            shownActors[index] = hiddenActors.removeFirst()
+            // removeAt(0) is API-level safe; MutableList.removeFirst() resolves to
+            // SequencedCollection.removeFirst() which is API 35+ and crashes on
+            // older devices. See PR #84 for the same fix on removeLast().
+            shownActors[index] = hiddenActors.removeAt(0)
         } else {
             shownActors.removeAt(index)
         }
