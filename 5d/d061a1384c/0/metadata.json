@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "5dd061a1384c",
+  "session_id": "343b2b1e-6368-45e7-a6c0-d649a651ed1b",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T08:30:02.443093Z",
+  "branch": "fix/follow-not-working",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileViewModel.kt",
+    "app/src/test/java/pub/hackers/android/ui/screens/profile/ProfileViewModelTest.kt"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 52,
+    "cache_creation_tokens": 42923,
+    "cache_read_tokens": 1645107,
+    "output_tokens": 11434,
+    "api_call_count": 41
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T08:30:02.255127Z",
+    "agent_lines": 127,
+    "human_added": 2,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 130,
+    "agent_percentage": 97.6923076923077
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-follow-not-working/343b2b1e-6368-45e7-a6c0-d649a651ed1b.jsonl"
+}
