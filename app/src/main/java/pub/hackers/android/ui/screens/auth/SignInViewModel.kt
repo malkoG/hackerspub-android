@@ -1,5 +1,8 @@
 package pub.hackers.android.ui.screens.auth
 
+import android.app.Activity
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import android.app.Activity
 import pub.hackers.android.data.auth.PasskeyManager
 import pub.hackers.android.data.local.SessionManager
 import pub.hackers.android.data.repository.HackersPubRepository
@@ -144,6 +146,7 @@ class SignInViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     fun signInWithPasskey(activity: Activity) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }

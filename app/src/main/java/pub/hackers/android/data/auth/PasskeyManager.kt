@@ -2,6 +2,8 @@ package pub.hackers.android.data.auth
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CreatePublicKeyCredentialResponse
 import androidx.credentials.CredentialManager
@@ -12,12 +14,23 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Passkey (WebAuthn) sign-in and registration via the Jetpack Credential Manager.
+ *
+ * The passkey-specific classes (`PublicKeyCredential`,
+ * `CreatePublicKeyCredentialRequest`, etc.) require **API 28+**. This class's
+ * constructor and `credentialManager` field are API 26-safe, so the Hilt graph
+ * can instantiate it on all supported devices. The two public entry points
+ * ([authenticate] and [register]) are annotated `@RequiresApi(Build.VERSION_CODES.P)`
+ * — callers must gate invocation with a runtime SDK check.
+ */
 @Singleton
 class PasskeyManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val credentialManager = CredentialManager.create(context)
 
+    @RequiresApi(Build.VERSION_CODES.P)
     suspend fun authenticate(optionsJson: String, activity: Activity): String {
         android.util.Log.d("PasskeyAuth", "authenticate: creating request with options: ${optionsJson.take(200)}")
         val request = GetCredentialRequest(
@@ -36,6 +49,7 @@ class PasskeyManager @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     suspend fun register(optionsJson: String, activity: Activity): String {
         android.util.Log.d("PasskeyAuth", "register: creating request")
         val request = CreatePublicKeyCredentialRequest(optionsJson)

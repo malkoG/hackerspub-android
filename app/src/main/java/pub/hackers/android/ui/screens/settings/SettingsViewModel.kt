@@ -1,7 +1,10 @@
 package pub.hackers.android.ui.screens.settings
 
+import android.app.Activity
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.lifecycle.ViewModel
 import androidx.work.WorkManager
@@ -20,7 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import android.app.Activity
 import pub.hackers.android.data.auth.PasskeyManager
 import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
@@ -228,6 +230,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     fun registerPasskey(name: String, activity: Activity) {
         val accountId = _uiState.value.accountId ?: run {
             android.util.Log.e("PasskeyAuth", "registerPasskey: accountId is null")

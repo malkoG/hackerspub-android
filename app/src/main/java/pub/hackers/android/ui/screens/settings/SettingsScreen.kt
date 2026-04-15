@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.screens.settings
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,7 +72,10 @@ fun SettingsScreen(
     var showRevokePasskeyId by remember { mutableStateOf<String?>(null) }
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
-    val passkeyEnabled = pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED
+    // Passkey requires the feature flag AND Android 9+
+    // (androidx.credentials.PublicKeyCredential is API 28+).
+    val passkeyEnabled = pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED &&
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
     LaunchedEffect(isLoggedIn, passkeyEnabled) {
         if (isLoggedIn && passkeyEnabled) viewModel.loadPasskeys()

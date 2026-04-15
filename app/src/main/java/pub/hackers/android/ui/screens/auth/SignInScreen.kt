@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.screens.auth
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -104,7 +105,12 @@ fun SignInScreen(
                         keyboardController?.hide()
                         viewModel.sendVerificationCode()
                     },
-                    onPasskeySignIn = if (pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED) {
+                    // Passkey requires the feature flag AND Android 9+
+                    // (androidx.credentials.PublicKeyCredential is API 28+).
+                    onPasskeySignIn = if (
+                        pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    ) {
                         val activity = LocalContext.current as Activity
                         {
                             keyboardController?.hide()
