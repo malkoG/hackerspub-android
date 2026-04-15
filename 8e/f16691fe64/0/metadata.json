@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "8ef16691fe64",
+  "session_id": "1d77b9b5-7237-4afa-b694-ac95a67b5aa7",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T08:46:06.393917Z",
+  "branch": "fix/read-on-web-button",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/webview/WebViewScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "afd367b3-6c70-473c-b736-8aae2a704e97",
+  "token_usage": {
+    "input_tokens": 95,
+    "cache_creation_tokens": 61565,
+    "cache_read_tokens": 3919478,
+    "output_tokens": 19689,
+    "api_call_count": 84
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T08:46:06.154142Z",
+    "agent_lines": 206,
+    "human_added": 0,
+    "human_modified": 3,
+    "human_removed": 0,
+    "total_committed": 209,
+    "agent_percentage": 98.56459330143541
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-read-on-web-button/1d77b9b5-7237-4afa-b694-ac95a67b5aa7.jsonl"
+}

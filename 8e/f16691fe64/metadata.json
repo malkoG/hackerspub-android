@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "8ef16691fe64",
+  "strategy": "manual-commit",
+  "branch": "fix/read-on-web-button",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/webview/WebViewScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8e/f16691fe64/0/metadata.json",
+      "transcript": "/8e/f16691fe64/0/full.jsonl",
+      "context": "/8e/f16691fe64/0/context.md",
+      "content_hash": "/8e/f16691fe64/0/content_hash.txt",
+      "prompt": "/8e/f16691fe64/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 95,
+    "cache_creation_tokens": 61565,
+    "cache_read_tokens": 3919478,
+    "output_tokens": 19689,
+    "api_call_count": 84
+  }
+}
