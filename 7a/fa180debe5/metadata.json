@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "7afa180debe5",
+  "strategy": "manual-commit",
+  "branch": "fix/applink-pattern",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/navigation/HackersPubUrlRouter.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7a/fa180debe5/0/metadata.json",
+      "transcript": "/7a/fa180debe5/0/full.jsonl",
+      "context": "/7a/fa180debe5/0/context.md",
+      "content_hash": "/7a/fa180debe5/0/content_hash.txt",
+      "prompt": "/7a/fa180debe5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1916,
+    "cache_creation_tokens": 26142,
+    "cache_read_tokens": 762478,
+    "output_tokens": 6004,
+    "api_call_count": 24
+  }
+}

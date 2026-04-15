@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "7afa180debe5",
+  "session_id": "d6eb942b-0436-4c56-b08b-645f11f6de36",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T04:15:09.363911Z",
+  "branch": "fix/applink-pattern",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/navigation/HackersPubUrlRouter.kt"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 1916,
+    "cache_creation_tokens": 26142,
+    "cache_read_tokens": 762478,
+    "output_tokens": 6004,
+    "api_call_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T04:15:09.191853Z",
+    "agent_lines": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 11,
+    "total_committed": 1,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-applink-pattern/d6eb942b-0436-4c56-b08b-645f11f6de36.jsonl"
+}
