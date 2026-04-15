@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.RssFeed
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -37,11 +39,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -96,6 +100,7 @@ fun ProfileScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
+    var showRssSheet by remember { mutableStateOf(false) }
 
     val activeFlow: Flow<PagingData<Post>> = remember(selectedTab, viewModel) {
         when (selectedTab) {
@@ -105,6 +110,19 @@ fun ProfileScreen(
         }
     }
     val items = activeFlow.collectAsLazyPagingItems()
+
+    if (showRssSheet) {
+        val actor = uiState.actor
+        if (actor != null) {
+            val username = actor.handle.trimStart('@').substringBefore("@")
+            val host = actor.handle.trimStart('@').substringAfter("@")
+            RssFeedBottomSheet(
+                host = host,
+                username = username,
+                onDismiss = { showRssSheet = false }
+            )
+        }
+    }
 
     if (uiState.actionError != null) {
         AlertDialog(
@@ -136,6 +154,15 @@ fun ProfileScreen(
                 trailingContent = {
                     val actor = uiState.actor
                     if (actor != null) {
+                        if (actor.handle.endsWith("@hackers.pub")) {
+                            IconButton(onClick = { showRssSheet = true }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.RssFeed,
+                                    contentDescription = "RSS Feed",
+                                    tint = colors.accent
+                                )
+                            }
+                        }
                         IconButton(onClick = {
                             val profileHandle = actor.handle
                             val normalizedHandle =
@@ -353,6 +380,130 @@ private fun ProfileActionMenu(
                 },
                 enabled = !isPerformingAction
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RssFeedBottomSheet(
+    host: String,
+    username: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val clipboardManager = context.getSystemService(
+        android.content.Context.CLIPBOARD_SERVICE
+    ) as android.content.ClipboardManager
+
+    fun copyFeedUrl(feedPath: String) {
+        clipboardManager.setPrimaryClip(
+            android.content.ClipData.newPlainText("RSS Feed URL", feedPath)
+        )
+        android.widget.Toast.makeText(
+            context,
+            "Feed URL copied to clipboard",
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+        onDismiss()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "RSS Feed",
+                style = typography.bodyLargeSemiBold,
+                color = colors.textPrimary,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.RssFeed,
+                    contentDescription = null,
+                    tint = colors.accent,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "All Posts",
+                        style = typography.bodyLargeSemiBold,
+                        color = colors.textPrimary
+                    )
+                    Text(
+                        text = "$host/@$username/feed.xml",
+                        style = typography.labelMedium,
+                        color = colors.textSecondary
+                    )
+                }
+                IconButton(
+                    onClick = { copyFeedUrl("$host/@$username/feed.xml") },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = "Copy",
+                        tint = colors.accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            HorizontalDivider(color = colors.divider, thickness = 1.dp)
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.RssFeed,
+                    contentDescription = null,
+                    tint = colors.accent,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Articles Only",
+                        style = typography.bodyLargeSemiBold,
+                        color = colors.textPrimary
+                    )
+                    Text(
+                        text = "$host/@$username/feed.xml?articles",
+                        style = typography.labelMedium,
+                        color = colors.textSecondary
+                    )
+                }
+                IconButton(
+                    onClick = { copyFeedUrl("$host/@$username/feed.xml?articles") },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = "Copy",
+                        tint = colors.accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
     }
 }
