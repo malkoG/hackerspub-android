@@ -66,6 +66,7 @@ private const val HTML_SYNC_PARSE_THRESHOLD = 500
 private data class HtmlCacheKey(
     val html: String,
     val linkColor: ULong,
+    val hashtagColor: ULong,
     val mentionBg: ULong,
     val codeBg: ULong,
 )
@@ -76,10 +77,11 @@ private fun parseAndCacheHtml(
     key: HtmlCacheKey,
     html: String,
     linkColor: Color,
+    hashtagColor: Color,
     mentionBg: Color,
     codeBg: Color,
 ): AnnotatedString {
-    val parsed = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+    val parsed = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
     htmlCache.put(key, parsed)
     return parsed
 }
@@ -100,17 +102,18 @@ private fun parseAndCacheHtml(
 private fun rememberParsedHtml(
     html: String,
     linkColor: Color,
+    hashtagColor: Color,
     mentionBg: Color,
     codeBg: Color,
 ): AnnotatedString {
-    val cacheKey = remember(html, linkColor, mentionBg, codeBg) {
-        HtmlCacheKey(html, linkColor.value, mentionBg.value, codeBg.value)
+    val cacheKey = remember(html, linkColor, hashtagColor, mentionBg, codeBg) {
+        HtmlCacheKey(html, linkColor.value, hashtagColor.value, mentionBg.value, codeBg.value)
     }
 
     // Fast path: cache hit or short enough to parse inline.
     val syncValue: AnnotatedString? = remember(cacheKey) {
         htmlCache.get(cacheKey) ?: if (html.length < HTML_SYNC_PARSE_THRESHOLD) {
-            parseAndCacheHtml(cacheKey, html, linkColor, mentionBg, codeBg)
+            parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, codeBg)
         } else {
             null
         }
@@ -121,7 +124,7 @@ private fun rememberParsedHtml(
     // Slow path: long HTML, cache miss. Parse off-Main.
     val asyncValue by produceState(initialValue = AnnotatedString(""), cacheKey) {
         value = withContext(Dispatchers.Default) {
-            htmlCache.get(cacheKey) ?: parseAndCacheHtml(cacheKey, html, linkColor, mentionBg, codeBg)
+            htmlCache.get(cacheKey) ?: parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, codeBg)
         }
     }
     return asyncValue
@@ -140,6 +143,7 @@ fun HtmlContent(
     val uriHandler = LocalUriHandler.current
     val colors = LocalAppColors.current
     val linkColor = colors.accent
+    val hashtagColor = colors.hashtag
     val mentionBg = colors.accent.copy(alpha = 0.10f)
     val codeBg = colors.surface
     val textColor = colors.textBody
@@ -152,7 +156,7 @@ fun HtmlContent(
 
     if (maxLines < Int.MAX_VALUE) {
         // Preview mode: flat AnnotatedString (no block code highlighting)
-        val annotatedString = rememberParsedHtml(html, linkColor, mentionBg, codeBg)
+        val annotatedString = rememberParsedHtml(html, linkColor, hashtagColor, mentionBg, codeBg)
 
         ClickableText(
             text = annotatedString,
@@ -173,7 +177,7 @@ fun HtmlContent(
                 when (block) {
                     is ContentBlock.Text -> {
                         if (block.html.isNotBlank()) {
-                            val annotatedString = rememberParsedHtml(block.html, linkColor, mentionBg, codeBg)
+                            val annotatedString = rememberParsedHtml(block.html, linkColor, hashtagColor, mentionBg, codeBg)
                             if (annotatedString.isNotEmpty()) {
                                 ClickableText(
                                     text = annotatedString,
@@ -279,6 +283,7 @@ internal fun extractHandleFromUrl(url: String): String? {
 internal fun parseHtmlToAnnotatedString(
     html: String,
     linkColor: Color,
+    hashtagColor: Color,
     mentionBg: Color,
     codeBg: Color
 ): AnnotatedString {
@@ -326,12 +331,12 @@ internal fun parseHtmlToAnnotatedString(
                 if (!insideInvisibleSpan && !insideRp && decoded.isNotEmpty()) {
                     if (preDepth > 0) {
                         // Preserve all whitespace in preformatted blocks
-                        appendStyledText(this, decoded, currentLinkType, linkColor, mentionBg)
+                        appendStyledText(this, decoded, currentLinkType, linkColor, hashtagColor, mentionBg)
                         hasContent = true
                     } else {
                         val isInterBlockWhitespace = decoded.isBlank() && decoded.contains('\n')
                         if (!isInterBlockWhitespace) {
-                            appendStyledText(this, decoded, currentLinkType, linkColor, mentionBg)
+                            appendStyledText(this, decoded, currentLinkType, linkColor, hashtagColor, mentionBg)
                             hasContent = true
                         }
                     }
@@ -615,6 +620,7 @@ private fun appendStyledText(
     text: String,
     linkType: LinkType?,
     linkColor: Color,
+    hashtagColor: Color,
     mentionBg: Color
 ) {
     when (linkType) {
@@ -630,7 +636,7 @@ private fun appendStyledText(
             }
         }
         LinkType.HASHTAG -> {
-            builder.withStyle(SpanStyle(color = linkColor)) {
+            builder.withStyle(SpanStyle(color = hashtagColor)) {
                 append(text)
             }
         }

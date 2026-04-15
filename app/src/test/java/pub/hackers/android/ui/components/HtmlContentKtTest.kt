@@ -109,24 +109,25 @@ class HtmlContentKtTest {
     // region parseHtmlToAnnotatedString
 
     private val linkColor = Color(0xFF1DA1F2)
+    private val hashtagColor = Color(0xFF0891B2)
     private val mentionBg = Color(0x1A1DA1F2)
     private val codeBg = Color(0xFFF5F5F5)
 
     @Test
     fun `parseHtmlToAnnotatedString extracts plain text`() {
-        val result = parseHtmlToAnnotatedString("<p>Hello world</p>", linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString("<p>Hello world</p>", linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("Hello world", result.text)
     }
 
     @Test
     fun `parseHtmlToAnnotatedString handles br tag`() {
-        val result = parseHtmlToAnnotatedString("line1<br>line2", linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString("line1<br>line2", linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("line1\nline2", result.text)
     }
 
     @Test
     fun `parseHtmlToAnnotatedString handles multiple paragraphs`() {
-        val result = parseHtmlToAnnotatedString("<p>first</p><p>second</p>", linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString("<p>first</p><p>second</p>", linkColor, hashtagColor, mentionBg, codeBg)
         assertTrue(result.text.contains("first"))
         assertTrue(result.text.contains("second"))
         assertTrue(result.text.contains("\n\n"))
@@ -135,7 +136,7 @@ class HtmlContentKtTest {
     @Test
     fun `parseHtmlToAnnotatedString handles link with URL annotation`() {
         val html = """<a href="https://example.com">click</a>"""
-        val result = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("click", result.text)
         val annotations = result.getStringAnnotations("URL", 0, result.length)
         assertEquals(1, annotations.size)
@@ -145,7 +146,7 @@ class HtmlContentKtTest {
     @Test
     fun `parseHtmlToAnnotatedString handles mention link`() {
         val html = """<a href="https://example.com/@alice" class="mention">@alice</a>"""
-        val result = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("@alice", result.text)
         val annotations = result.getStringAnnotations("MENTION", 0, result.length)
         assertEquals(1, annotations.size)
@@ -155,7 +156,7 @@ class HtmlContentKtTest {
     @Test
     fun `parseHtmlToAnnotatedString handles hashtag link`() {
         val html = """<a href="https://example.com/tags/kotlin" class="hashtag">#kotlin</a>"""
-        val result = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("#kotlin", result.text)
         val annotations = result.getStringAnnotations("URL", 0, result.length)
         assertEquals(1, annotations.size)
@@ -164,14 +165,14 @@ class HtmlContentKtTest {
     @Test
     fun `parseHtmlToAnnotatedString skips invisible spans`() {
         val html = """<span class="invisible">hidden</span>visible"""
-        val result = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("visible", result.text)
     }
 
     @Test
     fun `parseHtmlToAnnotatedString handles unordered list`() {
         val html = "<ul><li>item1</li><li>item2</li></ul>"
-        val result = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
         assertTrue(result.text.contains("\u2022 item1"))
         assertTrue(result.text.contains("\u2022 item2"))
     }
@@ -179,26 +180,26 @@ class HtmlContentKtTest {
     @Test
     fun `parseHtmlToAnnotatedString handles ordered list`() {
         val html = "<ol><li>first</li><li>second</li></ol>"
-        val result = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
         assertTrue(result.text.contains("1. first"))
         assertTrue(result.text.contains("2. second"))
     }
 
     @Test
     fun `parseHtmlToAnnotatedString handles hr tag`() {
-        val result = parseHtmlToAnnotatedString("<hr>", linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString("<hr>", linkColor, hashtagColor, mentionBg, codeBg)
         assertTrue(result.text.contains("\u2500"))
     }
 
     @Test
     fun `parseHtmlToAnnotatedString decodes entities in text`() {
-        val result = parseHtmlToAnnotatedString("<p>A &amp; B</p>", linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString("<p>A &amp; B</p>", linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("A & B", result.text)
     }
 
     @Test
     fun `parseHtmlToAnnotatedString handles empty html`() {
-        val result = parseHtmlToAnnotatedString("", linkColor, mentionBg, codeBg)
+        val result = parseHtmlToAnnotatedString("", linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("", result.text)
     }
 

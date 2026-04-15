@@ -18,6 +18,7 @@ data class AppColorScheme(
     val composeAccent: Color,
     val reaction: Color,
     val share: Color,
+    val hashtag: Color,
 )
 
 val LightAppColors = AppColorScheme(
@@ -33,6 +34,7 @@ val LightAppColors = AppColorScheme(
     composeAccent = Color(0xFFEF4444),
     reaction = Color(0xFFE8453C),
     share = Color(0xFF34D399),
+    hashtag = Color(0xFF0891B2),
 )
 
 val DarkAppColors = AppColorScheme(
@@ -48,6 +50,7 @@ val DarkAppColors = AppColorScheme(
     composeAccent = Color(0xFFF87171),
     reaction = Color(0xFFE8453C),
     share = Color(0xFF34D399),
+    hashtag = Color(0xFF22D3EE),
 )
 
 val LocalAppColors = staticCompositionLocalOf { LightAppColors }
