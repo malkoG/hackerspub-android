@@ -25,6 +25,7 @@ data class ComposeArticleUiState(
     val isSaved: Boolean = false,
     val slug: String = "",
     val language: String = java.util.Locale.getDefault().language,
+    val allowLlmTranslation: Boolean = true,
     val showPublishFields: Boolean = false,
     val isPublishing: Boolean = false,
     val isPublished: Boolean = false,
@@ -66,7 +67,7 @@ class ComposeArticleViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 title = title,
-                slug = if (!it.showPublishFields) generateSlug(title) else it.slug
+                slug = generateSlug(title)
             )
         }
     }
@@ -86,6 +87,10 @@ class ComposeArticleViewModel @Inject constructor(
 
     fun updateLanguage(language: String) {
         _uiState.update { it.copy(language = language) }
+    }
+
+    fun updateAllowLlmTranslation(allow: Boolean) {
+        _uiState.update { it.copy(allowLlmTranslation = allow) }
     }
 
     fun saveDraft() {
@@ -145,6 +150,10 @@ class ComposeArticleViewModel @Inject constructor(
 
     fun publishDraft() {
         val state = _uiState.value
+        if (state.title.isBlank()) {
+            _uiState.update { it.copy(error = "Title is required") }
+            return
+        }
         if (state.slug.isBlank()) {
             _uiState.update { it.copy(error = "Slug is required") }
             return
@@ -184,7 +193,8 @@ class ComposeArticleViewModel @Inject constructor(
             repository.publishArticleDraft(
                 id = draftId,
                 slug = state.slug,
-                language = state.language
+                language = state.language,
+                allowLlmTranslation = state.allowLlmTranslation
             )
                 .onSuccess { article ->
                     _uiState.update {

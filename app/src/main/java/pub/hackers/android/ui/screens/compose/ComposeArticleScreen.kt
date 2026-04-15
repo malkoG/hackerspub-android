@@ -26,6 +26,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -255,7 +257,7 @@ fun ComposeArticleScreen(
                 }
             }
 
-            // Publish fields (slug + language)
+            // Publish fields (slug, language, allow LLM translation)
             AnimatedVisibility(
                 visible = uiState.showPublishFields,
                 enter = expandVertically(),
@@ -312,7 +314,35 @@ fun ComposeArticleScreen(
                             unfocusedLabelColor = colors.textSecondary
                         )
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                viewModel.updateAllowLlmTranslation(!uiState.allowLlmTranslation)
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = uiState.allowLlmTranslation,
+                            onCheckedChange = { viewModel.updateAllowLlmTranslation(it) },
+                            enabled = !uiState.isPublishing,
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = colors.composeAccent,
+                                uncheckedColor = colors.textSecondary
+                            )
+                        )
+                        Text(
+                            text = stringResource(R.string.allow_llm_translation),
+                            style = typography.bodyMedium,
+                            color = colors.textPrimary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),

@@ -67,6 +67,7 @@
     <string name="article_language_label">Language</string>
     <string name="publish_confirm_title">Publish Article</string>
     <string name="article_slug_required">Slug is required</string>
+    <string name="allow_llm_translation">Allow LLM translation</string>
 
     <!-- Drafts -->
     <string name="my_drafts">My Drafts</string>
