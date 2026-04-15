@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "af7b291ce3f5",
+  "strategy": "manual-commit",
+  "branch": "feature/article-publish",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeArticleScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeArticleViewModel.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/af/7b291ce3f5/0/metadata.json",
+      "transcript": "/af/7b291ce3f5/0/full.jsonl",
+      "context": "/af/7b291ce3f5/0/context.md",
+      "content_hash": "/af/7b291ce3f5/0/content_hash.txt",
+      "prompt": "/af/7b291ce3f5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3237,
+    "cache_creation_tokens": 62304,
+    "cache_read_tokens": 1898462,
+    "output_tokens": 15396,
+    "api_call_count": 36
+  }
+}
