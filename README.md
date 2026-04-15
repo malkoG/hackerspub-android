@@ -31,15 +31,17 @@ An Android client for [Hackers' Pub](https://hackers.pub), a fediverse-compatibl
 ```
 app/src/main/java/pub/hackers/android/
 ├── data/
-│   ├── local/          # SessionManager (DataStore)
+│   ├── local/          # SessionManager, PreferencesManager (DataStore)
+│   ├── paging/         # CursorPagingSource, PostOverlay
 │   └── repository/     # HackersPubRepository
 ├── di/                 # Hilt modules
 ├── domain/
-│   └── model/          # Domain models
+│   └── model/          # Domain models (@Immutable)
+├── navigation/         # Sealed routes, HackersPubUrlRouter
 ├── ui/
 │   ├── components/     # Reusable UI components
 │   ├── screens/        # Screen composables & ViewModels
-│   └── theme/          # Material theme
+│   └── theme/          # Theme, LocalAppColors
 ├── HackersPubApplication.kt
 └── MainActivity.kt
 ```
@@ -99,6 +101,8 @@ UI (Compose) → ViewModel → Repository → Apollo Client → GraphQL API
                               ↓
                         Apollo Cache (SQLite)
 ```
+
+For the rules reviewers enforce during PRs — null-safety, Paging config, threading, Compose stability — see [CONVENTION.md](./CONVENTION.md).
 
 ## Screens
 
