@@ -870,6 +870,12 @@ query ArticleDraft($id: ID!) {
     }
 }
 
+query PostByUrl($url: String!) {
+    postByUrl(url: $url) {
+        id
+    }
+}
+
 mutation PublishArticleDraft($id: ID!, $slug: String!, $language: Locale!, $allowLlmTranslation: Boolean) {
     publishArticleDraft(input: { id: $id, slug: $slug, language: $language, allowLlmTranslation: $allowLlmTranslation }) {
         ... on PublishArticleDraftPayload {

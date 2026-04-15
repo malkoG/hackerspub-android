@@ -8,6 +8,7 @@ import java.net.URI
 sealed class HackersPubRoute {
     data class Profile(val handle: String) : HackersPubRoute()
     data class NoteDetail(val globalId: String) : HackersPubRoute()
+    data class PostByUrl(val url: String) : HackersPubRoute()
     data class SignInVerification(val token: String, val code: String) : HackersPubRoute()
     data class TagSearch(val tag: String) : HackersPubRoute()
     data object Notifications : HackersPubRoute()
@@ -20,6 +21,7 @@ object HackersPubUrlRouter {
         "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
         RegexOption.IGNORE_CASE
     )
+    private val YEAR_REGEX = Regex("^\\d{4}$")
 
     fun resolve(url: String): HackersPubRoute? {
         val uri = try {
@@ -53,12 +55,10 @@ object HackersPubUrlRouter {
                 HackersPubRoute.SignInVerification(token, code)
             }
 
-            // /@<handle>/<noteId> where noteId is a UUID
-            segments.size == 2 && segments[0].startsWith("@") && UUID_REGEX.matches(segments[1]) -> {
-                val handle = segments[0].removePrefix("@")
-                val noteId = segments[1]
-                val globalId = encodeRelayId("Note", noteId)
-                HackersPubRoute.NoteDetail(globalId)
+            // /@<handle>/<year>/<slug> (article) or /@<handle>/<uuid> (post)
+            segments.size >= 2 && segments[0].startsWith("@") &&
+                (YEAR_REGEX.matches(segments[1]) || UUID_REGEX.matches(segments[1])) -> {
+                HackersPubRoute.PostByUrl(url)
             }
 
             // /@<handle>
@@ -97,6 +97,7 @@ fun HackersPubRoute.toNavRoute(): String {
     return when (this) {
         is HackersPubRoute.Profile -> DetailScreen.Profile.createRoute(handle)
         is HackersPubRoute.NoteDetail -> DetailScreen.PostDetail.createRoute(globalId)
+        is HackersPubRoute.PostByUrl -> DetailScreen.PostByUrl.createRoute(url)
         is HackersPubRoute.SignInVerification -> DetailScreen.SignIn.createRoute(token, code)
         is HackersPubRoute.TagSearch -> Screen.Search.createRoute(tag)
         is HackersPubRoute.Notifications -> Screen.Notifications.route

@@ -46,6 +46,7 @@ import pub.hackers.android.ui.screens.compose.ComposeScreen
 import pub.hackers.android.ui.screens.drafts.DraftsScreen
 import pub.hackers.android.ui.screens.explore.ExploreScreen
 import pub.hackers.android.ui.screens.notifications.NotificationsScreen
+import pub.hackers.android.ui.screens.postdetail.PostByUrlResolverScreen
 import pub.hackers.android.ui.screens.postdetail.PostDetailScreen
 import pub.hackers.android.ui.screens.profile.ProfileScreen
 import pub.hackers.android.ui.screens.recommendedactors.RecommendedActorsScreen
@@ -125,6 +126,12 @@ sealed class DetailScreen(val route: String) {
     }
     data object Profile : DetailScreen("profile/{handle}") {
         fun createRoute(handle: String) = "profile/$handle"
+    }
+    data object PostByUrl : DetailScreen("post-by-url?url={url}") {
+        fun createRoute(url: String): String {
+            val encoded = android.net.Uri.encode(url)
+            return "post-by-url?url=$encoded"
+        }
     }
     data object RecommendedActors : DetailScreen("recommended-actors")
     data object ComposeArticle : DetailScreen("compose-article?draftId={draftId}") {
@@ -515,6 +522,26 @@ fun HackersPubApp(
                         navController.navigate(DetailScreen.PostDetail.createRoute(id))
                     },
                     isLoggedIn = isLoggedIn
+                )
+            }
+
+            composable(
+                route = DetailScreen.PostByUrl.route,
+                arguments = listOf(
+                    navArgument("url") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val url = backStackEntry.arguments?.getString("url") ?: return@composable
+                PostByUrlResolverScreen(
+                    url = url,
+                    onResolved = { postId ->
+                        navController.navigate(DetailScreen.PostDetail.createRoute(postId)) {
+                            popUpTo(DetailScreen.PostByUrl.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
 

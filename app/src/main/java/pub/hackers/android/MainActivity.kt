@@ -123,6 +123,7 @@ class MainActivity : ComponentActivity() {
                 deepLinkData = DeepLinkData(token = route.token, code = route.code)
             }
             is HackersPubRoute.Profile, is HackersPubRoute.NoteDetail,
+            is HackersPubRoute.PostByUrl,
             is HackersPubRoute.TagSearch, is HackersPubRoute.Notifications -> {
                 navigationIntent = NavigationIntent(route = route.toNavRoute())
             }

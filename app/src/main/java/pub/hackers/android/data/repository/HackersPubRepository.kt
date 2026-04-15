@@ -30,6 +30,7 @@ import pub.hackers.android.graphql.PersonalTimelineQuery
 import pub.hackers.android.graphql.PostQuotesQuery
 import pub.hackers.android.graphql.PostRepliesQuery
 import pub.hackers.android.graphql.PostSharesQuery
+import pub.hackers.android.graphql.PostByUrlQuery
 import pub.hackers.android.graphql.PostDetailQuery
 import pub.hackers.android.graphql.PublishArticleDraftMutation
 import pub.hackers.android.graphql.PublicTimelineQuery
@@ -255,6 +256,24 @@ class HackersPubRepository @Inject constructor(
                         )
                     )
                 }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun resolvePostIdByUrl(url: String): Result<String> {
+        return try {
+            val response = apolloClient.query(
+                PostByUrlQuery(url)
+            ).fetchPolicy(FetchPolicy.NetworkOnly).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val postId = response.data?.postByUrl?.id
+                    ?: return Result.failure(Exception("Post not found"))
+                Result.success(postId)
             }
         } catch (e: Exception) {
             Result.failure(e)
