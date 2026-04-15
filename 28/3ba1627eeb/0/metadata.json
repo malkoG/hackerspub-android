@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "283ba1627eeb",
+  "session_id": "0af782cb-0f22-40a0-a0e0-b5adc78f515f",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T05:06:35.771777Z",
+  "branch": "feature/display-reactors-on-post-detail",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "f764d052-c226-4705-be06-9d2fb2685ecf",
+  "checkpoint_transcript_start": 206,
+  "transcript_lines_at_start": 206,
+  "token_usage": {
+    "input_tokens": 15,
+    "cache_creation_tokens": 6700,
+    "cache_read_tokens": 751064,
+    "output_tokens": 4556,
+    "api_call_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T05:06:35.517117Z",
+    "agent_lines": 41,
+    "human_added": 0,
+    "human_modified": 20,
+    "human_removed": 7,
+    "total_committed": 61,
+    "agent_percentage": 67.21311475409836
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-feature-display-reactors-on-post-detail/0af782cb-0f22-40a0-a0e0-b5adc78f515f.jsonl"
+}

@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "283ba1627eeb",
+  "strategy": "manual-commit",
+  "branch": "feature/display-reactors-on-post-detail",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/28/3ba1627eeb/0/metadata.json",
+      "transcript": "/28/3ba1627eeb/0/full.jsonl",
+      "context": "/28/3ba1627eeb/0/context.md",
+      "content_hash": "/28/3ba1627eeb/0/content_hash.txt",
+      "prompt": "/28/3ba1627eeb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 15,
+    "cache_creation_tokens": 6700,
+    "cache_read_tokens": 751064,
+    "output_tokens": 4556,
+    "api_call_count": 11
+  }
+}
