@@ -481,7 +481,7 @@ class HackersPubRepository @Inject constructor(
                 LoginByUsernameMutation(
                     username = username,
                     locale = locale,
-                    verifyUrl = "hackerspub://verify?token={token}&code={code}"
+                    verifyUrl = "https://hackers.pub/applink/sign/in/{token}?code={code}"
                 )
             ).execute()
 
