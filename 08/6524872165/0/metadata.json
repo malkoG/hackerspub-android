@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "086524872165",
+  "session_id": "97dc2759-3e3a-4ef5-bda7-31d10fd19751",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T05:18:08.888422Z",
+  "branch": "fix/refresh-after-compose",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineRefreshTrigger.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineViewModel.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "0c6267a2-671f-4930-a96c-6a50eb3edcf3",
+  "checkpoint_transcript_start": 213,
+  "transcript_lines_at_start": 213,
+  "token_usage": {
+    "input_tokens": 22,
+    "cache_creation_tokens": 24277,
+    "cache_read_tokens": 1871782,
+    "output_tokens": 13357,
+    "api_call_count": 19
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T05:18:08.550143Z",
+    "agent_lines": 34,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 34,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-refresh-after-compose/97dc2759-3e3a-4ef5-bda7-31d10fd19751.jsonl"
+}

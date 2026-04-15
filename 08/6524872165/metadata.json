@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "086524872165",
+  "strategy": "manual-commit",
+  "branch": "fix/refresh-after-compose",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineRefreshTrigger.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/timeline/TimelineViewModel.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/08/6524872165/0/metadata.json",
+      "transcript": "/08/6524872165/0/full.jsonl",
+      "context": "/08/6524872165/0/context.md",
+      "content_hash": "/08/6524872165/0/content_hash.txt",
+      "prompt": "/08/6524872165/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 22,
+    "cache_creation_tokens": 24277,
+    "cache_read_tokens": 1871782,
+    "output_tokens": 13357,
+    "api_call_count": 19
+  }
+}
