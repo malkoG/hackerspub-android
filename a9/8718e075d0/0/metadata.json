@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a98718e075d0",
+  "session_id": "b9c7b037-b39f-4d8b-9016-d686c45e6a84",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T05:44:12.016513Z",
+  "branch": "fix/notification-indicator",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/data/worker/NotificationWorker.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "6f40a8f8-eab1-4930-8636-fe160f9c5e42",
+  "token_usage": {
+    "input_tokens": 1795,
+    "cache_creation_tokens": 32912,
+    "cache_read_tokens": 756645,
+    "output_tokens": 9336,
+    "api_call_count": 22
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T05:44:11.8235Z",
+    "agent_lines": 26,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 26,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-notification-indicator/b9c7b037-b39f-4d8b-9016-d686c45e6a84.jsonl"
+}

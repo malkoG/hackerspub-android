@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a98718e075d0",
+  "strategy": "manual-commit",
+  "branch": "fix/notification-indicator",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/data/worker/NotificationWorker.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsScreen.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a9/8718e075d0/0/metadata.json",
+      "transcript": "/a9/8718e075d0/0/full.jsonl",
+      "context": "/a9/8718e075d0/0/context.md",
+      "content_hash": "/a9/8718e075d0/0/content_hash.txt",
+      "prompt": "/a9/8718e075d0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1795,
+    "cache_creation_tokens": 32912,
+    "cache_read_tokens": 756645,
+    "output_tokens": 9336,
+    "api_call_count": 22
+  }
+}
