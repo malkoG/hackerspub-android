@@ -844,9 +844,10 @@ fun QuotedPostPreview(
 
         if (post.media.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
+            val firstMedium = post.media.first()
             AsyncImage(
-                model = post.media.first().url,
-                contentDescription = post.media.first().alt,
+                model = firstMedium.thumbnailUrl ?: firstMedium.url,
+                contentDescription = firstMedium.alt,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
@@ -1024,7 +1025,9 @@ fun MediaImage(
 
     Box(modifier = modifier) {
         AsyncImage(
-            model = if (isVideo) (thumbnailUrl ?: url) else url,
+            // Prefer thumbnailUrl for grid display (smaller payload, faster decode).
+            // Full-resolution `url` is used by MediaPreviewDialog below on tap.
+            model = thumbnailUrl ?: url,
             contentDescription = alt,
             modifier = Modifier
                 .fillMaxSize()

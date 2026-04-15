@@ -14,8 +14,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import pub.hackers.android.data.local.SessionManager
@@ -48,8 +46,8 @@ object AppModule {
         val sqlNormalizedCacheFactory = SqlNormalizedCacheFactory(context, "apollo_cache.db")
 
         val authInterceptor = Interceptor { chain ->
-            val token = runBlocking { sessionManager.sessionToken.first() }
-            val request = if (token != null) {
+            val token = sessionManager.sessionTokenState.value
+            val request = if (!token.isNullOrBlank()) {
                 chain.request().newBuilder()
                     .addHeader("Authorization", "Bearer $token")
                     .build()

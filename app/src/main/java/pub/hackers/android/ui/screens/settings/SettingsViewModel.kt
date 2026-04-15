@@ -11,12 +11,14 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.cache.normalized.apolloStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.app.Activity
 import pub.hackers.android.data.auth.PasskeyManager
 import pub.hackers.android.data.local.PreferencesManager
@@ -157,7 +159,9 @@ class SettingsViewModel @Inject constructor(
     private fun calculateCacheSize() {
         viewModelScope.launch {
             val cacheDir = context.cacheDir
-            val size = getDirSize(cacheDir)
+            val size = withContext(Dispatchers.IO) {
+                getDirSize(cacheDir)
+            }
             _uiState.update { it.copy(cacheSize = formatBytes(size)) }
         }
     }
@@ -184,9 +188,11 @@ class SettingsViewModel @Inject constructor(
     fun clearCache() {
         viewModelScope.launch {
             try {
-                apolloClient.apolloStore.clearAll()
-                // Also clear file cache
-                context.cacheDir.listFiles()?.forEach { it.deleteRecursively() }
+                withContext(Dispatchers.IO) {
+                    apolloClient.apolloStore.clearAll()
+                    // Also clear file cache
+                    context.cacheDir.listFiles()?.forEach { it.deleteRecursively() }
+                }
                 calculateCacheSize()
                 _uiState.update { it.copy(message = "Cache cleared") }
             } catch (e: Exception) {

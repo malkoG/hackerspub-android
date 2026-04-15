@@ -3,7 +3,10 @@ package pub.hackers.android.ui.screens.postdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +15,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
+import pub.hackers.android.data.paging.cursorPager
+import pub.hackers.android.data.paging.distinctByEffectiveId
+import pub.hackers.android.data.paging.postRepliesPage
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
@@ -21,12 +27,8 @@ import javax.inject.Inject
 data class PostDetailUiState(
     val post: Post? = null,
     val reactionGroups: List<ReactionGroup> = emptyList(),
-    val replies: List<Post> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val isLoadingMoreReplies: Boolean = false,
-    val hasMoreReplies: Boolean = false,
-    val repliesEndCursor: String? = null,
     val error: String? = null,
     val canDelete: Boolean = false,
     val isDeleting: Boolean = false,
@@ -39,7 +41,7 @@ data class PostDetailUiState(
     val isLoadingShares: Boolean = false,
     val showQuotesSheet: Boolean = false,
     val quotePosts: List<Post> = emptyList(),
-    val isLoadingQuotes: Boolean = false
+    val isLoadingQuotes: Boolean = false,
 )
 
 @HiltViewModel
@@ -47,13 +49,23 @@ class PostDetailViewModel @Inject constructor(
     private val repository: HackersPubRepository,
     private val sessionManager: SessionManager,
     val preferencesManager: PreferencesManager,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val postId: String = checkNotNull(savedStateHandle["postId"])
 
     private val _uiState = MutableStateFlow(PostDetailUiState())
     val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
+
+    // Replies are paginated independently of the main post payload. The main
+    // post, reactionGroups, and sheet/delete/translation state stay in UiState
+    // because they are single-instance optimistic updates that don't benefit
+    // from the PagingData overlay pattern.
+    val replies: Flow<PagingData<Post>> =
+        cursorPager { after -> repository.postRepliesPage(postId, after) }
+            .flow
+            .distinctByEffectiveId()
+            .cachedIn(viewModelScope)
 
     init {
         loadPost(postId)
@@ -74,9 +86,6 @@ class PostDetailViewModel @Inject constructor(
                         it.copy(
                             post = result.post,
                             reactionGroups = result.reactionGroups,
-                            replies = result.replies,
-                            hasMoreReplies = result.hasMoreReplies,
-                            repliesEndCursor = result.repliesEndCursor,
                             isLoading = false,
                             canDelete = canDelete
                         )
@@ -108,9 +117,6 @@ class PostDetailViewModel @Inject constructor(
                         it.copy(
                             post = result.post,
                             reactionGroups = result.reactionGroups,
-                            replies = result.replies,
-                            hasMoreReplies = result.hasMoreReplies,
-                            repliesEndCursor = result.repliesEndCursor,
                             isRefreshing = false,
                             canDelete = canDelete
                         )
@@ -118,30 +124,6 @@ class PostDetailViewModel @Inject constructor(
                 }
                 .onFailure {
                     _uiState.update { it.copy(isRefreshing = false) }
-                }
-        }
-    }
-
-    fun loadMoreReplies() {
-        val state = _uiState.value
-        if (!state.hasMoreReplies || state.isLoadingMoreReplies) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMoreReplies = true) }
-
-            repository.getPostDetail(postId, repliesAfter = state.repliesEndCursor)
-                .onSuccess { result ->
-                    _uiState.update {
-                        it.copy(
-                            replies = it.replies + result.replies,
-                            hasMoreReplies = result.hasMoreReplies,
-                            repliesEndCursor = result.repliesEndCursor,
-                            isLoadingMoreReplies = false
-                        )
-                    }
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isLoadingMoreReplies = false) }
                 }
         }
     }

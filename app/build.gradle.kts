@@ -117,6 +117,9 @@ dependencies {
     implementation(libs.apollo.normalized.cache)
     implementation(libs.apollo.normalized.cache.sqlite)
 
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
@@ -135,7 +138,19 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.androidx.paging.testing)
     debugImplementation(libs.compose.ui.test.manifest)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
+
+// Compose compiler stability reports — commented out by default to avoid
+// cluttering app/build/ on every build. Uncomment to regenerate stability
+// analysis when investigating recomposition or stability issues.
+// composeCompiler {
+//     reportsDestination = layout.buildDirectory.dir("compose_compiler")
+//     metricsDestination = layout.buildDirectory.dir("compose_compiler")
+// }

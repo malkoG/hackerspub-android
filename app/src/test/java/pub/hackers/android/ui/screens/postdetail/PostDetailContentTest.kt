@@ -10,6 +10,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -140,12 +143,14 @@ class PostDetailContentTest {
     }
 
     private fun setContent(post: Post) {
+        val repliesFlow = flowOf(PagingData.empty<Post>())
         composeRule.setContent {
             TestTheme {
+                val replies = repliesFlow.collectAsLazyPagingItems()
                 PostDetailContent(
                     post = post,
                     reactionGroups = emptyList(),
-                    replies = emptyList(),
+                    replies = replies,
                     onProfileClick = {},
                     onPostClick = {},
                     onShareClick = {},

@@ -1,5 +1,6 @@
 package pub.hackers.android.ui.components
 
+import android.util.LruCache
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val SPAN_REGEX = Regex("""<span([^>]*)>([\s\S]*?)</span>""")
 private val STYLE_ATTR_REGEX = Regex("""style=["']([^"']*)["']""")
@@ -29,6 +34,65 @@ private val SHIKI_LIGHT_REGEX = Regex("""(?:^|;)\s*color:\s*(#[0-9a-fA-F]{3,8})"
 private val SHIKI_DARK_FONT_STYLE_REGEX = Regex("""--shiki-dark-font-style:\s*(\w+)""")
 private val SHIKI_DARK_FONT_WEIGHT_REGEX = Regex("""--shiki-dark-font-weight:\s*(\w+)""")
 private val TAG_STRIP_REGEX = Regex("""<[^>]+>""")
+
+// Process-level cache for parsed Shiki code blocks. Keyed by (html, isDark,
+// defaultColor) since the resolved AnnotatedString depends on the theme.
+private const val CODE_CACHE_MAX_ENTRIES = 128
+private const val CODE_SYNC_PARSE_THRESHOLD = 300
+
+private data class CodeCacheKey(
+    val html: String,
+    val isDark: Boolean,
+    val defaultColor: ULong,
+)
+
+private val codeCache = LruCache<CodeCacheKey, AnnotatedString>(CODE_CACHE_MAX_ENTRIES)
+
+private fun parseAndCacheCode(
+    key: CodeCacheKey,
+    html: String,
+    isDark: Boolean,
+    defaultColor: Color,
+): AnnotatedString {
+    val parsed = parseShikiCodeBlock(html, isDark, defaultColor)
+    codeCache.put(key, parsed)
+    return parsed
+}
+
+/**
+ * Syntax-highlight parsing mirrors [rememberParsedHtml] in HtmlContent:
+ * short snippets parse synchronously, long ones go through
+ * [Dispatchers.Default] via [produceState]. Shiki spans include nested
+ * regex and per-span style resolution — a dense block on Main was a
+ * visible stutter source during scroll.
+ */
+@Composable
+private fun rememberParsedCode(
+    html: String,
+    isDark: Boolean,
+    defaultColor: Color,
+): AnnotatedString {
+    val key = remember(html, isDark, defaultColor) {
+        CodeCacheKey(html, isDark, defaultColor.value)
+    }
+
+    val syncValue: AnnotatedString? = remember(key) {
+        codeCache.get(key) ?: if (html.length < CODE_SYNC_PARSE_THRESHOLD) {
+            parseAndCacheCode(key, html, isDark, defaultColor)
+        } else {
+            null
+        }
+    }
+
+    if (syncValue != null) return syncValue
+
+    val asyncValue by produceState(initialValue = AnnotatedString(""), key) {
+        value = withContext(Dispatchers.Default) {
+            codeCache.get(key) ?: parseAndCacheCode(key, html, isDark, defaultColor)
+        }
+    }
+    return asyncValue
+}
 
 @Composable
 fun CodeBlockView(
@@ -39,9 +103,7 @@ fun CodeBlockView(
     val bgColor = if (isDark) Color(0xFF1E293B) else Color(0xFFF1F5F9)
     val defaultTextColor = if (isDark) Color(0xFFE2E8F0) else Color(0xFF1E293B)
 
-    val annotatedCode = remember(codeHtml, isDark) {
-        parseShikiCodeBlock(codeHtml, isDark, defaultTextColor)
-    }
+    val annotatedCode = rememberParsedCode(codeHtml, isDark, defaultTextColor)
 
     Surface(
         modifier = modifier.fillMaxWidth(),

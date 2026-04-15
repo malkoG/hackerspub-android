@@ -1,5 +1,6 @@
 package pub.hackers.android.ui.components
 
+import android.util.LruCache
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
 import java.net.URI
@@ -46,6 +51,81 @@ private val PRE_CODE_REGEX = Regex(
     """<pre[^>]*>\s*<code[^>]*>([\s\S]*?)</code>\s*</pre>""",
     RegexOption.IGNORE_CASE
 )
+
+// Process-level cache for parsed HTML. Sized to comfortably cover the active
+// set across Timeline + Explore + Profile tabs + PostDetail without evicting
+// on revisits. Entries are typically 2-5 KB.
+private const val HTML_CACHE_MAX_ENTRIES = 256
+
+// Below this html length, parsing runs synchronously during composition; above
+// it, parsing is dispatched to Dispatchers.Default via produceState so the
+// frame callback can keep rendering smoothly. Tune if placeholder flash is
+// visible for intermediate-length posts.
+private const val HTML_SYNC_PARSE_THRESHOLD = 500
+
+private data class HtmlCacheKey(
+    val html: String,
+    val linkColor: ULong,
+    val mentionBg: ULong,
+    val codeBg: ULong,
+)
+
+private val htmlCache = LruCache<HtmlCacheKey, AnnotatedString>(HTML_CACHE_MAX_ENTRIES)
+
+private fun parseAndCacheHtml(
+    key: HtmlCacheKey,
+    html: String,
+    linkColor: Color,
+    mentionBg: Color,
+    codeBg: Color,
+): AnnotatedString {
+    val parsed = parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
+    htmlCache.put(key, parsed)
+    return parsed
+}
+
+/**
+ * Returns an [AnnotatedString] for [html], using a process-level LRU cache.
+ *
+ * - Cache hit or short HTML: parsed synchronously, returned immediately.
+ *   No placeholder flash; matches the original behavior.
+ * - Long HTML on a cache miss: parsed on [Dispatchers.Default] via
+ *   [produceState]. Composition completes immediately with an empty
+ *   placeholder; the Text updates on the next frame once parsing finishes.
+ *   This prevents the scroll-induced Main-thread stalls previously caused
+ *   by [parseHtmlToAnnotatedString] running inline for every newly-composed
+ *   LazyColumn item.
+ */
+@Composable
+private fun rememberParsedHtml(
+    html: String,
+    linkColor: Color,
+    mentionBg: Color,
+    codeBg: Color,
+): AnnotatedString {
+    val cacheKey = remember(html, linkColor, mentionBg, codeBg) {
+        HtmlCacheKey(html, linkColor.value, mentionBg.value, codeBg.value)
+    }
+
+    // Fast path: cache hit or short enough to parse inline.
+    val syncValue: AnnotatedString? = remember(cacheKey) {
+        htmlCache.get(cacheKey) ?: if (html.length < HTML_SYNC_PARSE_THRESHOLD) {
+            parseAndCacheHtml(cacheKey, html, linkColor, mentionBg, codeBg)
+        } else {
+            null
+        }
+    }
+
+    if (syncValue != null) return syncValue
+
+    // Slow path: long HTML, cache miss. Parse off-Main.
+    val asyncValue by produceState(initialValue = AnnotatedString(""), cacheKey) {
+        value = withContext(Dispatchers.Default) {
+            htmlCache.get(cacheKey) ?: parseAndCacheHtml(cacheKey, html, linkColor, mentionBg, codeBg)
+        }
+    }
+    return asyncValue
+}
 
 @Composable
 fun HtmlContent(
@@ -72,9 +152,7 @@ fun HtmlContent(
 
     if (maxLines < Int.MAX_VALUE) {
         // Preview mode: flat AnnotatedString (no block code highlighting)
-        val annotatedString = remember(html, linkColor, mentionBg, codeBg) {
-            parseHtmlToAnnotatedString(html, linkColor, mentionBg, codeBg)
-        }
+        val annotatedString = rememberParsedHtml(html, linkColor, mentionBg, codeBg)
 
         ClickableText(
             text = annotatedString,
@@ -95,9 +173,7 @@ fun HtmlContent(
                 when (block) {
                     is ContentBlock.Text -> {
                         if (block.html.isNotBlank()) {
-                            val annotatedString = remember(block.html, linkColor, mentionBg, codeBg) {
-                                parseHtmlToAnnotatedString(block.html, linkColor, mentionBg, codeBg)
-                            }
+                            val annotatedString = rememberParsedHtml(block.html, linkColor, mentionBg, codeBg)
                             if (annotatedString.isNotEmpty()) {
                                 ClickableText(
                                     text = annotatedString,
