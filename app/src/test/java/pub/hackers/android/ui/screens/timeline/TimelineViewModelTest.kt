@@ -34,7 +34,9 @@ class TimelineViewModelTest {
         coEvery { confirmBeforeShare } returns MutableStateFlow(false)
     }
 
-    private fun newViewModel() = TimelineViewModel(repository, preferencesManager)
+    private val refreshTrigger = TimelineRefreshTrigger()
+
+    private fun newViewModel() = TimelineViewModel(repository, preferencesManager, refreshTrigger)
 
     private val sampleActor = Actor(
         id = "actor-1",
