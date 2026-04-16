@@ -15,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import pub.hackers.android.R
 import pub.hackers.android.data.auth.PasskeyManager
 import pub.hackers.android.data.local.SessionManager
@@ -23,6 +24,7 @@ import pub.hackers.android.testutil.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class SignInViewModelTest {
 
     @get:Rule
