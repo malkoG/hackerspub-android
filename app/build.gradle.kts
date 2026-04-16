@@ -127,9 +127,9 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
 
-    implementation("androidx.browser:browser:1.8.0")
-    implementation("androidx.credentials:credentials:1.5.0-rc01")
-    implementation("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
+    implementation("androidx.browser:browser:1.10.0")
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
