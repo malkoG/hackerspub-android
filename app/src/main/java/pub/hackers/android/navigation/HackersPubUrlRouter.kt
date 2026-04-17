@@ -11,7 +11,6 @@ sealed class HackersPubRoute {
     data class PostByUrl(val url: String) : HackersPubRoute()
     data class SignInVerification(val token: String, val code: String) : HackersPubRoute()
     data class TagSearch(val tag: String) : HackersPubRoute()
-    data object Notifications : HackersPubRoute()
 }
 
 object HackersPubUrlRouter {
@@ -37,11 +36,6 @@ object HackersPubUrlRouter {
         val segments = path.split('/').filter { it.isNotEmpty() }
 
         return when {
-            // /notifications
-            segments.size == 1 && segments[0] == "notifications" -> {
-                HackersPubRoute.Notifications
-            }
-
             // /tags/<tag>
             segments.size == 2 && segments[0] == "tags" -> {
                 HackersPubRoute.TagSearch(segments[1])
@@ -100,6 +94,5 @@ fun HackersPubRoute.toNavRoute(): String {
         is HackersPubRoute.PostByUrl -> DetailScreen.PostByUrl.createRoute(url)
         is HackersPubRoute.SignInVerification -> DetailScreen.SignIn.createRoute(token, code)
         is HackersPubRoute.TagSearch -> Screen.Search.createRoute(tag)
-        is HackersPubRoute.Notifications -> Screen.Notifications.route
     }
 }

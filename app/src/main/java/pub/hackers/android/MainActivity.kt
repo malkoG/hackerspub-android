@@ -180,10 +180,25 @@ class MainActivity : ComponentActivity() {
             }
             is HackersPubRoute.Profile, is HackersPubRoute.NoteDetail,
             is HackersPubRoute.PostByUrl,
-            is HackersPubRoute.TagSearch, is HackersPubRoute.Notifications -> {
+            is HackersPubRoute.TagSearch -> {
                 navigationIntent = NavigationIntent(route = route.toNavRoute())
             }
-            null -> { /* Not a recognized URL, ignore */ }
+            null -> {
+                // Unrecognized hackers.pub URL — open in browser
+                val browserIntent = Intent.makeMainSelectorActivity(
+                    Intent.ACTION_MAIN,
+                    Intent.CATEGORY_APP_BROWSER
+                ).apply {
+                    setData(data)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                try {
+                    startActivity(browserIntent)
+                } catch (_: Exception) {
+                    startActivity(Intent(Intent.ACTION_VIEW, data))
+                }
+                if (isTaskRoot) finish()
+            }
         }
     }
 }
