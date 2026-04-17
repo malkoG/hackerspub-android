@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import pub.hackers.android.domain.model.PostLink
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
@@ -71,7 +71,12 @@ fun LinkPreviewCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
-                    .clip(RoundedCornerShape(topStart = AppShapes.mediaRadius, topEnd = AppShapes.mediaRadius)),
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = AppShapes.mediaRadius,
+                            topEnd = AppShapes.mediaRadius
+                        )
+                    ),
                 contentScale = ContentScale.Crop
             )
         }
@@ -138,11 +143,12 @@ private fun LinkTextContent(
 
         if (!link.description.isNullOrBlank()) {
             Spacer(modifier = Modifier.height(2.dp))
-            val descriptionText = if (!link.author.isNullOrBlank() && !link.author.startsWith("http")) {
-                "${link.author} — ${link.description}"
-            } else {
-                link.description
-            }
+            val descriptionText =
+                if (!link.author.isNullOrBlank() && !link.author.startsWith("http")) {
+                    "${link.author} — ${link.description}"
+                } else {
+                    link.description
+                }
             Text(
                 text = descriptionText,
                 style = typography.labelMedium,

@@ -31,7 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.ui.components.ErrorMessage
@@ -72,17 +72,20 @@ fun RecommendedActorsScreen(
             uiState.isLoading && uiState.displayedActors.isEmpty() -> {
                 FullScreenLoading()
             }
+
             uiState.error != null && uiState.displayedActors.isEmpty() -> {
                 ErrorMessage(
                     message = uiState.error ?: stringResource(R.string.error_generic),
                     onRetry = { /* ViewModel reloads on init */ }
                 )
             }
+
             uiState.displayedActors.isEmpty() -> {
                 ErrorMessage(
                     message = stringResource(R.string.recommended_actors_empty)
                 )
             }
+
             else -> {
                 LazyColumn(
                     modifier = Modifier

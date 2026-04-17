@@ -1,5 +1,6 @@
 package pub.hackers.android.data.auth
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.os.Build
@@ -49,6 +50,7 @@ class PasskeyManager @Inject constructor(
         }
     }
 
+    @SuppressLint("PublicKeyCredential")
     @RequiresApi(Build.VERSION_CODES.P)
     suspend fun register(optionsJson: String, activity: Activity): String {
         android.util.Log.d("PasskeyAuth", "register: creating request")

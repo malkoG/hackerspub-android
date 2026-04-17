@@ -17,9 +17,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Login
@@ -50,7 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import pub.hackers.android.R
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.theme.LocalAppColors
@@ -75,7 +75,7 @@ fun SettingsScreen(
     // Passkey requires the feature flag AND Android 9+
     // (androidx.credentials.PublicKeyCredential is API 28+).
     val passkeyEnabled = pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED &&
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 
     LaunchedEffect(isLoggedIn, passkeyEnabled) {
         if (isLoggedIn && passkeyEnabled) viewModel.loadPasskeys()

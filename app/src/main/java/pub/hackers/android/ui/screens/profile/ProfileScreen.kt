@@ -65,15 +65,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.Flow
-import androidx.paging.PagingData
 import pub.hackers.android.R
-import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.AccountLink
 import pub.hackers.android.domain.model.ActorField
+import pub.hackers.android.domain.model.Post
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.HtmlContent
@@ -277,7 +277,11 @@ fun ProfileScreen(
                                         post = post,
                                         onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
                                         onProfileClick = onProfileClick,
-                                        onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
+                                        onReplyClick = {
+                                            onReplyClick(
+                                                post.sharedPost?.id ?: post.id
+                                            )
+                                        },
                                         onShareClick = {
                                             val targetId = post.sharedPost?.id ?: post.id
                                             if (post.viewerHasShared) {
@@ -286,7 +290,11 @@ fun ProfileScreen(
                                                 viewModel.sharePost(targetId)
                                             }
                                         },
-                                        onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                        onQuoteClick = {
+                                            onQuoteClick(
+                                                post.sharedPost?.id ?: post.id
+                                            )
+                                        },
                                         onReactionClick = null,
                                         onExternalShareClick = {
                                             val displayPost = post.sharedPost ?: post

@@ -15,7 +15,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 
 /**
  * A segment of a display name: either plain text or an inline image (custom emoji).
@@ -31,7 +31,8 @@ private sealed class DisplayNameSegment {
  */
 private fun parseDisplayName(name: String): List<DisplayNameSegment> {
     val segments = mutableListOf<DisplayNameSegment>()
-    val imgPattern = Regex("""<img\s+[^>]*src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?[^>]*/?\s*>|<img\s+[^>]*alt=["']([^"']*)["'][^>]*(?:src=["']([^"']+)["'])[^>]*/?\s*>""")
+    val imgPattern =
+        Regex("""<img\s+[^>]*src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?[^>]*/?\s*>|<img\s+[^>]*alt=["']([^"']*)["'][^>]*(?:src=["']([^"']+)["'])[^>]*/?\s*>""")
     var lastIndex = 0
 
     for (match in imgPattern.findAll(name)) {
@@ -141,6 +142,7 @@ fun RichDisplayName(
                         overflow = TextOverflow.Clip
                     )
                 }
+
                 is DisplayNameSegment.ImageSegment -> {
                     AsyncImage(
                         model = segment.src,

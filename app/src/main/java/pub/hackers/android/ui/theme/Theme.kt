@@ -1,16 +1,11 @@
 package pub.hackers.android.ui.theme
 
-import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 
 private fun lightColorSchemeFrom(colors: AppColorScheme) = lightColorScheme(
     primary = colors.accent,
@@ -65,15 +60,6 @@ fun HackersPubTheme(
 ) {
     val appColors = if (darkTheme) DarkAppColors else LightAppColors
     val colorScheme = if (darkTheme) darkColorSchemeFrom(appColors) else lightColorSchemeFrom(appColors)
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = appColors.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-        }
-    }
 
     CompositionLocalProvider(
         LocalAppColors provides appColors,

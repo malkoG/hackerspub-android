@@ -41,7 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Notification
 import pub.hackers.android.ui.components.ErrorMessage
@@ -176,7 +176,11 @@ private fun NotificationItem(
         is Notification.React -> {
             val othersCount = notification.actors.size - 1
             val prefix = if (othersCount > 0) {
-                pluralStringResource(R.plurals.notification_and_others, othersCount, othersCount) + " "
+                pluralStringResource(
+                    R.plurals.notification_and_others,
+                    othersCount,
+                    othersCount
+                ) + " "
             } else ""
             val actionStr = if (notification.emoji != null) {
                 prefix + stringResource(R.string.notification_react_with_emoji, notification.emoji)
