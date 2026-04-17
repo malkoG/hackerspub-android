@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "ebf7c9a5a517",
+  "strategy": "manual-commit",
+  "branch": "fix/intentionally-disable-weblink",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/MainActivity.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/eb/f7c9a5a517/0/metadata.json",
+      "transcript": "/eb/f7c9a5a517/0/full.jsonl",
+      "context": "/eb/f7c9a5a517/0/context.md",
+      "content_hash": "/eb/f7c9a5a517/0/content_hash.txt",
+      "prompt": "/eb/f7c9a5a517/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3403,
+    "cache_creation_tokens": 350969,
+    "cache_read_tokens": 16872649,
+    "output_tokens": 43657,
+    "api_call_count": 168
+  }
+}

@@ -1,0 +1,454 @@
+We have two weblinks. article/post
+
+for article, @actor/year/slug should be redirected to ArticleDetailScreen.
+for post, @actor/uuid should be redirected to PostDetailScreen.
+
+For detail, see ../hackerspub
+
+---
+
+<bash-input>git switch -c fix/post-url-resolution</bash-input>
+
+---
+
+<bash-stdout>Switched to a new branch 'fix/post-url-resolution'</bash-stdout><bash-stderr></bash-stderr>
+
+---
+
+How can I test this? See https://hackers.pub/@kodingwarrior
+
+---
+
+Now, i am using pub.hackers.android.dev for development environment
+
+---
+
+Okay, article works. but post is not
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+
+Co-authored-by: <agenting tool name> <noreply@<vendor domain>>
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+- The `Co-authored-by` trailer is a git standard recognized by GitHub. Use the agent's name and vendor no-reply email (e.g., `Co-authored-by: Claude Code <noreply@anthropic.com>`).
+- The `Assisted-By` trailer credits the AI agent and model. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Resolve conflict
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+
+---
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+The `Assisted-By` footer credits the AI agent that assisted in creating the PR. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Run ./gradlew lint
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Okay
+
+---
+
+Lint again
+
+---
+
+Whats detail?
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+
+Co-authored-by: <agenting tool name> <noreply@<vendor domain>>
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+- The `Co-authored-by` trailer is a git standard recognized by GitHub. Use the agent's name and vendor no-reply email (e.g., `Co-authored-by: Claude Code <noreply@anthropic.com>`).
+- The `Assisted-By` trailer credits the AI agent and model. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+
+---
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+The `Assisted-By` footer credits the AI agent that assisted in creating the PR. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+[Request interrupted by user]
+
+---
+
+Wait, on upstream. please
+
+---
+
+how many gigabyte we are aviable?
+
+---
+
+And now?
+
+---
+
+What files do we have big portion?
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+For overall disk
+
+---
+
+Investigate Library
+
+---
+
+How about the GroupContainers?
+
+---
+
+<task-notification>
+<task-id>b7himlsf5</task-id>
+<tool-use-id>toolu_01UomLCbRVnL1Djr3xKaTkrb</tool-use-id>
+<output-file>REDACTED.output</output-file>
+<status>completed</status>
+<summary>Background command "Show largest directories in home" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Now, how many spaces are we available?
+
+---
+
+Could you disable weblink for /notification, /settings?
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Exclude @<handle>/settings, @<handle>/settings/<blah>
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+For this case, IT also spawns app screen right?
+
+---
+
+Oh, really? Okay,  I'll trust you. Try /settings path
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Hmmmm.... I mean, go to url inside browser, and click, and then spawns app. This is the problem
+
+---
+
+Okay, go with one. First, let's try in current
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+invoke using adb
+
+---
+
+Okay, It goes to home timeline
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Already installed
+
+---
+
+No
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+I runned installDebug
+
+---
+
+Home timeline
+
+---
+
+Also for invites, and so on...... It only should match /<year>/<article-slug>, /<uuid>
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+
+Co-authored-by: <agenting tool name> <noreply@<vendor domain>>
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+- The `Co-authored-by` trailer is a git standard recognized by GitHub. Use the agent's name and vendor no-reply email (e.g., `Co-authored-by: Claude Code <noreply@anthropic.com>`).
+- The `Assisted-By` trailer credits the AI agent and model. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
