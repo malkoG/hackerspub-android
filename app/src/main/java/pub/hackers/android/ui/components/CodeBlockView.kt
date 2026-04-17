@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import pub.hackers.android.R
 
 private val SPAN_REGEX = Regex("""<span([^>]*)>([\s\S]*?)</span>""")
 private val STYLE_ATTR_REGEX = Regex("""style=["']([^"']*)["']""")
@@ -47,6 +49,13 @@ private data class CodeCacheKey(
 )
 
 private val codeCache = LruCache<CodeCacheKey, AnnotatedString>(CODE_CACHE_MAX_ENTRIES)
+
+private val UbuntuMonoFontFamily = FontFamily(
+    Font(R.font.ubuntu_mono_regular, FontWeight.Normal),
+    Font(R.font.ubuntu_mono_bold, FontWeight.Bold),
+    Font(R.font.ubuntu_mono_italic, FontWeight.Normal, FontStyle.Italic),
+    Font(R.font.ubuntu_mono_bold_italic, FontWeight.Bold, FontStyle.Italic),
+)
 
 private fun parseAndCacheCode(
     key: CodeCacheKey,
@@ -112,7 +121,7 @@ fun CodeBlockView(
     ) {
         Text(
             text = annotatedCode,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = UbuntuMonoFontFamily,
             fontSize = 13.sp,
             lineHeight = 19.sp,
             color = defaultTextColor,

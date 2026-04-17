@@ -98,6 +98,7 @@ import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.HtmlContent
+import pub.hackers.android.ui.components.HtmlContentStyle
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.MediaImage
@@ -555,6 +556,7 @@ internal fun PostDetailContent(
                     HtmlContent(
                         html = post.content,
                         modifier = Modifier.fillMaxWidth(),
+                        contentStyle = HtmlContentStyle.Prose,
                         onMentionClick = onProfileClick
                     )
                 }

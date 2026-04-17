@@ -3,9 +3,13 @@ package pub.hackers.android.ui.components
 import android.util.LruCache
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -15,12 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -40,16 +47,49 @@ private enum class LinkType {
 
 private data class ListContext(val ordered: Boolean, var itemIndex: Int = 0)
 
+enum class HtmlContentStyle {
+    Compact,
+    Prose
+}
+
 internal sealed class ContentBlock {
     data class Text(val html: String) : ContentBlock()
     data class Code(val codeHtml: String) : ContentBlock()
+    data class List(val html: String) : ContentBlock()
 }
+
+@VisibleForTesting
+internal data class ParsedListBlock(
+    val ordered: Boolean,
+    val items: List<ParsedListItem>,
+)
+
+@VisibleForTesting
+internal data class ParsedListItem(
+    val contentHtml: String,
+    val children: List<ParsedListBlock>,
+)
 
 private val TAG_REGEX = Regex("""<(/?)(\w+)([^>]*)>""")
 private val ATTR_REGEX = Regex("""([\w-]+)=["']([^"']*)["']""")
 private val PRE_CODE_REGEX = Regex(
     """<pre[^>]*>\s*<code[^>]*>([\s\S]*?)</code>\s*</pre>""",
     RegexOption.IGNORE_CASE
+)
+private val EMPTY_PARAGRAPH_REGEX = Regex(
+    """<p>\s*(?:<br\s*/?>\s*)*</p>""",
+    setOf(RegexOption.IGNORE_CASE)
+)
+private val LIST_BOUNDARY_BREAK_REGEX = Regex(
+    """(</?(?:ul|ol|li)[^>]*>)\s*(?:<br\s*/?>\s*)+""",
+    setOf(RegexOption.IGNORE_CASE)
+)
+private val LIST_BREAK_BEFORE_TAG_REGEX = Regex(
+    """(?:<br\s*/?>\s*)+(</?(?:ul|ol|li)[^>]*>)""",
+    setOf(RegexOption.IGNORE_CASE)
+)
+private val BLOCK_TAGS = setOf(
+    "p", "div", "blockquote", "ul", "ol", "li", "pre", "h1", "h2", "h3", "h4", "h5", "h6", "hr"
 )
 
 // Process-level cache for parsed HTML. Sized to comfortably cover the active
@@ -69,6 +109,7 @@ private data class HtmlCacheKey(
     val hashtagColor: ULong,
     val mentionBg: ULong,
     val codeBg: ULong,
+    val contentStyle: HtmlContentStyle,
 )
 
 private val htmlCache = LruCache<HtmlCacheKey, AnnotatedString>(HTML_CACHE_MAX_ENTRIES)
@@ -80,8 +121,16 @@ private fun parseAndCacheHtml(
     hashtagColor: Color,
     mentionBg: Color,
     codeBg: Color,
+    contentStyle: HtmlContentStyle,
 ): AnnotatedString {
-    val parsed = parseHtmlToAnnotatedString(html, linkColor, hashtagColor, mentionBg, codeBg)
+    val parsed = parseHtmlToAnnotatedString(
+        html = html,
+        linkColor = linkColor,
+        hashtagColor = hashtagColor,
+        mentionBg = mentionBg,
+        codeBg = codeBg,
+        contentStyle = contentStyle,
+    )
     htmlCache.put(key, parsed)
     return parsed
 }
@@ -105,15 +154,23 @@ private fun rememberParsedHtml(
     hashtagColor: Color,
     mentionBg: Color,
     codeBg: Color,
+    contentStyle: HtmlContentStyle,
 ): AnnotatedString {
-    val cacheKey = remember(html, linkColor, hashtagColor, mentionBg, codeBg) {
-        HtmlCacheKey(html, linkColor.value, hashtagColor.value, mentionBg.value, codeBg.value)
+    val cacheKey = remember(html, linkColor, hashtagColor, mentionBg, codeBg, contentStyle) {
+        HtmlCacheKey(
+            html = html,
+            linkColor = linkColor.value,
+            hashtagColor = hashtagColor.value,
+            mentionBg = mentionBg.value,
+            codeBg = codeBg.value,
+            contentStyle = contentStyle,
+        )
     }
 
     // Fast path: cache hit or short enough to parse inline.
     val syncValue: AnnotatedString? = remember(cacheKey) {
         htmlCache.get(cacheKey) ?: if (html.length < HTML_SYNC_PARSE_THRESHOLD) {
-            parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, codeBg)
+            parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, codeBg, contentStyle)
         } else {
             null
         }
@@ -124,7 +181,15 @@ private fun rememberParsedHtml(
     // Slow path: long HTML, cache miss. Parse off-Main.
     val asyncValue by produceState(initialValue = AnnotatedString(""), cacheKey) {
         value = withContext(Dispatchers.Default) {
-            htmlCache.get(cacheKey) ?: parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, codeBg)
+            htmlCache.get(cacheKey) ?: parseAndCacheHtml(
+                cacheKey,
+                html,
+                linkColor,
+                hashtagColor,
+                mentionBg,
+                codeBg,
+                contentStyle,
+            )
         }
     }
     return asyncValue
@@ -136,6 +201,7 @@ fun HtmlContent(
     modifier: Modifier = Modifier,
     maxLines: Int = Int.MAX_VALUE,
     fontScale: Float = 1f,
+    contentStyle: HtmlContentStyle = HtmlContentStyle.Compact,
     onMentionClick: ((handle: String) -> Unit)? = null,
     onLinkClick: ((url: String) -> Unit)? = null,
     onTextClick: (() -> Unit)? = null
@@ -149,14 +215,24 @@ fun HtmlContent(
     val textColor = colors.textBody
 
     val effectiveFontScale = if (fontScale != 1f) fontScale else LocalFontScale.current
+    val normalizedHtml = remember(html) { normalizeHtmlForRendering(html) }
     val baseStyle = LocalAppTypography.current.bodyLarge.copy(color = textColor)
-    val bodyStyle = if (effectiveFontScale != 1f) {
+    val scaledBodyStyle = if (effectiveFontScale != 1f) {
         baseStyle.copy(fontSize = baseStyle.fontSize * effectiveFontScale)
     } else baseStyle
+    val bodyStyle = scaledBodyStyle.withContentStyle(contentStyle)
+    val listStyle = scaledBodyStyle.withListContentStyle(contentStyle)
 
     if (maxLines < Int.MAX_VALUE) {
         // Preview mode: flat AnnotatedString (no block code highlighting)
-        val annotatedString = rememberParsedHtml(html, linkColor, hashtagColor, mentionBg, codeBg)
+        val annotatedString = rememberParsedHtml(
+            normalizedHtml,
+            linkColor,
+            hashtagColor,
+            mentionBg,
+            codeBg,
+            contentStyle,
+        )
 
         ClickableText(
             text = annotatedString,
@@ -170,14 +246,24 @@ fun HtmlContent(
         )
     } else {
         // Full mode: block-based rendering with syntax-highlighted code blocks
-        val blocks = remember(html) { splitIntoBlocks(html) }
+        val blocks = remember(normalizedHtml) { splitIntoBlocks(normalizedHtml) }
 
         Column(modifier = modifier) {
             blocks.forEachIndexed { index, block ->
+                if (index > 0) {
+                    Spacer(modifier = Modifier.height(blockSpacing(blocks[index - 1], block)))
+                }
                 when (block) {
                     is ContentBlock.Text -> {
                         if (block.html.isNotBlank()) {
-                            val annotatedString = rememberParsedHtml(block.html, linkColor, hashtagColor, mentionBg, codeBg)
+                            val annotatedString = rememberParsedHtml(
+                                block.html,
+                                linkColor,
+                                hashtagColor,
+                                mentionBg,
+                                codeBg,
+                                contentStyle,
+                            )
                             if (annotatedString.isNotEmpty()) {
                                 ClickableText(
                                     text = annotatedString,
@@ -189,12 +275,103 @@ fun HtmlContent(
                             }
                         }
                     }
+                    is ContentBlock.List -> {
+                        val parsedList = remember(block.html) { parseListHtml(block.html) }
+                        if (parsedList != null) {
+                            RenderListBlock(
+                                block = parsedList,
+                                level = 0,
+                                textStyle = listStyle,
+                                linkColor = linkColor,
+                                hashtagColor = hashtagColor,
+                                mentionBg = mentionBg,
+                                codeBg = codeBg,
+                                contentStyle = contentStyle,
+                                uriHandler = uriHandler,
+                                onMentionClick = onMentionClick,
+                                onLinkClick = onLinkClick,
+                                onTextClick = onTextClick,
+                            )
+                        }
+                    }
                     is ContentBlock.Code -> {
-                        if (index > 0) Spacer(modifier = Modifier.height(8.dp))
                         CodeBlockView(
                             codeHtml = block.codeHtml
                         )
-                        if (index < blocks.lastIndex) Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderListBlock(
+    block: ParsedListBlock,
+    level: Int,
+    textStyle: TextStyle,
+    linkColor: Color,
+    hashtagColor: Color,
+    mentionBg: Color,
+    codeBg: Color,
+    contentStyle: HtmlContentStyle,
+    uriHandler: androidx.compose.ui.platform.UriHandler,
+    onMentionClick: ((String) -> Unit)?,
+    onLinkClick: ((String) -> Unit)?,
+    onTextClick: (() -> Unit)?,
+) {
+    Column {
+        block.items.forEachIndexed { index, item ->
+            if (index > 0) {
+                Spacer(modifier = Modifier.height(if (level == 0) 9.dp else 7.5.dp))
+            }
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.width((level * 8).dp))
+                Text(
+                    text = if (block.ordered) "${index + 1}." else "\u2022",
+                    style = textStyle,
+                    modifier = Modifier.width(if (block.ordered) 24.dp else 14.dp)
+                )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    val normalizedItemHtml = remember(item.contentHtml) { normalizeListItemHtml(item.contentHtml) }
+                    if (normalizedItemHtml.isNotBlank()) {
+                        val annotatedString = rememberParsedHtml(
+                            normalizedItemHtml,
+                            linkColor,
+                            hashtagColor,
+                            mentionBg,
+                            codeBg,
+                            contentStyle,
+                        )
+                        if (annotatedString.isNotEmpty()) {
+                            ClickableText(
+                                text = annotatedString,
+                                style = textStyle,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { offset ->
+                                    handleClick(annotatedString, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
+                                }
+                            )
+                        }
+                    }
+
+                    item.children.forEachIndexed { childIndex, child ->
+                        Spacer(modifier = Modifier.height(if (childIndex == 0 && normalizedItemHtml.isNotBlank()) 6.5.dp else 5.dp))
+                        RenderListBlock(
+                            block = child,
+                            level = level + 1,
+                            textStyle = textStyle,
+                            linkColor = linkColor,
+                            hashtagColor = hashtagColor,
+                            mentionBg = mentionBg,
+                            codeBg = codeBg,
+                            contentStyle = contentStyle,
+                            uriHandler = uriHandler,
+                            onMentionClick = onMentionClick,
+                            onLinkClick = onLinkClick,
+                            onTextClick = onTextClick,
+                        )
                     }
                 }
             }
@@ -244,7 +421,7 @@ internal fun splitIntoBlocks(html: String): List<ContentBlock> {
     for (match in PRE_CODE_REGEX.findAll(source)) {
         val before = source.substring(lastEnd, match.range.first)
         if (before.isNotBlank()) {
-            blocks.add(ContentBlock.Text(before))
+            blocks.addAll(splitTextAndListBlocks(before))
         }
 
         val codeHtml = match.groupValues[1]
@@ -255,12 +432,12 @@ internal fun splitIntoBlocks(html: String): List<ContentBlock> {
 
     val after = source.substring(lastEnd)
     if (after.isNotBlank()) {
-        blocks.add(ContentBlock.Text(after))
+        blocks.addAll(splitTextAndListBlocks(after))
     }
 
     // If no code blocks found, return the whole thing as text
     if (blocks.isEmpty()) {
-        blocks.add(ContentBlock.Text(source))
+        blocks.addAll(splitTextAndListBlocks(source))
     }
 
     return blocks
@@ -285,9 +462,12 @@ internal fun parseHtmlToAnnotatedString(
     linkColor: Color,
     hashtagColor: Color,
     mentionBg: Color,
-    codeBg: Color
+    codeBg: Color,
+    contentStyle: HtmlContentStyle = HtmlContentStyle.Compact,
 ): AnnotatedString {
     return buildAnnotatedString {
+        val isProse = contentStyle == HtmlContentStyle.Prose
+
         // Link state
         var currentLinkType: LinkType? = null
         var hasAnnotation = false
@@ -310,6 +490,8 @@ internal fun parseHtmlToAnnotatedString(
         // List state
         val listStack = mutableListOf<ListContext>()
         var insideListItem = false
+        var listItemParagraphOpen = false
+        var listItemJustOpened = false
 
         // Ruby state
         var insideRt = false
@@ -334,9 +516,17 @@ internal fun parseHtmlToAnnotatedString(
                         appendStyledText(this, decoded, currentLinkType, linkColor, hashtagColor, mentionBg)
                         hasContent = true
                     } else {
-                        val isInterBlockWhitespace = decoded.isBlank() && decoded.contains('\n')
-                        if (!isInterBlockWhitespace) {
-                            appendStyledText(this, decoded, currentLinkType, linkColor, hashtagColor, mentionBg)
+                        val normalizedText = normalizeInlineWhitespace(
+                            text = decoded,
+                            builder = this,
+                            hasContent = hasContent,
+                            nextTagName = tagMatch?.groupValues?.getOrNull(2)?.lowercase()
+                        )
+                        if (normalizedText.isNotEmpty()) {
+                            appendStyledText(this, normalizedText, currentLinkType, linkColor, hashtagColor, mentionBg)
+                            if (!normalizedText.isBlank()) {
+                                listItemJustOpened = false
+                            }
                             hasContent = true
                         }
                     }
@@ -356,7 +546,9 @@ internal fun parseHtmlToAnnotatedString(
                     when (tagName) {
                         // Block elements
                         "p" -> {
-                            if (hasContent) append("\n\n")
+                            if (!(insideListItem && listItemJustOpened) && hasContent) {
+                                ensureTrailingNewlines(this, if (insideListItem) 1 else 2)
+                            }
                         }
                         "br" -> {
                             append("\n")
@@ -440,26 +632,59 @@ internal fun parseHtmlToAnnotatedString(
 
                         // Lists
                         "ul" -> {
-                            if (hasContent && listStack.isEmpty()) append("\n")
+                            if (hasContent) {
+                                ensureTrailingNewlines(this, 1)
+                            }
                             listStack.add(ListContext(ordered = false))
                         }
                         "ol" -> {
-                            if (hasContent && listStack.isEmpty()) append("\n")
+                            if (hasContent) {
+                                ensureTrailingNewlines(this, 1)
+                            }
                             listStack.add(ListContext(ordered = true))
                         }
                         "li" -> {
-                            if (insideListItem) append("\n")
+                            if (listItemParagraphOpen) {
+                                pop()
+                                listItemParagraphOpen = false
+                            }
+                            if (hasContent) {
+                                ensureTrailingNewlines(this, 1)
+                            }
                             val ctx = listStack.lastOrNull()
-                            val indent = "  ".repeat((listStack.size - 1).coerceAtLeast(0))
                             if (ctx != null) {
-                                if (ctx.ordered) {
+                                val nestingLevel = (listStack.size - 1).coerceAtLeast(0)
+                                val marker = if (ctx.ordered) {
                                     ctx.itemIndex++
-                                    append("${indent}${ctx.itemIndex}. ")
+                                    "${ctx.itemIndex}."
                                 } else {
-                                    append("${indent}\u2022 ")
+                                    "\u2022"
+                                }
+                                val baseIndent = nestingLevel * 1.2f
+                                val markerIndent = if (ctx.ordered) {
+                                    0.95f + (marker.length * 0.33f)
+                                } else {
+                                    1.0f
+                                }
+                                val firstLineIndent = baseIndent.em
+                                val hangingIndent = (baseIndent + markerIndent).em
+                                pushStyle(
+                                    ParagraphStyle(
+                                        textIndent = TextIndent(
+                                            firstLine = firstLineIndent,
+                                            restLine = hangingIndent,
+                                        )
+                                    )
+                                )
+                                listItemParagraphOpen = true
+                                if (ctx.ordered) {
+                                    append("$marker ")
+                                } else {
+                                    append("$marker ")
                                 }
                             }
                             insideListItem = true
+                            listItemJustOpened = true
                             hasContent = true
                         }
 
@@ -562,18 +787,27 @@ internal fun parseHtmlToAnnotatedString(
                         }
 
                         "ul", "ol" -> {
+                            if (listItemParagraphOpen) {
+                                pop()
+                                listItemParagraphOpen = false
+                            }
                             if (listStack.isNotEmpty()) {
                                 // Use removeAt instead of removeLast to avoid Java 21 SequencedCollection dependency
                                 listStack.removeAt(listStack.lastIndex)
                             }
                             insideListItem = false
-                            if (listStack.isEmpty() && hasContent) {
+                            if (!isProse && listStack.isEmpty() && hasContent) {
                                 append("\n")
                             }
                         }
 
                         "li" -> {
-                            // Keep insideListItem = true so next <li> adds a newline
+                            if (listItemParagraphOpen) {
+                                pop()
+                                listItemParagraphOpen = false
+                            }
+                            insideListItem = false
+                            listItemJustOpened = false
                         }
 
                         "a" -> {
@@ -656,6 +890,20 @@ private fun appendStyledText(
     }
 }
 
+private fun TextStyle.withContentStyle(contentStyle: HtmlContentStyle): TextStyle {
+    return when (contentStyle) {
+        HtmlContentStyle.Compact -> this
+        HtmlContentStyle.Prose -> copy(lineHeight = fontSize * 1.7f)
+    }
+}
+
+private fun TextStyle.withListContentStyle(contentStyle: HtmlContentStyle): TextStyle {
+    return when (contentStyle) {
+        HtmlContentStyle.Compact -> this
+        HtmlContentStyle.Prose -> copy(lineHeight = fontSize * 1.35f)
+    }
+}
+
 private fun parseAttributes(attrString: String): Map<String, String> {
     val attrs = mutableMapOf<String, String>()
     for (match in ATTR_REGEX.findAll(attrString)) {
@@ -674,4 +922,197 @@ internal fun decodeHtmlEntities(text: String): String {
         .replace("&quot;", "\"")
         .replace("&#39;", "'")
         .replace("&apos;", "'")
+}
+
+@VisibleForTesting
+internal fun normalizeHtmlForRendering(html: String): String {
+    return html
+        .replace(EMPTY_PARAGRAPH_REGEX, "")
+        .replace(LIST_BOUNDARY_BREAK_REGEX, "$1")
+        .replace(LIST_BREAK_BEFORE_TAG_REGEX, "$1")
+}
+
+@VisibleForTesting
+internal fun normalizeListHtml(html: String): String {
+    return normalizeHtmlForRendering(html)
+        .replace(Regex(""">\s+<"""), "><")
+}
+
+@VisibleForTesting
+internal fun normalizeListItemHtml(html: String): String {
+    return normalizeHtmlForRendering(html).trim()
+}
+
+private fun normalizeInlineWhitespace(
+    text: String,
+    builder: AnnotatedString.Builder,
+    hasContent: Boolean,
+    nextTagName: String?,
+): String {
+    if (!text.isBlank()) return text
+    if (!hasContent) return ""
+
+    val previousChar = builder.toAnnotatedString().text.lastOrNull()
+    if (previousChar == null || previousChar == '\n' || previousChar == ' ') return ""
+    if (nextTagName != null && nextTagName in BLOCK_TAGS) return ""
+
+    return " "
+}
+
+private fun endsWithLineBreak(builder: AnnotatedString.Builder): Boolean {
+    return builder.toAnnotatedString().text.lastOrNull() == '\n'
+}
+
+private fun ensureTrailingNewlines(builder: AnnotatedString.Builder, count: Int) {
+    val text = builder.toAnnotatedString().text
+    var trailingNewlines = 0
+    var idx = text.length - 1
+
+    while (idx >= 0 && text[idx] == '\n') {
+        trailingNewlines++
+        idx--
+    }
+
+    repeat((count - trailingNewlines).coerceAtLeast(0)) { builder.append("\n") }
+}
+
+private fun splitTextAndListBlocks(html: String): List<ContentBlock> {
+    val blocks = mutableListOf<ContentBlock>()
+    val source = html.trim()
+    if (source.isBlank()) return blocks
+
+    var listDepth = 0
+    var listStart = -1
+    var lastEnd = 0
+    var pos = 0
+
+    while (pos < source.length) {
+        val tagMatch = TAG_REGEX.find(source, pos) ?: break
+        val isClosing = tagMatch.groupValues[1] == "/"
+        val tagName = tagMatch.groupValues[2].lowercase()
+
+        if (tagName == "ul" || tagName == "ol") {
+            if (!isClosing) {
+                if (listDepth == 0) {
+                    val before = source.substring(lastEnd, tagMatch.range.first)
+                    if (before.isNotBlank()) {
+                        blocks.add(ContentBlock.Text(before))
+                    }
+                    listStart = tagMatch.range.first
+                }
+                listDepth++
+            } else if (listDepth > 0) {
+                listDepth--
+                if (listDepth == 0 && listStart >= 0) {
+                    val listHtml = source.substring(listStart, tagMatch.range.last + 1)
+                    if (listHtml.isNotBlank()) {
+                        blocks.add(ContentBlock.List(listHtml))
+                    }
+                    lastEnd = tagMatch.range.last + 1
+                    listStart = -1
+                }
+            }
+        }
+
+        pos = tagMatch.range.last + 1
+    }
+
+    val tail = source.substring(lastEnd)
+    if (tail.isNotBlank()) {
+        blocks.add(ContentBlock.Text(tail))
+    }
+
+    return if (blocks.isEmpty()) listOf(ContentBlock.Text(source)) else blocks
+}
+
+@VisibleForTesting
+internal fun parseListHtml(html: String): ParsedListBlock? {
+    val source = normalizeListHtml(html).trim()
+    return parseListBlockAt(source, 0)?.first
+}
+
+private fun parseListBlockAt(html: String, start: Int): Pair<ParsedListBlock, Int>? {
+    val openTag = TAG_REGEX.find(html, start) ?: return null
+    if (openTag.range.first != start) return null
+    if (openTag.groupValues[1] == "/") return null
+
+    val tagName = openTag.groupValues[2].lowercase()
+    if (tagName != "ul" && tagName != "ol") return null
+
+    val ordered = tagName == "ol"
+    val items = mutableListOf<ParsedListItem>()
+    var pos = openTag.range.last + 1
+
+    while (pos < html.length) {
+        val nextTag = TAG_REGEX.find(html, pos) ?: break
+        val isClosing = nextTag.groupValues[1] == "/"
+        val nextName = nextTag.groupValues[2].lowercase()
+
+        if (isClosing && nextName == tagName) {
+            return ParsedListBlock(ordered, items) to (nextTag.range.last + 1)
+        }
+
+        if (!isClosing && nextName == "li") {
+            val item = parseListItemAt(html, nextTag.range.first) ?: return null
+            items.add(item.first)
+            pos = item.second
+            continue
+        }
+
+        pos = nextTag.range.last + 1
+    }
+
+    return ParsedListBlock(ordered, items) to pos
+}
+
+private fun parseListItemAt(html: String, start: Int): Pair<ParsedListItem, Int>? {
+    val openTag = TAG_REGEX.find(html, start) ?: return null
+    if (openTag.range.first != start || openTag.groupValues[1] == "/" || openTag.groupValues[2].lowercase() != "li") {
+        return null
+    }
+
+    val children = mutableListOf<ParsedListBlock>()
+    val contentSegments = mutableListOf<String>()
+    var pos = openTag.range.last + 1
+    var contentStart = pos
+
+    while (pos < html.length) {
+        val nextTag = TAG_REGEX.find(html, pos) ?: break
+        val isClosing = nextTag.groupValues[1] == "/"
+        val nextName = nextTag.groupValues[2].lowercase()
+
+        if (!isClosing && (nextName == "ul" || nextName == "ol")) {
+            val beforeChild = html.substring(contentStart, nextTag.range.first)
+            if (beforeChild.isNotBlank()) {
+                contentSegments.add(beforeChild)
+            }
+            val child = parseListBlockAt(html, nextTag.range.first) ?: return null
+            children.add(child.first)
+            pos = child.second
+            contentStart = pos
+            continue
+        }
+
+        if (isClosing && nextName == "li") {
+            val beforeClose = html.substring(contentStart, nextTag.range.first)
+            if (beforeClose.isNotBlank()) {
+                contentSegments.add(beforeClose)
+            }
+            return ParsedListItem(
+                contentHtml = contentSegments.joinToString("").trim(),
+                children = children,
+            ) to (nextTag.range.last + 1)
+        }
+
+        pos = nextTag.range.last + 1
+    }
+
+    return null
+}
+
+private fun blockSpacing(previous: ContentBlock, current: ContentBlock) = when {
+    previous is ContentBlock.Code || current is ContentBlock.Code -> 8.dp
+    previous is ContentBlock.List && current is ContentBlock.List -> 4.dp
+    previous is ContentBlock.List || current is ContentBlock.List -> 16.dp
+    else -> 0.dp
 }
