@@ -134,7 +134,7 @@ fun ComposeScreen(
     // Sync TextFieldValue with ViewModel state changes (e.g., when mention is selected)
     LaunchedEffect(uiState.content, uiState.cursorPosition) {
         if (textFieldValue.text != uiState.content) {
-            textFieldValue = TextFieldValue(
+            textFieldValue = textFieldValue.copy(
                 text = uiState.content,
                 selection = TextRange(uiState.cursorPosition)
             )
