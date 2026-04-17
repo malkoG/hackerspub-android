@@ -18,7 +18,7 @@ The `!!` non-null assertion operator is forbidden in new code. Existing call sit
 
 | Site | Invariant guaranteeing non-null |
 |------|----------------------------------|
-| `ui/HackersPubApp.kt:155` | early `return` when `isLoggedInState == null` on the preceding line |
+| `ui/HackersPubApp.kt:169` | early `return` when `isLoggedInState == null` on the preceding line |
 | `ui/components/ArticleCard.kt:83` | inside `if (isRepost && post.lastSharer != null)` |
 | `ui/components/ReactionPicker.kt:53` | inside `.filter { it.emoji != null }` |
 

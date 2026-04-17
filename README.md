@@ -6,11 +6,14 @@ An Android client for [Hackers' Pub](https://hackers.pub), a fediverse-compatibl
 
 - **Timeline**: View your personal home timeline with posts from people you follow
 - **Explore**: Browse local and global/federated timelines
-- **Notifications**: Stay updated with follows, mentions, replies, quotes, shares, and reactions
+- **Notifications**: In-app and background push for follows, mentions, replies, quotes, shares, and reactions (polled by a WorkManager worker)
 - **Search**: Find posts and users across the fediverse
-- **Compose**: Create posts with Markdown support and visibility controls
-- **Profiles**: View user profiles and their posts
+- **Compose**: Create posts with Markdown support, mention autocomplete, and visibility controls
+- **Drafts**: Save and resume in-progress posts
+- **Profiles**: View user profiles and their posts; recommended-actor discovery
 - **Post Details**: See full posts with replies and reactions
+- **Translation**: On-device post translation via ML Kit
+- **In-app Browser**: Open external links in Custom Tabs
 - **Authentication**: Secure login via email verification code
 
 ## Tech Stack
@@ -18,30 +21,40 @@ An Android client for [Hackers' Pub](https://hackers.pub), a fediverse-compatibl
 - **Language**: Kotlin
 - **UI**: Jetpack Compose with Material 3
 - **Architecture**: MVVM with Repository pattern
-- **Dependency Injection**: Hilt
+- **Dependency Injection**: Hilt (with `hilt-work` for WorkManager)
 - **Networking**: Apollo GraphQL Client
 - **Caching**: Apollo Normalized Cache with SQLite
 - **Image Loading**: Coil
 - **State Management**: StateFlow + ViewModel
 - **Navigation**: Navigation Compose
 - **Local Storage**: DataStore Preferences
+- **Background Work**: WorkManager (notification polling)
+- **On-device ML**: ML Kit (Translate + Language ID)
+- **Crash & Analytics**: Firebase Crashlytics, Firebase Analytics
+- **Auth APIs**: AndroidX Credentials (Passkey-ready, gated by `FeatureFlags`)
+- **External Links**: AndroidX Browser (Custom Tabs)
 
 ## Project Structure
 
 ```
 app/src/main/java/pub/hackers/android/
 ├── data/
-│   ├── local/          # SessionManager, PreferencesManager (DataStore)
+│   ├── auth/           # PasskeyManager (Credentials API)
+│   ├── local/          # SessionManager, PreferencesManager, NotificationStateManager
 │   ├── paging/         # CursorPagingSource, PostOverlay
-│   └── repository/     # HackersPubRepository
+│   ├── repository/     # HackersPubRepository
+│   └── worker/         # NotificationWorker (WorkManager)
 ├── di/                 # Hilt modules
 ├── domain/
 │   └── model/          # Domain models (@Immutable)
-├── navigation/         # Sealed routes, HackersPubUrlRouter
+├── navigation/         # HackersPubUrlRouter + sealed HackersPubRoute
 ├── ui/
 │   ├── components/     # Reusable UI components
 │   ├── screens/        # Screen composables & ViewModels
-│   └── theme/          # Theme, LocalAppColors
+│   ├── theme/          # Theme, LocalAppColors
+│   ├── AppViewModel.kt
+│   └── HackersPubApp.kt
+├── FeatureFlags.kt
 ├── HackersPubApplication.kt
 └── MainActivity.kt
 ```
@@ -50,9 +63,9 @@ app/src/main/java/pub/hackers/android/
 
 ### Prerequisites
 
-- Android Studio Hedgehog (2023.1.1) or newer
+- A recent stable Android Studio (the project targets `compileSdk = 36`)
 - JDK 17
-- Android SDK 35
+- Android SDK 36 (`minSdk = 26`, `targetSdk = 36`)
 
 ### Setup
 
@@ -114,10 +127,13 @@ For the rules reviewers enforce during PRs — null-safety, Paging config, threa
 | Search | Post and user search with query input |
 | Settings | User info, sign out, cache management |
 | Sign In | Two-step email verification flow |
-| Compose | New post creation with visibility options |
+| Compose | New post creation with visibility options and mention autocomplete |
+| Drafts | Saved drafts list with resume/delete |
 | Post Detail | Full post view with replies and reactions |
 | Profile | User profile with bio and posts |
+| Recommended Actors | Suggested accounts to follow |
+| WebView | In-app `WebView` for opening URLs without leaving the app |
 
 ## License
 
-MIT License
+[AGPL-3.0-only](./LICENSE)
