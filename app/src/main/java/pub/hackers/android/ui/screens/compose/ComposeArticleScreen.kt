@@ -370,9 +370,9 @@ fun ComposeArticleScreen(
                             shape = RoundedCornerShape(AppShapes.pillRadius),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.composeAccent,
-                                contentColor = Color.White,
+                                contentColor = colors.composeOnAccent,
                                 disabledContainerColor = colors.composeAccent,
-                                disabledContentColor = Color.White,
+                                disabledContentColor = colors.composeOnAccent,
                             ),
                             modifier = Modifier.alpha(
                                 if (uiState.slug.isNotBlank() && !uiState.isPublishing) 1f else 0.4f
@@ -384,7 +384,7 @@ fun ComposeArticleScreen(
                                 } else {
                                     stringResource(R.string.publish_article)
                                 },
-                                color = Color.White
+                                color = colors.composeOnAccent
                             )
                         }
                     }
@@ -427,15 +427,15 @@ fun ComposeArticleScreen(
                         shape = RoundedCornerShape(AppShapes.pillRadius),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colors.composeAccent,
-                            contentColor = Color.White,
+                            contentColor = colors.composeOnAccent,
                             disabledContainerColor = colors.composeAccent,
-                            disabledContentColor = Color.White,
+                            disabledContentColor = colors.composeOnAccent,
                         ),
                         modifier = Modifier.alpha(if (publishEnabled) 1f else 0.4f)
                     ) {
                         Text(
                             text = stringResource(R.string.publish_article),
-                            color = Color.White
+                            color = colors.composeOnAccent
                         )
                     }
                 }

@@ -441,15 +441,15 @@ fun ComposeScreen(
                     shape = RoundedCornerShape(AppShapes.pillRadius),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colors.composeAccent,
-                        contentColor = Color.White,
+                        contentColor = colors.composeOnAccent,
                         disabledContainerColor = colors.composeAccent,
-                        disabledContentColor = Color.White,
+                        disabledContentColor = colors.composeOnAccent,
                     ),
                     modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
                 ) {
                     Text(
                         text = stringResource(R.string.post),
-                        color = Color.White
+                        color = colors.composeOnAccent
                     )
                 }
             }

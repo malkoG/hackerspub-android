@@ -28,6 +28,7 @@ import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Passkey
+import pub.hackers.android.ui.theme.ThemeMode
 import java.util.Locale
 import javax.inject.Inject
 
@@ -44,6 +45,7 @@ data class SettingsUiState(
     val timelineMaxLength: Int = 0,
     val useInAppBrowser: Boolean = true,
     val fontSizePercent: Int = 100,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val passkeys: List<Passkey> = emptyList(),
     val accountId: String? = null,
     val isLoadingPasskeys: Boolean = false,
@@ -109,6 +111,7 @@ class SettingsViewModel @Inject constructor(
             val maxLength = preferencesManager.timelineMaxLength.first()
             val inAppBrowser = preferencesManager.useInAppBrowser.first()
             val fontSize = preferencesManager.fontSizePercent.first()
+            val theme = preferencesManager.themeMode.first()
 
             _uiState.update {
                 it.copy(
@@ -116,7 +119,8 @@ class SettingsViewModel @Inject constructor(
                     confirmBeforeShare = confirmShare,
                     timelineMaxLength = maxLength,
                     useInAppBrowser = inAppBrowser,
-                    fontSizePercent = fontSize
+                    fontSizePercent = fontSize,
+                    themeMode = theme
                 )
             }
         }
@@ -145,6 +149,11 @@ class SettingsViewModel @Inject constructor(
     fun setFontSizePercent(value: Int) {
         _uiState.update { it.copy(fontSizePercent = value) }
         viewModelScope.launch { preferencesManager.setFontSizePercent(value) }
+    }
+
+    fun setThemeMode(value: ThemeMode) {
+        _uiState.update { it.copy(themeMode = value) }
+        viewModelScope.launch { preferencesManager.setThemeMode(value) }
     }
 
     fun signOut() {

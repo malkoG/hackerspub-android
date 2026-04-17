@@ -11,6 +11,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import pub.hackers.android.ui.theme.ThemeMode
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,6 +28,7 @@ class PreferencesManager @Inject constructor(
         private val USE_IN_APP_BROWSER = booleanPreferencesKey("use_in_app_browser")
         private val FONT_SIZE_MULTIPLIER = intPreferencesKey("font_size_multiplier") // stored as percentage (100 = 1.0x)
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches")
+        private val THEME_MODE = stringPreferencesKey("theme_mode")
         private const val MAX_RECENT_SEARCHES = 10
     }
 
@@ -59,6 +61,16 @@ class PreferencesManager @Inject constructor(
     suspend fun setFontSizePercent(value: Int) {
         context.preferencesDataStore.edit { prefs ->
             prefs[FONT_SIZE_MULTIPLIER] = value.coerceIn(75, 200)
+        }
+    }
+
+    val themeMode: Flow<ThemeMode> = context.preferencesDataStore.data.map { prefs ->
+        ThemeMode.fromStorage(prefs[THEME_MODE])
+    }
+
+    suspend fun setThemeMode(value: ThemeMode) {
+        context.preferencesDataStore.edit { prefs ->
+            prefs[THEME_MODE] = value.storageValue
         }
     }
 

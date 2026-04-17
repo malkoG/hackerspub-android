@@ -301,7 +301,7 @@ fun PostDetailScreen(
                 FloatingActionButton(
                     onClick = { onReplyClick(postId) },
                     containerColor = colors.composeAccent,
-                    contentColor = Color.White
+                    contentColor = colors.composeOnAccent
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Reply,

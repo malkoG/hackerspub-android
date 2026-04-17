@@ -141,6 +141,13 @@
     <string name="settings_timeline">Timeline</string>
     <string name="settings_timeline_max_length">Post preview length</string>
     <string name="settings_timeline_unlimited">Unlimited</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">Follow system</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_dynamic">Dynamic color (Material You)</string>
+    <string name="settings_theme_dynamic_unavailable">Requires Android 12+</string>
+    <string name="back">Back</string>
 
     <!-- Profile -->
     <string name="profile_tab_posts">Posts</string>

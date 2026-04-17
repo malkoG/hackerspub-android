@@ -199,7 +199,7 @@ fun TimelineScreen(
             FloatingActionButton(
                 onClick = { onComposeClick(null) },
                 containerColor = colors.composeAccent,
-                contentColor = androidx.compose.ui.graphics.Color.White
+                contentColor = colors.composeOnAccent
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
