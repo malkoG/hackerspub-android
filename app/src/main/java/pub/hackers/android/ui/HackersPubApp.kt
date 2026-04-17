@@ -431,6 +431,13 @@ fun HackersPubApp(
                     onProfileClick = { handle ->
                         navController.navigate(DetailScreen.Profile.createRoute(handle))
                     },
+                    onNavigateBack = {
+                        if (!navController.popBackStack()) {
+                            navController.navigate(Screen.Timeline.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    },
                     onDraftsClick = {
                         navController.navigate(DetailScreen.Drafts.route)
                     },

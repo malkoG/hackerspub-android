@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.filled.Add
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -30,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -55,12 +59,14 @@ import pub.hackers.android.R
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
+import pub.hackers.android.ui.theme.ThemeMode
 
 @Composable
 fun SettingsScreen(
     onSignInClick: () -> Unit,
     onSignOutComplete: () -> Unit,
     onProfileClick: (String) -> Unit,
+    onNavigateBack: () -> Unit,
     onDraftsClick: () -> Unit = {},
     isLoggedIn: Boolean,
     viewModel: SettingsViewModel = hiltViewModel()
@@ -70,6 +76,7 @@ fun SettingsScreen(
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showAddPasskeyDialog by remember { mutableStateOf(false) }
     var showRevokePasskeyId by remember { mutableStateOf<String?>(null) }
+    var showThemeDialog by remember { mutableStateOf(false) }
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
     // Passkey requires the feature flag AND Android 9+
@@ -126,7 +133,18 @@ fun SettingsScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            LargeTitleHeader(title = stringResource(R.string.settings))
+            LargeTitleHeader(
+                title = stringResource(R.string.settings),
+                leadingContent = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = colors.accent
+                        )
+                    }
+                }
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -322,6 +340,35 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable { showThemeDialog = true }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Palette,
+                    contentDescription = null,
+                    tint = colors.textSecondary
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_theme),
+                        style = typography.bodyLarge,
+                        color = colors.textPrimary
+                    )
+                    Text(
+                        text = stringResource(uiState.themeMode.labelRes()),
+                        style = typography.bodyMedium,
+                        color = colors.textSecondary
+                    )
+                }
+            }
+
+            HorizontalDivider(color = colors.divider, thickness = 1.dp)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .clickable { viewModel.clearCache() }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -409,6 +456,17 @@ fun SettingsScreen(
         )
     }
 
+    if (showThemeDialog) {
+        ThemeSelectionDialog(
+            current = uiState.themeMode,
+            onSelect = {
+                viewModel.setThemeMode(it)
+                showThemeDialog = false
+            },
+            onDismiss = { showThemeDialog = false }
+        )
+    }
+
     // Revoke passkey confirmation dialog
     val passkeyIdToRevoke = showRevokePasskeyId
     if (passkeyEnabled && passkeyIdToRevoke != null) {
@@ -443,6 +501,72 @@ internal fun RevokePasskeyDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@androidx.annotation.StringRes
+private fun ThemeMode.labelRes(): Int = when (this) {
+    ThemeMode.SYSTEM -> R.string.settings_theme_system
+    ThemeMode.LIGHT -> R.string.settings_theme_light
+    ThemeMode.DARK -> R.string.settings_theme_dark
+    ThemeMode.DYNAMIC -> R.string.settings_theme_dynamic
+}
+
+@Composable
+@androidx.annotation.VisibleForTesting
+internal fun ThemeSelectionDialog(
+    current: ThemeMode,
+    onSelect: (ThemeMode) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val dynamicSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_theme)) },
+        text = {
+            Column {
+                ThemeMode.entries.forEach { mode ->
+                    val enabled = mode != ThemeMode.DYNAMIC || dynamicSupported
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled = enabled) { onSelect(mode) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = current == mode,
+                            onClick = if (enabled) ({ onSelect(mode) }) else null,
+                            enabled = enabled,
+                            colors = RadioButtonDefaults.colors(selectedColor = colors.accent)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = stringResource(mode.labelRes()),
+                                style = typography.bodyLarge,
+                                color = if (enabled) colors.textPrimary else colors.textSecondary
+                            )
+                            if (mode == ThemeMode.DYNAMIC && !dynamicSupported) {
+                                Text(
+                                    text = stringResource(R.string.settings_theme_dynamic_unavailable),
+                                    style = typography.bodyMedium,
+                                    color = colors.textSecondary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel), color = colors.accent)
             }
         }
     )

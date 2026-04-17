@@ -11,6 +11,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.junit.Before
 import org.robolectric.annotation.Config
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
@@ -30,6 +31,14 @@ class ComposeViewModelTest {
 
     private val repository = mockk<HackersPubRepository>(relaxed = true)
     private val context = mockk<Context>(relaxed = true)
+
+    @Before
+    fun stubViewer() {
+        // ComposeViewModel.init calls repository.getViewer(); the relaxed
+        // mock's default Result wraps a generic Object that crashes when the
+        // collector destructures it as Viewer?. Stub explicitly.
+        coEvery { repository.getViewer() } returns Result.success(null)
+    }
 
     private fun newViewModel() = ComposeViewModel(repository, context)
 
