@@ -1,0 +1,7 @@
+When reply is done, 
+1. If timeline page, scroll to top and refresh
+2. For post/article detail page, and succeeded optimistically append
+
+---
+
+commit fine grained

@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "7e2d38b0b43d",
+  "session_id": "cd87a744-7e19-434d-9fa1-c33a0f9e690f",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-18T20:31:05.406272Z",
+  "branch": "fix/optimistic-reply-append",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ComposeViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/compose/ReplyPostedSignal.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailViewModel.kt",
+    "app/src/test/java/pub/hackers/android/ui/screens/compose/ComposeViewModelTest.kt",
+    "app/src/test/java/pub/hackers/android/ui/screens/postdetail/PostDetailViewModelTest.kt"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 108,
+    "cache_creation_tokens": 211672,
+    "cache_read_tokens": 11741522,
+    "output_tokens": 43073,
+    "api_call_count": 93
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-18T20:31:04.858465Z",
+    "agent_lines": 144,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 7,
+    "total_committed": 144,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-optimistic-reply-append/cd87a744-7e19-434d-9fa1-c33a0f9e690f.jsonl"
+}
