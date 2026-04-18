@@ -464,6 +464,7 @@ fun PostDetailScreen(
             ) {
                 FloatingActionButton(
                     onClick = onScrollToTop,
+                    shape = CircleShape,
                     containerColor = colors.surface,
                     contentColor = colors.accent
                 ) {
