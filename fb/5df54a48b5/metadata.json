@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "fb5df54a48b5",
+  "strategy": "manual-commit",
+  "branch": "fix/notification-refresh",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/extensions.graphqls",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/FeatureFlags.kt",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/notifications/NotificationsViewModel.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fb/5df54a48b5/0/metadata.json",
+      "transcript": "/fb/5df54a48b5/0/full.jsonl",
+      "context": "/fb/5df54a48b5/0/context.md",
+      "content_hash": "/fb/5df54a48b5/0/content_hash.txt",
+      "prompt": "/fb/5df54a48b5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 887,
+    "cache_creation_tokens": 108283,
+    "cache_read_tokens": 3130880,
+    "output_tokens": 21356,
+    "api_call_count": 55
+  }
+}
