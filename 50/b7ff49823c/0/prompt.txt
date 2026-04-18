@@ -1,0 +1,163 @@
+When reply is done, 
+1. If timeline page, scroll to top and refresh
+2. For post/article detail page, and succeeded optimistically append
+
+---
+
+commit fine grained
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+
+---
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+The `Assisted-By` footer credits the AI agent that assisted in creating the PR. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+<bash-input>git pull upstream main</bash-input>
+
+---
+
+<bash-stdout></bash-stdout><bash-stderr>From github.com:hackers-pub/android
+ * branch            main       -&gt; FETCH_HEAD
+Rebasing (1/5)Rebasing (2/5)Rebasing (3/5)Auto-merging app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailViewModel.kt
+CONFLICT (content): Merge conflict in app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailViewModel.kt
+error: could not apply 074ef0f... Append replies to PostDetail optimistically on post success
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm &lt;conflicted_files&gt;", then run "git rebase --continue".
+hint: You can instead skip this commit: run "git rebase --skip".
+hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+Could not apply 074ef0f... # Append replies to PostDetail optimistically on post success
+</bash-stderr>
+
+---
+
+Resolve conflict
+
+---
+
+<bash-input>git push --force</bash-input>
+
+---
+
+<bash-stdout>To github.com:malkoG/hackerspub-android.git
+ + 5a090d0...df4386e fix/optimistic-reply-append -> fix/optimistic-reply-append (forced update)</bash-stdout><bash-stderr></bash-stderr>
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/ghpr
+
+# Create Pull Request
+
+Create a pull request with auto-generated title and body from commits.
+
+**Arguments**: `onto upstream main` (optional base branch, defaults to `main`)
+
+## Instructions
+
+1. Parse the base branch:
+   - If `onto upstream main` is provided, use it as the base branch
+   - Otherwise, default to `main`
+
+2. Gather information about the current branch:
+   - Run `git branch --show-current` to get the current branch name
+   - Run `git log <base>..HEAD --oneline` to see commits not in base
+   - Run `git diff <base>...HEAD --stat` to see changed files summary
+
+3. Analyze the commits to generate:
+   - **Title**: A clear, descriptive summary of what the PR does
+   - **Body**: A 2-3 sentence summary explaining the key changes and why they were made
+
+4. Check if branch needs to be pushed:
+   - Run `git status` to check if ahead of remote
+   - Push with `git push -u origin <branch>` if needed
+
+5. Create the PR using:
+```bash
+gh pr create --base <base-branch> --title "the pr title" --body "$(cat <<'EOF'
+## Summary
+<2-3 sentence summary explaining what changed and why>
+
+---
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+The `Assisted-By` footer credits the AI agent that assisted in creating the PR. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+6. Return the PR URL to the user.
+
+## Examples
+- `/ghpr` - Create PR against main
+- `/ghpr develop` - Create PR against develop branch
+
+## Important
+- Compare against the specified base branch (default: main)
+- If there are no commits ahead of base, inform the user
+- Don't push to the base branch directly - warn if on base branch
+
+---
+
+For article detail page, do we render image assets??????
+
+---
+
+Please. It also need to be rendered. also for gif
+
+---
+
+[Request interrupted by user]
+
+---
+
+Okay, coil-gif to be optional. Just leave TODO comment
