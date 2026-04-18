@@ -23,7 +23,6 @@ import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.BaselineShift
@@ -37,6 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
+import pub.hackers.android.ui.theme.UbuntuMonoFontFamily
 import java.net.URI
 
 val LocalFontScale = compositionLocalOf { 1f }
@@ -575,7 +575,7 @@ internal fun parseHtmlToAnnotatedString(
                             if (hasContent) append("\n\n")
                             preDepth++
                             pushStyle(SpanStyle(
-                                fontFamily = FontFamily.Monospace,
+                                fontFamily = UbuntuMonoFontFamily,
                                 background = codeBg,
                                 fontSize = 0.875.em
                             ))
@@ -587,7 +587,7 @@ internal fun parseHtmlToAnnotatedString(
                             if (preDepth == 0) {
                                 // Only style inline <code>, not <pre><code>
                                 pushStyle(SpanStyle(
-                                    fontFamily = FontFamily.Monospace,
+                                    fontFamily = UbuntuMonoFontFamily,
                                     background = codeBg,
                                     fontSize = 0.875.em
                                 ))
