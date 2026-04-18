@@ -56,8 +56,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.zIndex
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -434,37 +435,16 @@ fun PostDetailScreen(
             )
         },
         floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                AnimatedVisibility(
-                    visible = showScrollToTop,
-                    enter = fadeIn() + scaleIn(),
-                    exit = fadeOut() + scaleOut()
+            if (uiState.post != null && isLoggedIn) {
+                FloatingActionButton(
+                    onClick = { onReplyClick(postId) },
+                    containerColor = colors.composeAccent,
+                    contentColor = colors.composeOnAccent
                 ) {
-                    SmallFloatingActionButton(
-                        onClick = onScrollToTop,
-                        containerColor = colors.surface,
-                        contentColor = colors.accent
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.KeyboardArrowUp,
-                            contentDescription = stringResource(R.string.scroll_to_top)
-                        )
-                    }
-                }
-                if (uiState.post != null && isLoggedIn) {
-                    FloatingActionButton(
-                        onClick = { onReplyClick(postId) },
-                        containerColor = colors.composeAccent,
-                        contentColor = colors.composeOnAccent
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Reply,
-                            contentDescription = stringResource(R.string.reply)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Reply,
+                        contentDescription = stringResource(R.string.reply)
+                    )
                 }
             }
         }
@@ -474,6 +454,27 @@ fun PostDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            AnimatedVisibility(
+                visible = showScrollToTop,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut(),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 12.dp, end = 16.dp)
+                    .zIndex(1f)
+            ) {
+                LargeFloatingActionButton(
+                    onClick = onScrollToTop,
+                    containerColor = colors.surface,
+                    contentColor = colors.accent
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowUp,
+                        contentDescription = stringResource(R.string.scroll_to_top),
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+            }
             val post = uiState.post
             PostDetailStateDispatch(
                 post = post,
