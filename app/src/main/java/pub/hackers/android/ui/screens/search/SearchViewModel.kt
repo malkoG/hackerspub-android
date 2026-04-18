@@ -3,6 +3,7 @@ package pub.hackers.android.ui.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ data class SearchUiState(
     val mode: SearchMode = SearchMode.ALL,
     val actors: List<Actor> = emptyList(),
     val posts: List<Post> = emptyList(),
+    val taggedPosts: List<Post> = emptyList(),
     val isLoading: Boolean = false,
     val hasSearched: Boolean = false,
     val error: String? = null,
@@ -50,17 +52,12 @@ class SearchViewModel @Inject constructor(
     }
 
     fun setMode(mode: SearchMode) {
-        if (_uiState.value.mode == mode) return
         _uiState.update { it.copy(mode = mode) }
-        if (_uiState.value.hasSearched && _uiState.value.query.isNotBlank()) {
-            search()
-        }
     }
 
     fun search() {
         val rawQuery = _uiState.value.query.trim()
         if (rawQuery.isEmpty()) return
-        val mode = _uiState.value.mode
 
         viewModelScope.launch {
             _uiState.update {
@@ -70,58 +67,45 @@ class SearchViewModel @Inject constructor(
                     hasSearched = true,
                     resolvedObjectUrl = null,
                     actors = emptyList(),
-                    posts = emptyList()
+                    posts = emptyList(),
+                    taggedPosts = emptyList()
                 )
             }
 
             preferencesManager.addRecentSearch(rawQuery)
 
-            repository.searchObject(rawQuery)
-                .onSuccess { url ->
-                    if (url != null) {
-                        _uiState.update { it.copy(resolvedObjectUrl = url) }
-                    }
-                }
+            val handleQuery = rawQuery.removePrefix("@")
+            val tagQuery = if (rawQuery.startsWith("#")) rawQuery else "#$rawQuery"
 
-            when (mode) {
-                SearchMode.ALL -> {
-                    val handleQuery = rawQuery.removePrefix("@")
-                    repository.searchActorsByHandle(handleQuery, limit = 5)
-                        .onSuccess { actors ->
-                            _uiState.update { it.copy(actors = actors) }
-                        }
-                    repository.searchPosts(rawQuery)
-                        .onSuccess { posts ->
-                            _uiState.update { it.copy(posts = posts, isLoading = false) }
-                        }
-                        .onFailure { error ->
-                            _uiState.update { it.copy(error = error.message, isLoading = false) }
-                        }
-                }
-                SearchMode.PEOPLE -> {
-                    val handleQuery = rawQuery.removePrefix("@")
-                    repository.searchActorsByHandle(handleQuery, limit = 30)
-                        .onSuccess { actors ->
-                            _uiState.update { it.copy(actors = actors, isLoading = false) }
-                        }
-                        .onFailure { error ->
-                            _uiState.update { it.copy(error = error.message, isLoading = false) }
-                        }
-                }
-                SearchMode.POSTS, SearchMode.TAGS -> {
-                    val postQuery = if (mode == SearchMode.TAGS && !rawQuery.startsWith("#")) {
-                        "#$rawQuery"
-                    } else {
-                        rawQuery
-                    }
-                    repository.searchPosts(postQuery)
-                        .onSuccess { posts ->
-                            _uiState.update { it.copy(posts = posts, isLoading = false) }
-                        }
-                        .onFailure { error ->
-                            _uiState.update { it.copy(error = error.message, isLoading = false) }
-                        }
-                }
+            val objectDeferred = async { repository.searchObject(rawQuery) }
+            val actorsDeferred = async { repository.searchActorsByHandle(handleQuery, limit = 30) }
+            val postsDeferred = async { repository.searchPosts(rawQuery) }
+            val tagsDeferred = async { repository.searchPosts(tagQuery) }
+
+            val objectResult = objectDeferred.await()
+            val actorsResult = actorsDeferred.await()
+            val postsResult = postsDeferred.await()
+            val tagsResult = tagsDeferred.await()
+
+            val resolvedUrl = objectResult.getOrNull()
+            val actors = actorsResult.getOrDefault(emptyList())
+            val posts = postsResult.getOrDefault(emptyList())
+            val taggedPosts = tagsResult.getOrDefault(emptyList())
+
+            val anySuccess =
+                actorsResult.isSuccess || postsResult.isSuccess || tagsResult.isSuccess
+            val firstError = listOf(actorsResult, postsResult, tagsResult)
+                .firstNotNullOfOrNull { it.exceptionOrNull() }
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    resolvedObjectUrl = resolvedUrl,
+                    actors = actors,
+                    posts = posts,
+                    taggedPosts = taggedPosts,
+                    error = if (!anySuccess) firstError?.message else null
+                )
             }
         }
     }

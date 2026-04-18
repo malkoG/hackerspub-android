@@ -171,7 +171,8 @@ fun SearchScreen(
                         )
                     }
                     uiState.mode == SearchMode.ALL -> {
-                        val hasActors = uiState.actors.isNotEmpty()
+                        val allActors = uiState.actors.take(5)
+                        val hasActors = allActors.isNotEmpty()
                         val hasPosts = uiState.posts.isNotEmpty()
                         when {
                             uiState.hasSearched && !hasActors && !hasPosts -> {
@@ -184,7 +185,7 @@ fun SearchScreen(
                                             SearchSectionHeader(stringResource(R.string.search_people))
                                         }
                                         items(
-                                            items = uiState.actors,
+                                            items = allActors,
                                             key = { "actor-${it.id}" }
                                         ) { actor ->
                                             SearchActorRow(
@@ -260,14 +261,19 @@ fun SearchScreen(
                         }
                     }
                     else -> {
+                        val postList = if (uiState.mode == SearchMode.TAGS) {
+                            uiState.taggedPosts
+                        } else {
+                            uiState.posts
+                        }
                         when {
-                            uiState.hasSearched && uiState.posts.isEmpty() -> {
+                            uiState.hasSearched && postList.isEmpty() -> {
                                 ErrorMessage(message = stringResource(R.string.no_results))
                             }
-                            uiState.posts.isNotEmpty() -> {
+                            postList.isNotEmpty() -> {
                                 LazyColumn {
                                     items(
-                                        items = uiState.posts,
+                                        items = postList,
                                         key = { it.id }
                                     ) { post ->
                                         SearchPostItem(
