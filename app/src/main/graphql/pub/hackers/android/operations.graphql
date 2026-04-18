@@ -432,6 +432,11 @@ query PostDetail($id: ID!, $repliesAfter: String) {
                 }
             }
         }
+        ... on Article {
+            contents {
+                toc
+            }
+        }
     }
 }
 
