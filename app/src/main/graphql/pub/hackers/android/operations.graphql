@@ -930,3 +930,51 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
 mutation MarkNotificationsAsRead {
     markNotificationsAsRead
 }
+
+query ArticleForEdit($id: ID!) {
+    node(id: $id) {
+        ... on Article {
+            id
+            name
+            tags
+            language
+            allowLlmTranslation
+            contents {
+                language
+                rawContent
+            }
+        }
+    }
+}
+
+mutation UpdateArticle(
+    $articleId: ID!,
+    $title: String,
+    $content: Markdown,
+    $tags: [String!],
+    $language: Locale,
+    $allowLlmTranslation: Boolean
+) {
+    updateArticle(input: {
+        articleId: $articleId,
+        title: $title,
+        content: $content,
+        tags: $tags,
+        language: $language,
+        allowLlmTranslation: $allowLlmTranslation
+    }) {
+        ... on UpdateArticlePayload {
+            article {
+                id
+                name
+                url
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
