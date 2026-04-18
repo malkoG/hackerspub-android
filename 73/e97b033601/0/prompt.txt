@@ -1,0 +1,69 @@
+Add edit button for article detail page
+
+---
+
+Commit fine-grained
+
+---
+
+See ../hackerspub
+
+---
+
+Okay activate only from feature flag because not deployed yet.
+
+---
+
+<bash-input>git pull upstream main</bash-input>
+
+---
+
+<bash-stdout></bash-stdout><bash-stderr>From github.com:hackers-pub/android
+ * branch            main       -&gt; FETCH_HEAD
+   df6d4ce..6382f05  main       -&gt; upstream/main
+Rebasing (1/7)Rebasing (2/7)Auto-merging app/src/main/graphql/pub/hackers/android/operations.graphql
+CONFLICT (content): Merge conflict in app/src/main/graphql/pub/hackers/android/operations.graphql
+error: could not apply 14b4a17... Add UpdateArticle mutation and ArticleForEdit query
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm &lt;conflicted_files&gt;", then run "git rebase --continue".
+hint: You can instead skip this commit: run "git rebase --skip".
+hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+Could not apply 14b4a17... # Add UpdateArticle mutation and ArticleForEdit query
+</bash-stderr>
+
+---
+
+Resolve conflicts
+
+---
+
+How can I edit my article???
+
+---
+
+Yes
+
+---
+
+Wait, We can't setup the original content. See ../hackerspub's approach
+
+---
+
+I still see `cannot fetch rawContent ... `
+
+---
+
+Yes. See ../hackerspub
+
+---
+
+For draft management, provide preview which displays rendered result
+
+---
+
+We already have preview api. Did you know it?
+
+---
+
+Okay, go with a
