@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "ff86a79a6dd9",
+  "strategy": "manual-commit",
+  "branch": "fix/search-ux",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/ui/screens/search/SearchScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/search/SearchViewModel.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ff/86a79a6dd9/0/metadata.json",
+      "transcript": "/ff/86a79a6dd9/0/full.jsonl",
+      "context": "/ff/86a79a6dd9/0/context.md",
+      "content_hash": "/ff/86a79a6dd9/0/content_hash.txt",
+      "prompt": "/ff/86a79a6dd9/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 51,
+    "cache_creation_tokens": 89104,
+    "cache_read_tokens": 1833257,
+    "output_tokens": 23163,
+    "api_call_count": 36
+  }
+}
