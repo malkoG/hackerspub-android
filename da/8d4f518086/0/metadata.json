@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "da8d4f518086",
+  "session_id": "55cce08a-8003-463c-9556-782fc0533ca6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-18T21:18:20.787541Z",
+  "branch": "fix/article-edit-functionality",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "9a5260b7-d26d-4653-adf4-d41d33c963be",
+  "checkpoint_transcript_start": 1289,
+  "transcript_lines_at_start": 1289,
+  "token_usage": {
+    "input_tokens": 9,
+    "cache_creation_tokens": 1386,
+    "cache_read_tokens": 1193126,
+    "output_tokens": 946,
+    "api_call_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-18T21:18:20.116681Z",
+    "agent_lines": 1,
+    "human_added": 21,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 22,
+    "agent_percentage": 4.545454545454546
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-article-edit-functionality/55cce08a-8003-463c-9556-782fc0533ca6.jsonl"
+}
