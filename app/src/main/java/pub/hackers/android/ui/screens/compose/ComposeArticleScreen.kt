@@ -56,6 +56,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import pub.hackers.android.R
+import pub.hackers.android.ui.components.HtmlContent
+import pub.hackers.android.ui.components.HtmlContentStyle
+import pub.hackers.android.ui.components.markdownToHtml
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
@@ -220,9 +223,29 @@ fun ComposeArticleScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = colors.divider)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Content field
+                // Edit / Preview toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    ComposePreviewToggle(
+                        label = stringResource(R.string.compose_edit),
+                        selected = !uiState.isPreview,
+                        onClick = { viewModel.setPreview(false) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    ComposePreviewToggle(
+                        label = stringResource(R.string.compose_preview),
+                        selected = uiState.isPreview,
+                        onClick = { viewModel.setPreview(true) }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Content field / preview
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(4.dp),
@@ -233,39 +256,59 @@ fun ComposeArticleScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(400.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                contentFocusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
+                            .then(
+                                if (!uiState.isPreview) Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    contentFocusRequester.requestFocus()
+                                    keyboardController?.show()
+                                } else Modifier
+                            )
                             .padding(16.dp)
                     ) {
-                        BasicTextField(
-                            value = uiState.content,
-                            onValueChange = { viewModel.updateContent(it) },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .focusRequester(contentFocusRequester),
-                            enabled = !uiState.isSaving && !uiState.isPublishing,
-                            textStyle = typography.bodyLarge.copy(
-                                color = colors.textBody
-                            ),
-                            cursorBrush = SolidColor(colors.composeAccent),
-                            decorationBox = { innerTextField ->
-                                Box {
-                                    if (uiState.content.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.article_content_hint),
-                                            style = typography.bodyLarge,
-                                            color = colors.textSecondary
-                                        )
-                                    }
-                                    innerTextField()
+                        if (uiState.isPreview) {
+                            if (uiState.content.isBlank()) {
+                                Text(
+                                    text = stringResource(R.string.compose_preview_empty),
+                                    style = typography.bodyLarge,
+                                    color = colors.textSecondary
+                                )
+                            } else {
+                                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                    HtmlContent(
+                                        html = markdownToHtml(uiState.content),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentStyle = HtmlContentStyle.Prose
+                                    )
                                 }
                             }
-                        )
+                        } else {
+                            BasicTextField(
+                                value = uiState.content,
+                                onValueChange = { viewModel.updateContent(it) },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .focusRequester(contentFocusRequester),
+                                enabled = !uiState.isSaving && !uiState.isPublishing,
+                                textStyle = typography.bodyLarge.copy(
+                                    color = colors.textBody
+                                ),
+                                cursorBrush = SolidColor(colors.composeAccent),
+                                decorationBox = { innerTextField ->
+                                    Box {
+                                        if (uiState.content.isEmpty()) {
+                                            Text(
+                                                text = stringResource(R.string.article_content_hint),
+                                                style = typography.bodyLarge,
+                                                color = colors.textSecondary
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -480,4 +523,22 @@ fun ComposeArticleScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ComposePreviewToggle(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    Text(
+        text = label,
+        style = typography.labelMedium,
+        color = if (selected) colors.composeAccent else colors.textSecondary,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
 }

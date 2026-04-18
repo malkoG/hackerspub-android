@@ -34,6 +34,7 @@ data class ComposeArticleUiState(
     val isPublished: Boolean = false,
     val publishedArticleId: String? = null,
     val publishedArticleUrl: String? = null,
+    val isPreview: Boolean = false,
     val error: String? = null
 )
 
@@ -162,6 +163,10 @@ class ComposeArticleViewModel @Inject constructor(
 
     fun updateAllowLlmTranslation(allow: Boolean) {
         _uiState.update { it.copy(allowLlmTranslation = allow) }
+    }
+
+    fun setPreview(preview: Boolean) {
+        _uiState.update { it.copy(isPreview = preview) }
     }
 
     fun saveDraft() {
