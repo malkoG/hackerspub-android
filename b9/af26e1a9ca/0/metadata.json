@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "b9af26e1a9ca",
+  "session_id": "387b78c4-32e1-4cb9-9eb3-d483eede8d94",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-18T00:31:10.068569Z",
+  "branch": "fix/search-ux",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/search/SearchScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/search/SearchViewModel.kt",
+    "app/src/main/res/values/strings.xml"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "2740da17-b107-469a-b569-27f3b2c2b361",
+  "checkpoint_transcript_start": 218,
+  "transcript_lines_at_start": 218,
+  "token_usage": {
+    "input_tokens": 21,
+    "cache_creation_tokens": 21840,
+    "cache_read_tokens": 1431030,
+    "output_tokens": 15288,
+    "api_call_count": 16
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-18T00:31:09.771178Z",
+    "agent_lines": 144,
+    "human_added": 7,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 151,
+    "agent_percentage": 95.36423841059603
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-search-ux/387b78c4-32e1-4cb9-9eb3-d483eede8d94.jsonl"
+}
