@@ -1,0 +1,6 @@
+extend type Mutation {
+    """
+    Marks all notifications as read up to the current time. Returns the timestamp.
+    """
+    markNotificationsAsRead: DateTime!
+}

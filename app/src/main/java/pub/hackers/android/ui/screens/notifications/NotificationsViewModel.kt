@@ -7,6 +7,7 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import pub.hackers.android.FeatureFlags
 import pub.hackers.android.data.local.NotificationStateManager
 import pub.hackers.android.data.paging.cursorPager
 import pub.hackers.android.data.paging.notificationsPage
@@ -24,6 +25,12 @@ class NotificationsViewModel @Inject constructor(
         cursorPager { after -> repository.notificationsPage(after) }
             .flow
             .cachedIn(viewModelScope)
+
+    init {
+        if (FeatureFlags.MARK_NOTIFICATIONS_AS_READ_ENABLED) {
+            viewModelScope.launch { repository.markNotificationsAsRead() }
+        }
+    }
 
     fun markAsSeen() {
         viewModelScope.launch { notificationStateManager.markAsSeen() }

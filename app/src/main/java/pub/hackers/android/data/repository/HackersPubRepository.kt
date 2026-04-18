@@ -26,6 +26,7 @@ import pub.hackers.android.graphql.FollowActorMutation
 import pub.hackers.android.graphql.LocalTimelineQuery
 import pub.hackers.android.graphql.LoginByPasskeyMutation
 import pub.hackers.android.graphql.LoginByUsernameMutation
+import pub.hackers.android.graphql.MarkNotificationsAsReadMutation
 import pub.hackers.android.graphql.NotificationsQuery
 import pub.hackers.android.graphql.PersonalTimelineQuery
 import pub.hackers.android.graphql.PostQuotesQuery
@@ -176,6 +177,19 @@ class HackersPubRepository @Inject constructor(
                         )
                     )
                 }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun markNotificationsAsRead(): Result<Unit> {
+        return try {
+            val response = apolloClient.mutation(MarkNotificationsAsReadMutation()).execute()
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                Result.success(Unit)
             }
         } catch (e: Exception) {
             Result.failure(e)

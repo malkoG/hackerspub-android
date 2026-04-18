@@ -928,3 +928,7 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
         }
     }
 }
+
+mutation MarkNotificationsAsRead {
+    markNotificationsAsRead
+}
