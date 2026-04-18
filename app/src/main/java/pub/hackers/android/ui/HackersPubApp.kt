@@ -48,12 +48,15 @@ import pub.hackers.android.ui.screens.explore.ExploreScreen
 import pub.hackers.android.ui.screens.notifications.NotificationsScreen
 import pub.hackers.android.ui.screens.postdetail.PostByUrlResolverScreen
 import pub.hackers.android.ui.screens.postdetail.PostDetailScreen
+import pub.hackers.android.ui.screens.editprofile.EditProfileScreen
 import pub.hackers.android.ui.screens.profile.ProfileScreen
 import pub.hackers.android.ui.screens.recommendedactors.RecommendedActorsScreen
 import pub.hackers.android.ui.screens.search.SearchScreen
 import pub.hackers.android.ui.screens.settings.SettingsScreen
 import pub.hackers.android.ui.screens.timeline.TimelineScreen
 import pub.hackers.android.ui.screens.webview.WebViewScreen
+
+private const val PROFILE_REFRESH_KEY = "profile_refresh"
 
 sealed class Screen(
     val route: String,
@@ -140,6 +143,7 @@ sealed class DetailScreen(val route: String) {
         }
     }
     data object Drafts : DetailScreen("drafts")
+    data object EditProfile : DetailScreen("edit-profile")
     data object WebView : DetailScreen("webview?url={url}") {
         fun createRoute(url: String): String {
             val encoded = android.net.Uri.encode(url)
@@ -557,8 +561,15 @@ fun HackersPubApp(
                 arguments = listOf(navArgument("handle") { type = NavType.StringType })
             ) { backStackEntry ->
                 val handle = backStackEntry.arguments?.getString("handle") ?: return@composable
+                val profileRefreshFlag = backStackEntry.savedStateHandle
+                    .getStateFlow(PROFILE_REFRESH_KEY, false)
+                    .collectAsState()
                 ProfileScreen(
                     handle = handle,
+                    refreshSignal = profileRefreshFlag.value,
+                    onRefreshConsumed = {
+                        backStackEntry.savedStateHandle[PROFILE_REFRESH_KEY] = false
+                    },
                     onNavigateBack = {
                         navController.popBackStack()
                     },
@@ -573,6 +584,23 @@ fun HackersPubApp(
                     },
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
+                    },
+                    onEditProfileClick = {
+                        navController.navigate(DetailScreen.EditProfile.route)
+                    }
+                )
+            }
+
+            composable(DetailScreen.EditProfile.route) {
+                EditProfileScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaved = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(PROFILE_REFRESH_KEY, true)
+                        navController.popBackStack()
                     }
                 )
             }

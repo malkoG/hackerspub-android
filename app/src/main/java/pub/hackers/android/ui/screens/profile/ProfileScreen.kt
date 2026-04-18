@@ -93,10 +93,20 @@ fun ProfileScreen(
     onProfileClick: (String) -> Unit = {},
     onReplyClick: (String) -> Unit = {},
     onQuoteClick: (String) -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
+    refreshSignal: Boolean = false,
+    onRefreshConsumed: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
+
+    androidx.compose.runtime.LaunchedEffect(refreshSignal) {
+        if (refreshSignal) {
+            viewModel.refresh()
+            onRefreshConsumed()
+        }
+    }
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val colors = LocalAppColors.current
@@ -231,6 +241,7 @@ fun ProfileScreen(
                                 isPerformingAction = uiState.isPerformingAction,
                                 onFollowClick = { viewModel.followActor() },
                                 onUnfollowClick = { viewModel.unfollowActor() },
+                                onEditProfileClick = onEditProfileClick,
                                 onMentionClick = onProfileClick
                             )
                         }
@@ -577,6 +588,7 @@ private fun ProfileHeader(
     isPerformingAction: Boolean,
     onFollowClick: () -> Unit,
     onUnfollowClick: () -> Unit,
+    onEditProfileClick: () -> Unit = {},
     onMentionClick: (String) -> Unit = {}
 ) {
     val colors = LocalAppColors.current
@@ -622,6 +634,24 @@ private fun ProfileHeader(
                 followsViewer = followsViewer,
                 viewerBlocks = viewerBlocks
             )
+        }
+
+        if (isViewer) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = onEditProfileClick,
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(1.5.dp, colors.buttonOutline),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = colors.accent
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.edit_profile),
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+            }
         }
 
         if (!isViewer) {
