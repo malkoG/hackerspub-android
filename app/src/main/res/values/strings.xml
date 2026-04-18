@@ -181,4 +181,20 @@
     <string name="error_generic">Something went wrong</string>
     <string name="error_network">Network error. Please check your connection.</string>
     <string name="retry">Retry</string>
+
+    <!-- Edit profile -->
+    <string name="edit_profile_title">Edit profile</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="edit_profile_save">Save</string>
+    <string name="edit_profile_name_label">Display name</string>
+    <string name="edit_profile_bio_label">Bio</string>
+    <string name="edit_profile_bio_hint">Markdown supported</string>
+    <string name="edit_profile_links_section">Links</string>
+    <string name="edit_profile_add_link">Add link</string>
+    <string name="edit_profile_link_name">Label</string>
+    <string name="edit_profile_link_url">URL</string>
+    <string name="edit_profile_remove_link">Remove link</string>
+    <string name="edit_profile_change_avatar">Change avatar</string>
+    <string name="edit_profile_avatar_too_large">Image is too large</string>
+    <string name="edit_profile_avatar_unsupported">Unsupported image format</string>
 </resources>
