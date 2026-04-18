@@ -288,6 +288,16 @@ data class PublishedArticle(
 )
 
 @Immutable
+data class EditableArticle(
+    val id: String,
+    val title: String,
+    val content: String,
+    val tags: List<String>,
+    val language: String,
+    val allowLlmTranslation: Boolean
+)
+
+@Immutable
 data class ProfileResult(
     val actor: Actor,
     val bio: String?,
