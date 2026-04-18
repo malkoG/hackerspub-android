@@ -63,6 +63,7 @@ import pub.hackers.android.ui.theme.LocalAppTypography
 @Composable
 fun ComposeArticleScreen(
     draftId: String? = null,
+    articleId: String? = null,
     onSaveSuccess: () -> Unit,
     onPublishSuccess: (articleId: String) -> Unit,
     onNavigateBack: () -> Unit,
@@ -80,6 +81,10 @@ fun ComposeArticleScreen(
 
     LaunchedEffect(draftId) {
         draftId?.let { viewModel.loadDraft(it) }
+    }
+
+    LaunchedEffect(articleId) {
+        articleId?.let { viewModel.loadArticleForEdit(it) }
     }
 
     LaunchedEffect(uiState.isSaved) {
@@ -108,13 +113,14 @@ fun ComposeArticleScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (draftId == null) {
+        if (draftId == null && articleId == null) {
             titleFocusRequester.requestFocus()
         }
     }
 
     val saveEnabled = uiState.title.isNotBlank() && !uiState.isSaving && !uiState.isPublishing
     val publishEnabled = uiState.title.isNotBlank() && !uiState.isSaving && !uiState.isPublishing
+    val updateEnabled = uiState.title.isNotBlank() && !uiState.isLoadingArticle && !uiState.isPublishing
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -135,7 +141,9 @@ fun ComposeArticleScreen(
                     )
                 }
                 Text(
-                    text = stringResource(R.string.compose_article),
+                    text = stringResource(
+                        if (uiState.isEditMode) R.string.edit_article else R.string.compose_article
+                    ),
                     style = typography.titleLarge,
                     color = colors.textPrimary,
                     modifier = Modifier.align(Alignment.Center)
@@ -392,8 +400,38 @@ fun ComposeArticleScreen(
                 }
             }
 
-            // Bottom bar with Save Draft + Publish buttons
-            if (!uiState.showPublishFields) {
+            // Bottom bar — Update button in edit mode, Save Draft + Publish otherwise
+            if (uiState.isEditMode) {
+                HorizontalDivider(color = colors.divider)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(
+                        onClick = { viewModel.updateArticle() },
+                        enabled = updateEnabled,
+                        shape = RoundedCornerShape(AppShapes.pillRadius),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.composeAccent,
+                            contentColor = colors.composeOnAccent,
+                            disabledContainerColor = colors.composeAccent,
+                            disabledContentColor = colors.composeOnAccent,
+                        ),
+                        modifier = Modifier.alpha(if (updateEnabled) 1f else 0.4f)
+                    ) {
+                        Text(
+                            text = if (uiState.isPublishing) {
+                                stringResource(R.string.updating_article)
+                            } else {
+                                stringResource(R.string.update_article)
+                            },
+                            color = colors.composeOnAccent
+                        )
+                    }
+                }
+            } else if (!uiState.showPublishFields) {
                 HorizontalDivider(color = colors.divider)
                 Row(
                     modifier = Modifier
