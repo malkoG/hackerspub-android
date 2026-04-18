@@ -1,0 +1,9 @@
+Do we have profile edit mutation? See ../hackerspub
+
+---
+
+How we handle avatar upload then?
+
+---
+
+Okay, go with it

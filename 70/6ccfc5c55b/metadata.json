@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "706ccfc5c55b",
+  "strategy": "manual-commit",
+  "branch": "feature/profile-edit",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/ui/HackersPubApp.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/editprofile/AvatarPicker.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/editprofile/EditProfileScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/editprofile/EditProfileViewModel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/profile/ProfileScreen.kt",
+    "app/src/main/res/values/strings.xml",
+    "app/src/test/java/pub/hackers/android/ui/screens/editprofile/EditProfileViewModelTest.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/70/6ccfc5c55b/0/metadata.json",
+      "transcript": "/70/6ccfc5c55b/0/full.jsonl",
+      "context": "/70/6ccfc5c55b/0/context.md",
+      "content_hash": "/70/6ccfc5c55b/0/content_hash.txt",
+      "prompt": "/70/6ccfc5c55b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 181,
+    "cache_creation_tokens": 182907,
+    "cache_read_tokens": 16837039,
+    "output_tokens": 61780,
+    "api_call_count": 156
+  }
+}
