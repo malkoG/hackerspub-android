@@ -244,7 +244,16 @@ data class PostDetailResult(
     val reactionGroups: List<ReactionGroup>,
     val replies: List<Post>,
     val hasMoreReplies: Boolean,
-    val repliesEndCursor: String?
+    val repliesEndCursor: String?,
+    val toc: List<TocItem> = emptyList(),
+)
+
+@Immutable
+data class TocItem(
+    val id: String,
+    val level: Int,
+    val title: String,
+    val children: List<TocItem>,
 )
 
 @Immutable

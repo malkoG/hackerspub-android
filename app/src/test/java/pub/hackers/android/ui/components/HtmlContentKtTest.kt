@@ -163,6 +163,70 @@ class HtmlContentKtTest {
         assertTrue(blocks[0] is ContentBlock.List)
     }
 
+    @Test
+    fun `splitIntoBlocks does not extract headings by default`() {
+        val html = "<p>intro</p><h2 id=\"sec\">Section</h2><p>body</p>"
+        val blocks = splitIntoBlocks(html)
+        assertEquals(1, blocks.size)
+        assertTrue(blocks[0] is ContentBlock.Text)
+    }
+
+    @Test
+    fun `splitIntoBlocks extracts headings when splitHeadings is true`() {
+        val html = "<p>intro</p><h2 id=\"sec\">Section</h2><p>body</p>"
+        val blocks = splitIntoBlocks(html, splitHeadings = true)
+        assertEquals(3, blocks.size)
+        assertTrue(blocks[0] is ContentBlock.Text)
+        assertTrue(blocks[1] is ContentBlock.Heading)
+        assertTrue(blocks[2] is ContentBlock.Text)
+
+        val heading = blocks[1] as ContentBlock.Heading
+        assertEquals(2, heading.level)
+        assertEquals("sec", heading.anchorId)
+        assertEquals("Section", heading.innerHtml)
+    }
+
+    @Test
+    fun `splitIntoBlocks heading without id leaves anchorId null`() {
+        val html = "<h3>No anchor</h3>"
+        val blocks = splitIntoBlocks(html, splitHeadings = true)
+        assertEquals(1, blocks.size)
+        val heading = blocks[0] as ContentBlock.Heading
+        assertEquals(3, heading.level)
+        assertNull(heading.anchorId)
+        assertEquals("No anchor", heading.innerHtml)
+    }
+
+    @Test
+    fun `splitIntoBlocks splits multiple headings`() {
+        val html = "<h1 id=\"a\">A</h1><p>x</p><h2 id=\"b\">B</h2><p>y</p>"
+        val blocks = splitIntoBlocks(html, splitHeadings = true)
+        assertEquals(4, blocks.size)
+        val h1 = blocks[0] as ContentBlock.Heading
+        val h2 = blocks[2] as ContentBlock.Heading
+        assertEquals("a", h1.anchorId)
+        assertEquals(1, h1.level)
+        assertEquals("b", h2.anchorId)
+        assertEquals(2, h2.level)
+    }
+
+    @Test
+    fun `splitIntoBlocks preserves code blocks when splitHeadings is true`() {
+        val html = "<h2 id=\"s\">Section</h2><pre><code>code</code></pre>"
+        val blocks = splitIntoBlocks(html, splitHeadings = true)
+        assertEquals(2, blocks.size)
+        assertTrue(blocks[0] is ContentBlock.Heading)
+        assertTrue(blocks[1] is ContentBlock.Code)
+    }
+
+    @Test
+    fun `splitIntoBlocks strips docId prefix from heading anchor id`() {
+        val html = "<h2 id=\"019d8e52-2525-7593-b0dc-46fb62d6a0fc--tagged-union\">Tagged Union</h2>"
+        val blocks = splitIntoBlocks(html, splitHeadings = true)
+        val heading = blocks[0] as ContentBlock.Heading
+        assertEquals("tagged-union", heading.anchorId)
+    }
+
     // endregion
 
     // region parseHtmlToAnnotatedString

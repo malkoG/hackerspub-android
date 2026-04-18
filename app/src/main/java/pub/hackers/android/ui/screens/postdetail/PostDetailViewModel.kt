@@ -22,11 +22,13 @@ import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
+import pub.hackers.android.domain.model.TocItem
 import javax.inject.Inject
 
 data class PostDetailUiState(
     val post: Post? = null,
     val reactionGroups: List<ReactionGroup> = emptyList(),
+    val toc: List<TocItem> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
@@ -88,6 +90,7 @@ class PostDetailViewModel @Inject constructor(
                         it.copy(
                             post = result.post,
                             reactionGroups = result.reactionGroups,
+                            toc = result.toc,
                             isLoading = false,
                             canDelete = canDelete
                         )
@@ -119,6 +122,7 @@ class PostDetailViewModel @Inject constructor(
                         it.copy(
                             post = result.post,
                             reactionGroups = result.reactionGroups,
+                            toc = result.toc,
                             isRefreshing = false,
                             canDelete = canDelete
                         )

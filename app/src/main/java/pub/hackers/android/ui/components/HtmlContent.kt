@@ -2,6 +2,7 @@ package pub.hackers.android.ui.components
 
 import android.util.LruCache
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Text
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -56,6 +59,7 @@ internal sealed class ContentBlock {
     data class Text(val html: String) : ContentBlock()
     data class Code(val codeHtml: String) : ContentBlock()
     data class List(val html: String) : ContentBlock()
+    data class Heading(val level: Int, val anchorId: String?, val innerHtml: String) : ContentBlock()
 }
 
 @VisibleForTesting
@@ -74,6 +78,10 @@ private val TAG_REGEX = Regex("""<(/?)(\w+)([^>]*)>""")
 private val ATTR_REGEX = Regex("""([\w-]+)=["']([^"']*)["']""")
 private val PRE_CODE_REGEX = Regex(
     """<pre[^>]*>\s*<code[^>]*>([\s\S]*?)</code>\s*</pre>""",
+    RegexOption.IGNORE_CASE
+)
+private val HEADING_REGEX = Regex(
+    """<h([1-6])([^>]*)>([\s\S]*?)</h\1>""",
     RegexOption.IGNORE_CASE
 )
 private val EMPTY_PARAGRAPH_REGEX = Regex(
@@ -204,7 +212,8 @@ fun HtmlContent(
     contentStyle: HtmlContentStyle = HtmlContentStyle.Compact,
     onMentionClick: ((handle: String) -> Unit)? = null,
     onLinkClick: ((url: String) -> Unit)? = null,
-    onTextClick: (() -> Unit)? = null
+    onTextClick: (() -> Unit)? = null,
+    onHeadingPositioned: ((id: String, coordinates: LayoutCoordinates) -> Unit)? = null,
 ) {
     val uriHandler = LocalUriHandler.current
     val colors = LocalAppColors.current
@@ -246,7 +255,10 @@ fun HtmlContent(
         )
     } else {
         // Full mode: block-based rendering with syntax-highlighted code blocks
-        val blocks = remember(normalizedHtml) { splitIntoBlocks(normalizedHtml) }
+        val splitHeadings = onHeadingPositioned != null
+        val blocks = remember(normalizedHtml, splitHeadings) {
+            splitIntoBlocks(normalizedHtml, splitHeadings = splitHeadings)
+        }
 
         Column(modifier = modifier) {
             blocks.forEachIndexed { index, block ->
@@ -298,6 +310,48 @@ fun HtmlContent(
                         CodeBlockView(
                             codeHtml = block.codeHtml
                         )
+                    }
+                    is ContentBlock.Heading -> {
+                        val headingAnnotated = rememberParsedHtml(
+                            block.innerHtml,
+                            linkColor,
+                            hashtagColor,
+                            mentionBg,
+                            codeBg,
+                            contentStyle,
+                        )
+                        val headingStyle = remember(bodyStyle, block.level) {
+                            bodyStyle.copy(
+                                fontSize = bodyStyle.fontSize * when (block.level) {
+                                    1 -> 1.5f
+                                    2 -> 1.3f
+                                    3 -> 1.15f
+                                    else -> 1.0f
+                                },
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        val anchorId = block.anchorId
+                        val wrapperModifier = Modifier
+                            .fillMaxWidth()
+                            .let { base ->
+                                if (anchorId != null && onHeadingPositioned != null) {
+                                    base.onGloballyPositioned { coords ->
+                                        onHeadingPositioned(anchorId, coords)
+                                    }
+                                } else base
+                            }
+                        Box(modifier = wrapperModifier) {
+                            if (headingAnnotated.isNotEmpty()) {
+                                ClickableText(
+                                    text = headingAnnotated,
+                                    style = headingStyle,
+                                    onClick = { offset ->
+                                        handleClick(headingAnnotated, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -413,7 +467,7 @@ private fun handleClick(
 }
 
 @VisibleForTesting
-internal fun splitIntoBlocks(html: String): List<ContentBlock> {
+internal fun splitIntoBlocks(html: String, splitHeadings: Boolean = false): List<ContentBlock> {
     val blocks = mutableListOf<ContentBlock>()
     var lastEnd = 0
     val source = html.trim()
@@ -440,7 +494,36 @@ internal fun splitIntoBlocks(html: String): List<ContentBlock> {
         blocks.addAll(splitTextAndListBlocks(source))
     }
 
-    return blocks
+    if (!splitHeadings) return blocks
+
+    return blocks.flatMap { block ->
+        if (block is ContentBlock.Text) extractHeadingBlocks(block.html) else listOf(block)
+    }
+}
+
+private fun extractHeadingBlocks(html: String): List<ContentBlock> {
+    val out = mutableListOf<ContentBlock>()
+    var cursor = 0
+    for (match in HEADING_REGEX.findAll(html)) {
+        if (match.range.first > cursor) {
+            val before = html.substring(cursor, match.range.first)
+            if (before.isNotBlank()) out.add(ContentBlock.Text(before))
+        }
+        val level = match.groupValues[1].toInt()
+        val attrs = match.groupValues[2]
+        val inner = match.groupValues[3]
+        // Server prefixes heading anchors with "{docId}--{slug}" but the TOC
+        // JSON only returns the bare slug, so strip the prefix to match.
+        val anchorId = parseAttributes(attrs)["id"]?.substringAfter("--")
+        out.add(ContentBlock.Heading(level = level, anchorId = anchorId, innerHtml = inner))
+        cursor = match.range.last + 1
+    }
+    if (cursor < html.length) {
+        val tail = html.substring(cursor)
+        if (tail.isNotBlank()) out.add(ContentBlock.Text(tail))
+    }
+    if (out.isEmpty()) out.add(ContentBlock.Text(html))
+    return out
 }
 
 @VisibleForTesting
@@ -1114,5 +1197,7 @@ private fun blockSpacing(previous: ContentBlock, current: ContentBlock) = when {
     previous is ContentBlock.Code || current is ContentBlock.Code -> 8.dp
     previous is ContentBlock.List && current is ContentBlock.List -> 4.dp
     previous is ContentBlock.List || current is ContentBlock.List -> 16.dp
+    current is ContentBlock.Heading -> 16.dp
+    previous is ContentBlock.Heading -> 8.dp
     else -> 0.dp
 }

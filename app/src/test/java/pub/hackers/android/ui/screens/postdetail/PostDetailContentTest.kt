@@ -150,6 +150,7 @@ class PostDetailContentTest {
                 PostDetailContent(
                     post = post,
                     reactionGroups = emptyList(),
+                    toc = emptyList(),
                     replies = replies,
                     onProfileClick = {},
                     onPostClick = {},

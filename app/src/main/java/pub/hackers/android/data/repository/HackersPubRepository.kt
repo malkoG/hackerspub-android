@@ -226,6 +226,12 @@ class HackersPubRepository @Inject constructor(
                         visibility = node.visibility.toPostVisibility()
                     )
 
+                    val toc = response.data?.node?.onArticle?.contents
+                        ?.firstOrNull()
+                        ?.toc
+                        ?.let { parseTocJson(it) }
+                        ?: emptyList()
+
                     val reactionGroups = node.reactionGroups.mapNotNull { group ->
                         when {
                             group.onEmojiReactionGroup != null -> ReactionGroup(
@@ -264,7 +270,8 @@ class HackersPubRepository @Inject constructor(
                             reactionGroups = reactionGroups,
                             replies = replies,
                             hasMoreReplies = node.replies.pageInfo.hasNextPage,
-                            repliesEndCursor = node.replies.pageInfo.endCursor
+                            repliesEndCursor = node.replies.pageInfo.endCursor,
+                            toc = toc,
                         )
                     )
                 }
@@ -1598,4 +1605,5 @@ class HackersPubRepository @Inject constructor(
             else -> value
         }
     }
+
 }

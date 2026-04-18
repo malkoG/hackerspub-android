@@ -126,6 +126,8 @@
     <string name="show_original">Show original</string>
     <string name="translating">Translating...</string>
     <string name="translation_failed">Translation failed</string>
+    <string name="table_of_contents">Table of contents</string>
+    <string name="scroll_to_top">Scroll to top</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
