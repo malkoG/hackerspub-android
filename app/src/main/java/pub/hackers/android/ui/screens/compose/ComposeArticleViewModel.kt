@@ -21,6 +21,9 @@ data class ComposeArticleUiState(
     val content: String = "",
     val tags: String = "",
     val draftId: String? = null,
+    val articleId: String? = null,
+    val isEditMode: Boolean = false,
+    val isLoadingArticle: Boolean = false,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
     val slug: String = "",
@@ -60,6 +63,73 @@ class ComposeArticleViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(error = error.message) }
+                }
+        }
+    }
+
+    fun loadArticleForEdit(articleId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingArticle = true, isEditMode = true, articleId = articleId) }
+            repository.getEditableArticle(articleId)
+                .onSuccess { article ->
+                    _uiState.update {
+                        it.copy(
+                            title = article.title,
+                            content = article.content,
+                            tags = article.tags.joinToString(", "),
+                            language = article.language.ifBlank { it.language },
+                            allowLlmTranslation = article.allowLlmTranslation,
+                            isLoadingArticle = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(error = error.message, isLoadingArticle = false)
+                    }
+                }
+        }
+    }
+
+    fun updateArticle() {
+        val state = _uiState.value
+        val articleId = state.articleId ?: return
+        if (state.title.isBlank()) {
+            _uiState.update { it.copy(error = "Title is required") }
+            return
+        }
+        if (state.isPublishing) return
+
+        val tagsList = state.tags
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPublishing = true, error = null) }
+
+            repository.updateArticle(
+                articleId = articleId,
+                title = state.title,
+                content = state.content,
+                tags = tagsList,
+                language = state.language,
+                allowLlmTranslation = state.allowLlmTranslation
+            )
+                .onSuccess { article ->
+                    _uiState.update {
+                        it.copy(
+                            isPublishing = false,
+                            isPublished = true,
+                            publishedArticleId = article.id,
+                            publishedArticleUrl = article.url
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(error = error.message, isPublishing = false)
+                    }
                 }
         }
     }
