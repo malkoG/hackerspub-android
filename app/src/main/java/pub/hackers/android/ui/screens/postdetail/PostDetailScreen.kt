@@ -70,6 +70,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -173,6 +175,23 @@ fun PostDetailScreen(
     }
     val tocAvailable = uiState.post?.typename == "Article" && uiState.toc.isNotEmpty()
 
+    var activeHeadingId by remember(postId) { mutableStateOf<String?>(null) }
+    LaunchedEffect(lazyListState, postId) {
+        snapshotFlow {
+            lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset
+        }.collect { (firstIdx, scrollOffset) ->
+            val body = bodyItemCoords
+            val offsets = if (body != null && body.isAttached) {
+                headingCoords.entries.mapNotNull { (id, coords) ->
+                    if (!coords.isAttached) null
+                    else id to body.localPositionOf(coords, Offset.Zero).y
+                }.toMap()
+            } else emptyMap()
+            val active = computeActiveHeadingId(offsets, firstIdx, scrollOffset)
+            if (active != activeHeadingId) activeHeadingId = active
+        }
+    }
+
     // Navigate back after successful deletion
     LaunchedEffect(uiState.isDeleted) {
         if (uiState.isDeleted) {
@@ -212,6 +231,7 @@ fun PostDetailScreen(
                         showTocSheet = false
                         onAnchorClick(id)
                     },
+                    activeId = activeHeadingId,
                 )
             }
         }
@@ -444,6 +464,7 @@ fun PostDetailScreen(
                         headingCoords = headingCoords,
                         onBodyPositioned = { bodyItemCoords = it },
                         onAnchorClick = onAnchorClick,
+                        activeHeadingId = activeHeadingId,
                         onProfileClick = onProfileClick,
                         onPostClick = onPostClick,
                         onReplyClick = { onReplyClick(postId) },
@@ -539,6 +560,7 @@ internal fun PostDetailContent(
     headingCoords: MutableMap<String, LayoutCoordinates> = remember(post.id) { mutableMapOf() },
     onBodyPositioned: (LayoutCoordinates) -> Unit = {},
     onAnchorClick: (String) -> Unit = {},
+    activeHeadingId: String? = null,
     onProfileClick: (String) -> Unit,
     onPostClick: (String) -> Unit,
     onShareClick: () -> Unit,
@@ -675,6 +697,7 @@ internal fun PostDetailContent(
                     TocPanel(
                         items = toc,
                         onAnchorClick = onAnchorClick,
+                        activeId = activeHeadingId,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -1521,4 +1544,26 @@ private fun WebViewSheetContent(url: String) {
             modifier = Modifier.fillMaxSize()
         )
     }
+}
+
+/**
+ * Last heading whose top has scrolled to or above the viewport top is "active".
+ * Offsets are in pixels relative to the body item's top; scroll offsets come
+ * from [androidx.compose.foundation.lazy.LazyListState].
+ */
+internal fun computeActiveHeadingId(
+    headingOffsetsInBody: Map<String, Float>,
+    firstVisibleItemIndex: Int,
+    firstVisibleItemScrollOffset: Int,
+): String? {
+    if (headingOffsetsInBody.isEmpty()) return null
+    val scrollPast = if (firstVisibleItemIndex > 0) {
+        Float.MAX_VALUE
+    } else {
+        firstVisibleItemScrollOffset.toFloat()
+    }
+    return headingOffsetsInBody.entries
+        .filter { (_, y) -> y <= scrollPast }
+        .maxByOrNull { (_, y) -> y }
+        ?.key
 }

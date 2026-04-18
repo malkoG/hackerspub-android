@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ fun TocPanel(
     items: List<TocItem>,
     onAnchorClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    activeId: String? = null,
 ) {
     if (items.isEmpty()) return
 
@@ -79,6 +82,7 @@ fun TocPanel(
                 items = items,
                 onAnchorClick = onAnchorClick,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                activeId = activeId,
             )
         }
     }
@@ -89,13 +93,14 @@ fun TocList(
     items: List<TocItem>,
     onAnchorClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    activeId: String? = null,
 ) {
     if (items.isEmpty()) return
     val baseLevel = remember(items) { items.minOf { it.level } }
 
     Column(modifier = modifier.fillMaxWidth()) {
         items.forEach { item ->
-            TocEntry(item = item, baseLevel = baseLevel, onClick = onAnchorClick)
+            TocEntry(item = item, baseLevel = baseLevel, activeId = activeId, onClick = onAnchorClick)
         }
         Spacer(modifier = Modifier.height(4.dp))
     }
@@ -105,25 +110,32 @@ fun TocList(
 private fun TocEntry(
     item: TocItem,
     baseLevel: Int,
+    activeId: String?,
     onClick: (String) -> Unit,
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
     val indent = ((item.level - baseLevel).coerceAtLeast(0) * 12).dp
+    val isActive = item.id == activeId
 
     Text(
         text = item.title,
         style = typography.bodyMedium.copy(
-            color = colors.accent,
-            fontWeight = if (item.level <= baseLevel) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isActive) colors.accent else colors.textBody,
+            fontWeight = when {
+                isActive -> FontWeight.Bold
+                item.level <= baseLevel -> FontWeight.SemiBold
+                else -> FontWeight.Normal
+            },
         ),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick(item.id) }
-            .padding(start = indent, top = 6.dp, bottom = 6.dp),
+            .background(if (isActive) colors.accent.copy(alpha = 0.10f) else Color.Transparent)
+            .padding(start = indent + 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
     )
 
     item.children.forEach { child ->
-        TocEntry(item = child, baseLevel = baseLevel, onClick = onClick)
+        TocEntry(item = child, baseLevel = baseLevel, activeId = activeId, onClick = onClick)
     }
 }
