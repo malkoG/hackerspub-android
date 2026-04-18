@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
@@ -21,14 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.TocItem
 import pub.hackers.android.ui.theme.LocalAppColors
@@ -37,14 +34,13 @@ import pub.hackers.android.ui.theme.LocalAppTypography
 @Composable
 fun TocPanel(
     items: List<TocItem>,
-    anchorRequester: (String) -> BringIntoViewRequester,
+    onAnchorClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (items.isEmpty()) return
 
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
-    val scope = rememberCoroutineScope()
 
     var expanded by remember { mutableStateOf(false) }
     val baseLevel = remember(items) { items.minOf { it.level } }
@@ -86,15 +82,7 @@ fun TocPanel(
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 items.forEach { item ->
-                    TocEntry(
-                        item = item,
-                        baseLevel = baseLevel,
-                        onClick = { id ->
-                            scope.launch {
-                                anchorRequester(id).bringIntoView()
-                            }
-                        }
-                    )
+                    TocEntry(item = item, baseLevel = baseLevel, onClick = onAnchorClick)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
             }

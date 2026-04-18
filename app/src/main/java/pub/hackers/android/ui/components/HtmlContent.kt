@@ -2,16 +2,17 @@ package pub.hackers.android.ui.components
 
 import android.util.LruCache
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Text
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -212,7 +213,7 @@ fun HtmlContent(
     onMentionClick: ((handle: String) -> Unit)? = null,
     onLinkClick: ((url: String) -> Unit)? = null,
     onTextClick: (() -> Unit)? = null,
-    headingAnchor: ((id: String) -> BringIntoViewRequester?)? = null,
+    onHeadingPositioned: ((id: String, coordinates: LayoutCoordinates) -> Unit)? = null,
 ) {
     val uriHandler = LocalUriHandler.current
     val colors = LocalAppColors.current
@@ -254,7 +255,7 @@ fun HtmlContent(
         )
     } else {
         // Full mode: block-based rendering with syntax-highlighted code blocks
-        val splitHeadings = headingAnchor != null
+        val splitHeadings = onHeadingPositioned != null
         val blocks = remember(normalizedHtml, splitHeadings) {
             splitIntoBlocks(normalizedHtml, splitHeadings = splitHeadings)
         }
@@ -330,21 +331,26 @@ fun HtmlContent(
                                 fontWeight = FontWeight.Bold,
                             )
                         }
-                        val requester = block.anchorId?.let { id -> headingAnchor?.invoke(id) }
-                        val headingModifier = if (requester != null) {
-                            Modifier.bringIntoViewRequester(requester)
-                        } else {
-                            Modifier
-                        }
-                        if (headingAnnotated.isNotEmpty()) {
-                            ClickableText(
-                                text = headingAnnotated,
-                                style = headingStyle,
-                                modifier = headingModifier,
-                                onClick = { offset ->
-                                    handleClick(headingAnnotated, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
-                                }
-                            )
+                        val anchorId = block.anchorId
+                        val wrapperModifier = Modifier
+                            .fillMaxWidth()
+                            .let { base ->
+                                if (anchorId != null && onHeadingPositioned != null) {
+                                    base.onGloballyPositioned { coords ->
+                                        onHeadingPositioned(anchorId, coords)
+                                    }
+                                } else base
+                            }
+                        Box(modifier = wrapperModifier) {
+                            if (headingAnnotated.isNotEmpty()) {
+                                ClickableText(
+                                    text = headingAnnotated,
+                                    style = headingStyle,
+                                    onClick = { offset ->
+                                        handleClick(headingAnnotated, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -506,7 +512,9 @@ private fun extractHeadingBlocks(html: String): List<ContentBlock> {
         val level = match.groupValues[1].toInt()
         val attrs = match.groupValues[2]
         val inner = match.groupValues[3]
-        val anchorId = parseAttributes(attrs)["id"]
+        // Server prefixes heading anchors with "{docId}--{slug}" but the TOC
+        // JSON only returns the bare slug, so strip the prefix to match.
+        val anchorId = parseAttributes(attrs)["id"]?.substringAfter("--")
         out.add(ContentBlock.Heading(level = level, anchorId = anchorId, innerHtml = inner))
         cursor = match.range.last + 1
     }

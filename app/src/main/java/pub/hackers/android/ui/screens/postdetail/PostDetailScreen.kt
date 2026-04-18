@@ -112,7 +112,11 @@ import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.QuotedPostPreview
 import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.components.TocPanel
-import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
@@ -487,12 +491,33 @@ internal fun PostDetailContent(
 
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
+    val lazyListState = rememberLazyListState()
+    val headingCoords = remember(post.id) { mutableMapOf<String, LayoutCoordinates>() }
+    var bodyItemCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val onAnchorClick: (String) -> Unit = remember(post.id) {
+        { id ->
+            // Heading ids in HTML are prefixed with "{docId}--"; TOC JSON uses
+            // bare slugs. Strip on both sides so the lookup is symmetric.
+            val hc = headingCoords[id.substringAfter("--")]
+            val ic = bodyItemCoords
+            if (hc != null && hc.isAttached && ic != null && ic.isAttached) {
+                val offsetInItem = (hc.positionInWindow().y - ic.positionInWindow().y).toInt()
+                scope.launch {
+                    lazyListState.animateScrollToItem(0, offsetInItem.coerceAtLeast(0))
+                }
+            }
+        }
+    }
+
     LazyColumn(
-        contentPadding = PaddingValues(bottom = navBarBottom + 96.dp)
+        state = lazyListState,
+        contentPadding = PaddingValues(bottom = navBarBottom + 96.dp),
     ) {
         item {
             Column(
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier
+                    .padding(12.dp)
+                    .onGloballyPositioned { bodyItemCoords = it }
             ) {
                 // Reply target preview
                 val replyTarget = post.replyTarget
@@ -580,18 +605,15 @@ internal fun PostDetailContent(
                     }
                 }
 
-                val anchorRequester = remember(post.id) {
-                    val anchors = mutableMapOf<String, BringIntoViewRequester>()
-                    val get: (String) -> BringIntoViewRequester = { id ->
-                        anchors.getOrPut(id) { BringIntoViewRequester() }
+                val onHeadingPositioned: (String, LayoutCoordinates) -> Unit =
+                    remember(post.id) {
+                        { id, coords -> headingCoords[id] = coords }
                     }
-                    get
-                }
 
                 if (isArticle && toc.isNotEmpty() && !showTranslated) {
                     TocPanel(
                         items = toc,
-                        anchorRequester = anchorRequester,
+                        onAnchorClick = onAnchorClick,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -610,7 +632,7 @@ internal fun PostDetailContent(
                         modifier = Modifier.fillMaxWidth(),
                         contentStyle = HtmlContentStyle.Prose,
                         onMentionClick = onProfileClick,
-                        headingAnchor = if (isArticle) anchorRequester else null,
+                        onHeadingPositioned = if (isArticle) onHeadingPositioned else null,
                     )
                 }
 

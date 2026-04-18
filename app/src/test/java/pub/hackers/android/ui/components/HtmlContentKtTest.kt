@@ -219,6 +219,14 @@ class HtmlContentKtTest {
         assertTrue(blocks[1] is ContentBlock.Code)
     }
 
+    @Test
+    fun `splitIntoBlocks strips docId prefix from heading anchor id`() {
+        val html = "<h2 id=\"019d8e52-2525-7593-b0dc-46fb62d6a0fc--tagged-union\">Tagged Union</h2>"
+        val blocks = splitIntoBlocks(html, splitHeadings = true)
+        val heading = blocks[0] as ContentBlock.Heading
+        assertEquals("tagged-union", heading.anchorId)
+    }
+
     // endregion
 
     // region parseHtmlToAnnotatedString
