@@ -1,0 +1,9 @@
+Add edit button for article detail page
+
+---
+
+Commit fine-grained
+
+---
+
+See ../hackerspub
