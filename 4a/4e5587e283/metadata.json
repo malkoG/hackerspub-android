@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "4a4e5587e283",
+  "strategy": "manual-commit",
+  "branch": "fix/bottom-padding-for-post-detail",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4a/4e5587e283/0/metadata.json",
+      "transcript": "/4a/4e5587e283/0/full.jsonl",
+      "context": "/4a/4e5587e283/0/context.md",
+      "content_hash": "/4a/4e5587e283/0/content_hash.txt",
+      "prompt": "/4a/4e5587e283/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 33,
+    "cache_creation_tokens": 15253,
+    "cache_read_tokens": 1404629,
+    "output_tokens": 4433,
+    "api_call_count": 20
+  }
+}

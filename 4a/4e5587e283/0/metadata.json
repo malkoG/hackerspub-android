@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "4a4e5587e283",
+  "session_id": "93c7fe6d-dbf5-473a-909a-4a2268ea7233",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-18T01:03:44.755257Z",
+  "branch": "fix/bottom-padding-for-post-detail",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "675adce8-b202-4a47-b3fa-fb5689c65d90",
+  "checkpoint_transcript_start": 85,
+  "transcript_lines_at_start": 85,
+  "token_usage": {
+    "input_tokens": 33,
+    "cache_creation_tokens": 15253,
+    "cache_read_tokens": 1404629,
+    "output_tokens": 4433,
+    "api_call_count": 20
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-18T01:03:44.498007Z",
+    "agent_lines": 9,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 9,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-bottom-padding-for-post-detail/93c7fe6d-dbf5-473a-909a-4a2268ea7233.jsonl"
+}
