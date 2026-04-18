@@ -50,7 +50,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -177,6 +184,12 @@ fun PostDetailScreen(
         { screenScope.launch { lazyListState.animateScrollToItem(0, 0) } }
     }
     val tocAvailable = uiState.post?.typename == "Article" && uiState.toc.isNotEmpty()
+    val showScrollToTop by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 ||
+                lazyListState.firstVisibleItemScrollOffset > 600
+        }
+    }
 
     var activeHeadingId by remember(postId) { mutableStateOf<String?>(null) }
     LaunchedEffect(lazyListState, postId) {
@@ -400,13 +413,6 @@ fun PostDetailScreen(
                                     tint = colors.accent,
                                 )
                             }
-                            IconButton(onClick = onScrollToTop) {
-                                Icon(
-                                    imageVector = Icons.Filled.KeyboardArrowUp,
-                                    contentDescription = stringResource(R.string.scroll_to_top),
-                                    tint = colors.accent,
-                                )
-                            }
                         }
                         if (uiState.canDelete || uiState.canEdit) {
                             PostDetailActionMenu(
@@ -428,16 +434,37 @@ fun PostDetailScreen(
             )
         },
         floatingActionButton = {
-            if (uiState.post != null && isLoggedIn) {
-                FloatingActionButton(
-                    onClick = { onReplyClick(postId) },
-                    containerColor = colors.composeAccent,
-                    contentColor = colors.composeOnAccent
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AnimatedVisibility(
+                    visible = showScrollToTop,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut()
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Reply,
-                        contentDescription = stringResource(R.string.reply)
-                    )
+                    SmallFloatingActionButton(
+                        onClick = onScrollToTop,
+                        containerColor = colors.surface,
+                        contentColor = colors.accent
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowUp,
+                            contentDescription = stringResource(R.string.scroll_to_top)
+                        )
+                    }
+                }
+                if (uiState.post != null && isLoggedIn) {
+                    FloatingActionButton(
+                        onClick = { onReplyClick(postId) },
+                        containerColor = colors.composeAccent,
+                        contentColor = colors.composeOnAccent
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Reply,
+                            contentDescription = stringResource(R.string.reply)
+                        )
+                    }
                 }
             }
         }
