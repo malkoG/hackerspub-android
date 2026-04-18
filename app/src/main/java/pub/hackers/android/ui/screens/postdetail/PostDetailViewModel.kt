@@ -34,6 +34,7 @@ data class PostDetailUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val canDelete: Boolean = false,
+    val canEdit: Boolean = false,
     val isDeleting: Boolean = false,
     val deleteError: String? = null,
     val isDeleted: Boolean = false,
@@ -111,9 +112,10 @@ class PostDetailViewModel @Inject constructor(
             repository.getPostDetail(id)
                 .onSuccess { result ->
                     val viewerHandle = sessionManager.userHandle.first()
-                    val canDelete = viewerHandle != null &&
+                    val isOwner = viewerHandle != null &&
                         result.post.actor.handle.equals(viewerHandle, ignoreCase = true) &&
                         result.post.sharedPost == null
+                    val canEdit = isOwner && result.post.typename == "Article"
 
                     _uiState.update {
                         it.copy(
@@ -121,7 +123,8 @@ class PostDetailViewModel @Inject constructor(
                             reactionGroups = result.reactionGroups,
                             toc = result.toc,
                             isLoading = false,
-                            canDelete = canDelete
+                            canDelete = isOwner,
+                            canEdit = canEdit
                         )
                     }
                 }
@@ -144,9 +147,10 @@ class PostDetailViewModel @Inject constructor(
             repository.getPostDetail(postId)
                 .onSuccess { result ->
                     val viewerHandle = sessionManager.userHandle.first()
-                    val canDelete = viewerHandle != null &&
+                    val isOwner = viewerHandle != null &&
                         result.post.actor.handle.equals(viewerHandle, ignoreCase = true) &&
                         result.post.sharedPost == null
+                    val canEdit = isOwner && result.post.typename == "Article"
 
                     _uiState.update {
                         it.copy(
@@ -154,7 +158,8 @@ class PostDetailViewModel @Inject constructor(
                             reactionGroups = result.reactionGroups,
                             toc = result.toc,
                             isRefreshing = false,
-                            canDelete = canDelete
+                            canDelete = isOwner,
+                            canEdit = canEdit
                         )
                     }
                 }

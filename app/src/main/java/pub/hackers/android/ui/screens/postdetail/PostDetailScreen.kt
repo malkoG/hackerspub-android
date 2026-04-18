@@ -34,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
@@ -140,6 +141,7 @@ fun PostDetailScreen(
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit = {},
     onPostClick: (String) -> Unit,
+    onEditArticleClick: (String) -> Unit = {},
     isLoggedIn: Boolean = true,
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
@@ -388,7 +390,7 @@ fun PostDetailScreen(
                         )
                     }
                 },
-                trailingContent = if (tocAvailable || uiState.canDelete) {
+                trailingContent = if (tocAvailable || uiState.canDelete || uiState.canEdit) {
                     {
                         if (tocAvailable) {
                             IconButton(onClick = { showTocSheet = true }) {
@@ -406,9 +408,12 @@ fun PostDetailScreen(
                                 )
                             }
                         }
-                        if (uiState.canDelete) {
+                        if (uiState.canDelete || uiState.canEdit) {
                             PostDetailActionMenu(
                                 isDeleting = uiState.isDeleting,
+                                canEdit = uiState.canEdit,
+                                canDelete = uiState.canDelete,
+                                onEdit = { onEditArticleClick(postId) },
                                 onDelete = {
                                     if (confirmBeforeDelete) {
                                         showDeleteConfirmation = true
@@ -512,6 +517,9 @@ fun PostDetailScreen(
 @Composable
 private fun PostDetailActionMenu(
     isDeleting: Boolean,
+    canEdit: Boolean,
+    canDelete: Boolean,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -529,26 +537,49 @@ private fun PostDetailActionMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = stringResource(R.string.delete_post),
-                        color = colors.reaction
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = null,
-                        tint = colors.reaction
-                    )
-                },
-                onClick = {
-                    expanded = false
-                    onDelete()
-                },
-                enabled = !isDeleting
-            )
+            if (canEdit) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(R.string.edit_article),
+                            color = colors.textPrimary
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = null,
+                            tint = colors.textPrimary
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onEdit()
+                    }
+                )
+            }
+            if (canDelete) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(R.string.delete_post),
+                            color = colors.reaction
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = null,
+                            tint = colors.reaction
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onDelete()
+                    },
+                    enabled = !isDeleting
+                )
+            }
         }
     }
 }
