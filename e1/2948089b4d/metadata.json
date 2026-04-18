@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "e12948089b4d",
+  "strategy": "manual-commit",
+  "branch": "fix/article-toc-scrolling",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e1/2948089b4d/0/metadata.json",
+      "transcript": "/e1/2948089b4d/0/full.jsonl",
+      "context": "/e1/2948089b4d/0/context.md",
+      "content_hash": "/e1/2948089b4d/0/content_hash.txt",
+      "prompt": "/e1/2948089b4d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 71410,
+    "cache_read_tokens": 2006766,
+    "output_tokens": 11667,
+    "api_call_count": 34
+  }
+}

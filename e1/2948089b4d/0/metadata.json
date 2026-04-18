@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "e12948089b4d",
+  "session_id": "2bf43b98-d5b4-4b39-8e3f-df41dee8392c",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-18T20:13:15.698724Z",
+  "branch": "fix/article-toc-scrolling",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "c1e37741-43d2-48e5-b8c5-c55f6861d7b6",
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 71410,
+    "cache_read_tokens": 2006766,
+    "output_tokens": 11667,
+    "api_call_count": 34
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-18T20:13:15.390006Z",
+    "agent_lines": 164,
+    "human_added": 557,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 721,
+    "agent_percentage": 22.74618585298197
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-fix-article-toc-scrolling/2bf43b98-d5b4-4b39-8e3f-df41dee8392c.jsonl"
+}
