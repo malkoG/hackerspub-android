@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "21e30816f624",
+  "strategy": "manual-commit",
+  "branch": "fix/article-edit-functionality",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/21/e30816f624/0/metadata.json",
+      "transcript": "/21/e30816f624/0/full.jsonl",
+      "context": "/21/e30816f624/0/context.md",
+      "content_hash": "/21/e30816f624/0/content_hash.txt",
+      "prompt": "/21/e30816f624/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 37,
+    "cache_creation_tokens": 11015,
+    "cache_read_tokens": 4817083,
+    "output_tokens": 6479,
+    "api_call_count": 17
+  }
+}
