@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "65a2e9d5c17a",
+  "strategy": "manual-commit",
+  "branch": "feature/article-detail-toc",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/graphql/pub/hackers/android/operations.graphql",
+    "app/src/main/java/pub/hackers/android/data/repository/HackersPubRepository.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/Models.kt",
+    "app/src/main/java/pub/hackers/android/domain/model/TocParser.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/HtmlContent.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/TocPanel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailViewModel.kt",
+    "app/src/main/res/values/strings.xml",
+    "app/src/test/java/pub/hackers/android/domain/model/TocParserTest.kt",
+    "app/src/test/java/pub/hackers/android/ui/components/HtmlContentKtTest.kt",
+    "app/src/test/java/pub/hackers/android/ui/screens/postdetail/PostDetailContentTest.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/65/a2e9d5c17a/0/metadata.json",
+      "transcript": "/65/a2e9d5c17a/0/full.jsonl",
+      "context": "/65/a2e9d5c17a/0/context.md",
+      "content_hash": "/65/a2e9d5c17a/0/content_hash.txt",
+      "prompt": "/65/a2e9d5c17a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 184,
+    "cache_creation_tokens": 194119,
+    "cache_read_tokens": 16606016,
+    "output_tokens": 64567,
+    "api_call_count": 156
+  }
+}
