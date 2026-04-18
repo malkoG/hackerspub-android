@@ -935,13 +935,13 @@ query ArticleForEdit($id: ID!) {
     node(id: $id) {
         ... on Article {
             id
-            name
             tags
-            language
             allowLlmTranslation
             contents {
-                language
+                title
                 rawContent
+                language
+                originalLanguage
             }
         }
     }

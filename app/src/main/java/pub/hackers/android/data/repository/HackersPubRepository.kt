@@ -1393,17 +1393,16 @@ class HackersPubRepository @Inject constructor(
             } else {
                 val article = response.data?.node?.onArticle
                     ?: return Result.failure(Exception("Article not found"))
-                val language = article.language ?: article.contents.firstOrNull()?.language?.toString() ?: ""
-                val rawContent = article.contents.firstOrNull { it.language.toString() == language }?.rawContent
-                    ?: article.contents.firstOrNull()?.rawContent
+                val original = article.contents.firstOrNull { it.originalLanguage == null }
+                    ?: article.contents.firstOrNull()
                     ?: return Result.failure(Exception("Article content not found"))
                 Result.success(
                     EditableArticle(
                         id = article.id,
-                        title = article.name.orEmpty(),
-                        content = rawContent.toString(),
+                        title = original.title,
+                        content = original.rawContent.toString(),
                         tags = article.tags,
-                        language = language,
+                        language = original.language.toString(),
                         allowLlmTranslation = article.allowLlmTranslation
                     )
                 )
