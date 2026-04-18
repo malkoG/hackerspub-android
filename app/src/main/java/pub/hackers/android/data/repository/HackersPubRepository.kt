@@ -178,9 +178,17 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
-    suspend fun searchPosts(query: String): Result<List<Post>> {
+    suspend fun searchPosts(
+        query: String,
+        languages: List<String>
+    ): Result<List<Post>> {
         return try {
-            val response = apolloClient.query(SearchPostQuery(query)).execute()
+            val response = apolloClient.query(
+                SearchPostQuery(
+                    query = query,
+                    languages = Optional.present(languages)
+                )
+            ).execute()
 
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))

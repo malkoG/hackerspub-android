@@ -1,5 +1,6 @@
 package pub.hackers.android.ui.screens.search
 
+import android.os.LocaleList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -76,11 +77,12 @@ class SearchViewModel @Inject constructor(
 
             val handleQuery = rawQuery.removePrefix("@")
             val tagQuery = if (rawQuery.startsWith("#")) rawQuery else "#$rawQuery"
+            val languages = systemLanguageTags()
 
             val objectDeferred = async { repository.searchObject(rawQuery) }
             val actorsDeferred = async { repository.searchActorsByHandle(handleQuery, limit = 30) }
-            val postsDeferred = async { repository.searchPosts(rawQuery) }
-            val tagsDeferred = async { repository.searchPosts(tagQuery) }
+            val postsDeferred = async { repository.searchPosts(rawQuery, languages) }
+            val tagsDeferred = async { repository.searchPosts(tagQuery, languages) }
 
             val objectResult = objectDeferred.await()
             val actorsResult = actorsDeferred.await()
@@ -135,5 +137,14 @@ class SearchViewModel @Inject constructor(
     fun selectRecentSearch(query: String) {
         _uiState.update { it.copy(query = query) }
         search()
+    }
+
+    private fun systemLanguageTags(): List<String> {
+        val locales = LocaleList.getDefault()
+        val tags = (0 until locales.size())
+            .map { locales[it].language }
+            .filter { it.isNotBlank() }
+            .distinct()
+        return tags.ifEmpty { listOf("en") }
     }
 }

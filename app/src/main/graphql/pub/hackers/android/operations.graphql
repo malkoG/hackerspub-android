@@ -260,8 +260,8 @@ query Notifications($after: String) {
     }
 }
 
-query SearchPost($query: String!) {
-    searchPost(query: $query) {
+query SearchPost($query: String!, $languages: [Locale!]) {
+    searchPost(query: $query, languages: $languages) {
         edges {
             node {
                 ...PostFields
