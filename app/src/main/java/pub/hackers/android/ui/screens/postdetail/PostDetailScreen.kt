@@ -56,7 +56,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.zIndex
 import androidx.compose.material3.HorizontalDivider
@@ -463,15 +462,14 @@ fun PostDetailScreen(
                     .padding(top = 12.dp, end = 16.dp)
                     .zIndex(1f)
             ) {
-                LargeFloatingActionButton(
+                FloatingActionButton(
                     onClick = onScrollToTop,
                     containerColor = colors.surface,
                     contentColor = colors.accent
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = stringResource(R.string.scroll_to_top),
-                        modifier = Modifier.size(36.dp)
+                        contentDescription = stringResource(R.string.scroll_to_top)
                     )
                 }
             }
