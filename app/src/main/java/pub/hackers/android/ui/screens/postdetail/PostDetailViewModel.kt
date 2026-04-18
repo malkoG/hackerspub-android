@@ -115,7 +115,9 @@ class PostDetailViewModel @Inject constructor(
                     val isOwner = viewerHandle != null &&
                         result.post.actor.handle.equals(viewerHandle, ignoreCase = true) &&
                         result.post.sharedPost == null
-                    val canEdit = isOwner && result.post.typename == "Article"
+                    val canEdit = isOwner &&
+                        result.post.typename == "Article" &&
+                        pub.hackers.android.FeatureFlags.ARTICLE_EDIT_ENABLED
 
                     _uiState.update {
                         it.copy(
@@ -150,7 +152,9 @@ class PostDetailViewModel @Inject constructor(
                     val isOwner = viewerHandle != null &&
                         result.post.actor.handle.equals(viewerHandle, ignoreCase = true) &&
                         result.post.sharedPost == null
-                    val canEdit = isOwner && result.post.typename == "Article"
+                    val canEdit = isOwner &&
+                        result.post.typename == "Article" &&
+                        pub.hackers.android.FeatureFlags.ARTICLE_EDIT_ENABLED
 
                     _uiState.update {
                         it.copy(
