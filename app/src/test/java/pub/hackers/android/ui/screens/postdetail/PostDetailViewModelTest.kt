@@ -23,6 +23,7 @@ import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostDetailResult
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.testutil.MainDispatcherRule
+import pub.hackers.android.ui.screens.compose.ReplyPostedSignal
 import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,9 +78,17 @@ class PostDetailViewModelTest {
         )
     }
 
+    private val replyPostedSignal = ReplyPostedSignal()
+
     private fun newViewModel(): PostDetailViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("postId" to defaultPostId))
-        return PostDetailViewModel(repository, sessionManager, preferencesManager, savedStateHandle)
+        return PostDetailViewModel(
+            repository,
+            sessionManager,
+            preferencesManager,
+            replyPostedSignal,
+            savedStateHandle,
+        )
     }
 
     // region initial load

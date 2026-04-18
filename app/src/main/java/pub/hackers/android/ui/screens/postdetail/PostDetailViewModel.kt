@@ -23,6 +23,7 @@ import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.domain.model.TocItem
+import pub.hackers.android.ui.screens.compose.ReplyPostedSignal
 import javax.inject.Inject
 
 data class PostDetailUiState(
@@ -53,6 +54,7 @@ class PostDetailViewModel @Inject constructor(
     private val repository: HackersPubRepository,
     private val sessionManager: SessionManager,
     val preferencesManager: PreferencesManager,
+    private val replyPostedSignal: ReplyPostedSignal,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -60,6 +62,12 @@ class PostDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(PostDetailUiState())
     val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
+
+    // Locally-composed replies appended optimistically after a successful reply
+    // from this screen. Rendered after the paginated replies; cleared on refresh
+    // so the server-authoritative list wins.
+    private val _locallyAddedReplies = MutableStateFlow<List<Post>>(emptyList())
+    val locallyAddedReplies: StateFlow<List<Post>> = _locallyAddedReplies.asStateFlow()
 
     // Replies are paginated independently of the main post payload. The main
     // post, reactionGroups, and sheet/delete/translation state stay in UiState
@@ -73,6 +81,27 @@ class PostDetailViewModel @Inject constructor(
 
     init {
         loadPost(postId)
+        viewModelScope.launch {
+            replyPostedSignal.events.collect { event ->
+                if (event.replyTargetId == postId) {
+                    appendLocalReply(event.reply)
+                }
+            }
+        }
+    }
+
+    private fun appendLocalReply(reply: Post) {
+        _locallyAddedReplies.update { it + reply }
+        _uiState.update { state ->
+            val post = state.post ?: return@update state
+            state.copy(
+                post = post.copy(
+                    engagementStats = post.engagementStats.copy(
+                        replies = post.engagementStats.replies + 1
+                    )
+                )
+            )
+        }
     }
 
     fun loadPost(id: String) {
@@ -108,6 +137,7 @@ class PostDetailViewModel @Inject constructor(
     }
 
     fun refresh() {
+        _locallyAddedReplies.value = emptyList()
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true) }
 
