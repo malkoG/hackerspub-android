@@ -1,0 +1,13 @@
+Add edit button for article detail page
+
+---
+
+Commit fine-grained
+
+---
+
+See ../hackerspub
+
+---
+
+Okay activate only from feature flag because not deployed yet.
