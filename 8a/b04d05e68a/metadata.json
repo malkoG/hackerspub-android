@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "8ab04d05e68a",
+  "strategy": "manual-commit",
+  "branch": "feature/display-reactors",
+  "checkpoints_count": 5,
+  "files_touched": [
+    ".claude/settings.local.json",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailViewModel.kt",
+    "app/src/main/res/values/strings.xml",
+    "app/src/test/java/pub/hackers/android/ui/screens/postdetail/PostDetailContentTest.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8a/b04d05e68a/0/metadata.json",
+      "transcript": "/8a/b04d05e68a/0/full.jsonl",
+      "context": "/8a/b04d05e68a/0/context.md",
+      "content_hash": "/8a/b04d05e68a/0/content_hash.txt",
+      "prompt": "/8a/b04d05e68a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 269,
+    "cache_creation_tokens": 289237,
+    "cache_read_tokens": 22448207,
+    "output_tokens": 99886,
+    "api_call_count": 159
+  }
+}
