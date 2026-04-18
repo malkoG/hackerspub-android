@@ -1241,6 +1241,7 @@ class HackersPubRepository @Inject constructor(
                                 id = draft.id,
                                 title = draft.title,
                                 content = draft.content.toString(),
+                                contentHtml = draft.contentHtml.toString(),
                                 tags = draft.tags,
                                 created = Instant.parse(draft.created.toString()),
                                 updated = Instant.parse(draft.updated.toString())
@@ -1343,6 +1344,7 @@ class HackersPubRepository @Inject constructor(
                         id = node.id,
                         title = node.title,
                         content = node.content.toString(),
+                        contentHtml = "",
                         tags = node.tags,
                         created = Instant.parse(node.created.toString()),
                         updated = Instant.parse(node.updated.toString())
@@ -1371,6 +1373,7 @@ class HackersPubRepository @Inject constructor(
                         id = draft.id,
                         title = draft.title,
                         content = draft.content.toString(),
+                        contentHtml = draft.contentHtml.toString(),
                         tags = draft.tags,
                         created = Instant.parse(draft.created.toString()),
                         updated = Instant.parse(draft.updated.toString())

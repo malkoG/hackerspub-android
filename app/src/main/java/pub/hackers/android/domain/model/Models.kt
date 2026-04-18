@@ -275,6 +275,7 @@ data class ArticleDraft(
     val id: String,
     val title: String,
     val content: String,
+    val contentHtml: String,
     val tags: List<String>,
     val created: Instant,
     val updated: Instant
