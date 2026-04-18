@@ -894,3 +894,32 @@ mutation PublishArticleDraft($id: ID!, $slug: String!, $language: Locale!, $allo
         }
     }
 }
+
+query EditAccount {
+    viewer {
+        id
+        name
+        bio
+        avatarUrl
+        handle
+        links {
+            name
+            url
+        }
+    }
+}
+
+mutation UpdateAccount($input: UpdateAccountInput!) {
+    updateAccount(input: $input) {
+        account {
+            id
+            name
+            bio
+            avatarUrl
+            links {
+                name
+                url
+            }
+        }
+    }
+}
