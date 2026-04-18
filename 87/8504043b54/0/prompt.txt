@@ -1,0 +1,203 @@
+See ../hackerspub implementation, we already have articledetail query. in this case, we need to also render toc. Could you do it?
+
+---
+
+# Simplify: Code Review and Cleanup
+
+Review all changed files for reuse, quality, and efficiency. Fix any issues found.
+
+## Phase 1: Identify Changes
+
+Run `git diff` (or `git diff HEAD` if there are staged changes) to see what changed. If there are no git changes, review the most recently modified files that the user mentioned or that you edited earlier in this conversation.
+
+## Phase 2: Launch Three Review Agents in Parallel
+
+Use the Agent tool to launch all three agents concurrently in a single message. Pass each agent the full diff so it has the complete context.
+
+### Agent 1: Code Reuse Review
+
+For each change:
+
+1. **Search for existing utilities and helpers** that could replace newly written code. Look for similar patterns elsewhere in the codebase — common locations are utility directories, shared modules, and files adjacent to the changed ones.
+2. **Flag any new function that duplicates existing functionality.** Suggest the existing function to use instead.
+3. **Flag any inline logic that could use an existing utility** — hand-rolled string manipulation, manual path handling, custom environment checks, ad-hoc type guards, and similar patterns are common candidates.
+
+### Agent 2: Code Quality Review
+
+Review the same changes for hacky patterns:
+
+1. **Redundant state**: state that duplicates existing state, cached values that could be derived, observers/effects that could be direct calls
+2. **Parameter sprawl**: adding new parameters to a function instead of generalizing or restructuring existing ones
+3. **Copy-paste with slight variation**: near-duplicate code blocks that should be unified with a shared abstraction
+4. **Leaky abstractions**: exposing internal details that should be encapsulated, or breaking existing abstraction boundaries
+5. **Stringly-typed code**: using raw strings where constants, enums (string unions), or branded types already exist in the codebase
+6. **Unnecessary JSX nesting**: wrapper Boxes/elements that add no layout value — check if inner component props (flexShrink, alignItems, etc.) already provide the needed behavior
+7. **Unnecessary comments**: comments explaining WHAT the code does (well-named identifiers already do that), narrating the change, or referencing the task/caller — delete; keep only non-obvious WHY (hidden constraints, subtle invariants, workarounds)
+
+### Agent 3: Efficiency Review
+
+Review the same changes for efficiency:
+
+1. **Unnecessary work**: redundant computations, repeated file reads, duplicate network/API calls, N+1 patterns
+2. **Missed concurrency**: independent operations run sequentially when they could run in parallel
+3. **Hot-path bloat**: new blocking work added to startup or per-request/per-render hot paths
+4. **Recurring no-op updates**: state/store updates inside polling loops, intervals, or event handlers that fire unconditionally — add a change-detection guard so downstream consumers aren't notified when nothing changed. Also: if a wrapper function takes an updater/reducer callback, verify it honors same-reference returns (or whatever the "no change" signal is) — otherwise callers' early-return no-ops are silently defeated
+5. **Unnecessary existence checks**: pre-checking file/resource existence before operating (TOCTOU anti-pattern) — operate directly and handle the error
+6. **Memory**: unbounded data structures, missing cleanup, event listener leaks
+7. **Overly broad operations**: reading entire files when only a portion is needed, loading all items when filtering for one
+
+## Phase 3: Fix Issues
+
+Wait for all three agents to complete. Aggregate their findings and fix each issue directly. If a finding is a false positive or not worth addressing, note it and move on — do not argue with the finding, just skip it.
+
+When done, briefly summarize what was fixed (or confirm the code was already clean).
+
+---
+
+commit fine-grained using /commit skill
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/commit
+
+# Create Commit
+
+Create a commit with auto-generated message from staged changes.
+
+**Arguments**: `` (optional commit message override)
+
+## Instructions
+
+1. Check for staged changes:
+   - Run `git diff --cached --stat` to see staged files summary
+   - If no staged changes, inform the user and suggest `git add`
+
+2. Gather information about staged changes:
+   - Run `git diff --cached` to see the actual diff
+   - Run `git status` to see overall status
+
+3. Generate commit message:
+   - If `` is provided, use it as the commit message
+   - Otherwise, analyze the diff to generate:
+     - **First line**: Short summary (50 chars max) in imperative mood (e.g., "Add feature", "Fix bug", "Update config")
+     - **Body** (if needed): 2-3 sentence explanation of why the change was made
+
+4. Create the commit using:
+```bash
+git commit -m "$(cat <<'EOF'
+<short summary>
+
+<optional 2-3 sentence explanation>
+
+Co-authored-by: <agenting tool name> <noreply@<vendor domain>>
+Assisted-By: <agenting tool name>(<model name>)
+EOF
+)"
+```
+
+- The `Co-authored-by` trailer is a git standard recognized by GitHub. Use the agent's name and vendor no-reply email (e.g., `Co-authored-by: Claude Code <noreply@anthropic.com>`).
+- The `Assisted-By` trailer credits the AI agent and model. Use the actual tool name and model you are running as (e.g., `Assisted-By: Claude Code(claude-opus-4-6)`).
+
+5. Show the commit result with `git log -1 --oneline`
+
+## Examples
+- `/commit` - Auto-generate commit message from staged changes
+- `/commit "Fix typo in README"` - Use provided message
+
+## Important
+- Use imperative mood: "Add" not "Added", "Fix" not "Fixed"
+- Keep first line under 50 characters
+- Don't commit if there are no staged changes
+- Warn if committing sensitive files (.env, credentials, etc.)
+
+---
+
+Click to scroll is not working
+
+---
+
+/save-prompt
+Not just for article detail page, we will need to override font in CodeBlockView within post detail or post cards. For font-rendering, we would need cache
+
+---
+
+Yes. Same plan.
+
+---
+
+Base directory for this skill: /Users/kodingwarrior/.claude/plugins/marketplaces/zipsa/minimalism-workflow/skills/save-plan
+
+# Save Plan
+
+Save a plan or spec as markdown to `~/.planvault/`, associated with the current working directory.
+
+**Arguments**: `Future work: CodeBlockView font caching
+
+Override the font used in CodeBlockView across all surfaces where it appears — not just article detail, but also post detail and post cards. Because this renders in timeline/explore/profile hot paths, font rendering must go through a cache (similar to the existing htmlCache in HtmlContent.kt).` (optional mnemonic name for the plan)
+
+## Instructions
+
+1. **Determine the mnemonic name**:
+   - If `Future work: CodeBlockView font caching
+
+Override the font used in CodeBlockView across all surfaces where it appears — not just article detail, but also post detail and post cards. Because this renders in timeline/explore/profile hot paths, font rendering must go through a cache (similar to the existing htmlCache in HtmlContent.kt).` is provided, use it as the mnemonic name
+   - Otherwise, ask the user for a short mnemonic name (e.g., `api-redesign`, `auth-migration`, `v2-rollout`)
+   - Mnemonic must be lowercase alphanumeric with hyphens only (`^[a-z0-9][a-z0-9-]*$`)
+
+2. **Gather plan content**:
+   - Ask the user for the plan content, or collect it from the current conversation context if a plan was just discussed
+   - Write the content to a temporary file
+
+3. **Generate a one-line description** from the plan content automatically
+
+4. **Run the save script**:
+   ```bash
+   bash <skill-dir>/scripts/save-plan.sh "<mnemonic>" "<description>" "<temp-plan-file>"
+   ```
+   - Exit code 1: invalid mnemonic format
+   - Exit code 2: mnemonic collision with another project — inform the user and suggest a different name
+
+5. **On success**: report the mnemonic name and how to load it later (`/load-plan <mnemonic>`)
+
+## Important
+
+- If the mnemonic already exists for the SAME project, ask the user whether to overwrite or pick a different name before running the script.
+- Never overwrite without explicit user confirmation.
+
+---
+
+Okay. Clicking on tocitem, doesn't invoke scroll to down
+
+---
+
+Could you see logs? Not working i think
+
+---
+
+Let's see log
+
+---
+
+<task-notification>
+<task-id>bqdlqfdrl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>REDACTED.output</output-file>
+<status>failed</status>
+<summary>Background command "Tail logcat for TocScroll tag" failed with exit code 1</summary>
+</task-notification>
+
+---
+
+done
+
+---
+
+But, How about the id is same???
+
+---
+
+Wait, uuid have to be anchor's identifier. right?
+
+---
+
+Okay, commit as-is

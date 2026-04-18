@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "878504043b54",
+  "session_id": "833ea17f-96cf-4f3f-8c79-01280181ee69",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-18T12:47:07.139126Z",
+  "branch": "feature/article-detail-toc",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "app/src/main/java/pub/hackers/android/ui/components/HtmlContent.kt",
+    "app/src/main/java/pub/hackers/android/ui/components/TocPanel.kt",
+    "app/src/main/java/pub/hackers/android/ui/screens/postdetail/PostDetailScreen.kt",
+    "app/src/test/java/pub/hackers/android/ui/components/HtmlContentKtTest.kt"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "6725bfd3-ec3b-492c-8572-8a67f0376edc",
+  "checkpoint_transcript_start": 763,
+  "transcript_lines_at_start": 763,
+  "token_usage": {
+    "input_tokens": 147,
+    "cache_creation_tokens": 110108,
+    "cache_read_tokens": 21202423,
+    "output_tokens": 73147,
+    "api_call_count": 88
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-18T12:47:06.644926Z",
+    "agent_lines": 67,
+    "human_added": 47,
+    "human_modified": 4,
+    "human_removed": 0,
+    "total_committed": 118,
+    "agent_percentage": 56.779661016949156
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android-worktrees-feature-article-detail-toc/833ea17f-96cf-4f3f-8c79-01280181ee69.jsonl"
+}
