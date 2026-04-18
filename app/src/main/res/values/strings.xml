@@ -108,6 +108,9 @@
     <string name="replies">Replies</string>
     <string name="shares">Shares</string>
     <string name="reactions">Reactions</string>
+    <string name="reactors">Reactors</string>
+    <string name="no_reactors">No reactors yet</string>
+    <string name="reactors_with_emoji">Reacted with %1$s</string>
     <string name="quotes">Quotes</string>
     <string name="share">Share</string>
     <string name="unshare">Unshare</string>

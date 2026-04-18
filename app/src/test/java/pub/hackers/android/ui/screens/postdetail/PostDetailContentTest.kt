@@ -160,6 +160,7 @@ class PostDetailContentTest {
                     onQuoteClick = {},
                     onSharesClick = {},
                     onQuotesClick = {},
+                    onReactionsClick = {},
                     onExternalShareClick = {},
                 )
             }

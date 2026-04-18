@@ -42,6 +42,8 @@ data class PostDetailUiState(
     val showQuotesSheet: Boolean = false,
     val quotePosts: List<Post> = emptyList(),
     val isLoadingQuotes: Boolean = false,
+    val showReactorsSheet: Boolean = false,
+    val selectedReactionGroup: ReactionGroup? = null,
 )
 
 @HiltViewModel
@@ -230,6 +232,24 @@ class PostDetailViewModel @Inject constructor(
 
     fun dismissQuotesSheet() {
         _uiState.update { it.copy(showQuotesSheet = false) }
+    }
+
+    fun showReactorsSheet(group: ReactionGroup) {
+        _uiState.update {
+            it.copy(showReactorsSheet = true, selectedReactionGroup = group)
+        }
+    }
+
+    fun showAllReactors() {
+        _uiState.update {
+            it.copy(showReactorsSheet = true, selectedReactionGroup = null)
+        }
+    }
+
+    fun dismissReactorsSheet() {
+        _uiState.update {
+            it.copy(showReactorsSheet = false, selectedReactionGroup = null)
+        }
     }
 
     fun toggleReaction(emoji: String) {

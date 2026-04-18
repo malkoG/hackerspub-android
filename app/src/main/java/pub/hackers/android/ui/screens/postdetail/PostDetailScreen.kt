@@ -6,6 +6,7 @@ import android.text.Html
 import android.webkit.WebView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -185,6 +186,26 @@ fun PostDetailScreen(
         }
     }
 
+    // Reactors bottom sheet
+    if (uiState.showReactorsSheet && uiState.reactionGroups.isNotEmpty()) {
+        val initialIndex = uiState.selectedReactionGroup
+            ?.let { selected -> uiState.reactionGroups.indexOf(selected).coerceAtLeast(0) }
+            ?: 0
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissReactorsSheet() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            ReactorsSheet(
+                groups = uiState.reactionGroups,
+                initialIndex = initialIndex,
+                onProfileClick = { handle ->
+                    viewModel.dismissReactorsSheet()
+                    onProfileClick(handle)
+                }
+            )
+        }
+    }
+
     // Quotes bottom sheet
     if (uiState.showQuotesSheet) {
         ModalBottomSheet(
@@ -350,11 +371,12 @@ fun PostDetailScreen(
                                 }
                             }
                         },
-                        onReactionClick = { emoji -> viewModel.toggleReaction(emoji) },
+                        onReactionClick = { group -> viewModel.showReactorsSheet(group) },
                         onReactionPickerClick = { viewModel.toggleReactionPicker() },
                         onQuoteClick = { onQuoteClick(postId) },
                         onSharesClick = { viewModel.showSharesSheet() },
                         onQuotesClick = { viewModel.showQuotesSheet() },
+                        onReactionsClick = { viewModel.showAllReactors() },
                         onExternalShareClick = {
                             val shareUrl = uiState.post?.url
                                 ?: uiState.post?.iri
@@ -429,11 +451,12 @@ internal fun PostDetailContent(
     onPostClick: (String) -> Unit,
     onShareClick: () -> Unit,
     onReplyClick: () -> Unit,
-    onReactionClick: (String) -> Unit,
+    onReactionClick: (ReactionGroup) -> Unit,
     onReactionPickerClick: () -> Unit,
     onQuoteClick: () -> Unit,
     onSharesClick: () -> Unit,
     onQuotesClick: () -> Unit,
+    onReactionsClick: () -> Unit,
     onExternalShareClick: () -> Unit,
     onWebViewClick: (String) -> Unit = {},
 ) {
@@ -708,7 +731,8 @@ internal fun PostDetailContent(
                     Text(
                         text = "${post.engagementStats.reactions} ${stringResource(R.string.reactions)}",
                         style = typography.labelMedium,
-                        color = colors.textSecondary
+                        color = colors.accent,
+                        modifier = Modifier.clickable { onReactionsClick() }
                     )
                     Text(
                         text = "${post.engagementStats.quotes} ${stringResource(R.string.quotes)}",
@@ -723,9 +747,7 @@ internal fun PostDetailContent(
                     Row {
                         reactionGroups.forEach { group ->
                             Card(
-                                onClick = {
-                                    group.emoji?.let { onReactionClick(it) }
-                                },
+                                onClick = { onReactionClick(group) },
                                 shape = RoundedCornerShape(AppShapes.reactionPillRadius),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (group.viewerHasReacted)
@@ -850,6 +872,128 @@ internal fun PostDetailContent(
             if (replies.loadState.append is LoadState.Loading) {
                 item {
                     LoadingItem()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReactorsSheet(
+    groups: List<ReactionGroup>,
+    initialIndex: Int,
+    onProfileClick: (String) -> Unit
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val safeInitial = initialIndex.coerceIn(0, (groups.size - 1).coerceAtLeast(0))
+    var selectedIndex by remember(groups) { mutableIntStateOf(safeInitial) }
+    val selectedGroup = groups.getOrNull(selectedIndex)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.reactors),
+            style = typography.bodyLargeSemiBold,
+            color = colors.textPrimary,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        if (groups.isEmpty() || selectedGroup == null) {
+            Text(
+                text = stringResource(R.string.no_reactors),
+                style = typography.bodyMedium,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+            return@Column
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            groups.forEachIndexed { index, group ->
+                val isSelected = index == selectedIndex
+                Card(
+                    onClick = { selectedIndex = index },
+                    shape = RoundedCornerShape(AppShapes.reactionPillRadius),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected)
+                            colors.accent.copy(alpha = 0.2f)
+                        else
+                            colors.surface
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (group.emoji != null) {
+                            Text(text = group.emoji)
+                        } else if (group.customEmoji != null) {
+                            AsyncImage(
+                                model = group.customEmoji.imageUrl,
+                                contentDescription = group.customEmoji.name,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = group.count.toString(),
+                            style = typography.labelMedium,
+                            color = if (isSelected) colors.accent else colors.textPrimary
+                        )
+                    }
+                }
+            }
+        }
+
+        if (selectedGroup.reactors.isEmpty()) {
+            Text(
+                text = stringResource(R.string.no_reactors),
+                style = typography.bodyMedium,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+        } else {
+            selectedGroup.reactors.forEach { actor ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onProfileClick(actor.handle) }
+                        .padding(vertical = 8.dp)
+                ) {
+                    AsyncImage(
+                        model = actor.avatarUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        pub.hackers.android.ui.components.RichDisplayName(
+                            name = actor.name,
+                            fallback = actor.handle,
+                            style = typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = colors.textPrimary
+                        )
+                        Text(
+                            text = actor.handle,
+                            style = typography.labelMedium,
+                            color = colors.textSecondary
+                        )
+                    }
                 }
             }
         }
