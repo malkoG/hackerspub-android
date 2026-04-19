@@ -152,7 +152,7 @@ class SignInViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
-    fun signInWithPasskey(activity: Activity) {
+    fun signInWithPasskey() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
@@ -164,7 +164,7 @@ class SignInViewModel @Inject constructor(
                     .getOrThrow()
                 android.util.Log.d("PasskeyAuth", "Step 2: Got options: $optionsJson")
 
-                val authResponse = passkeyManager.authenticate(optionsJson, activity)
+                val authResponse = passkeyManager.authenticate(optionsJson)
                 android.util.Log.d("PasskeyAuth", "Step 3: Got auth response: $authResponse")
 
                 val authResponseMap = jsonToMap(org.json.JSONObject(authResponse))

@@ -1,7 +1,6 @@
 package pub.hackers.android.data.auth
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -32,14 +31,14 @@ class PasskeyManager @Inject constructor(
     private val credentialManager = CredentialManager.create(context)
 
     @RequiresApi(Build.VERSION_CODES.P)
-    suspend fun authenticate(optionsJson: String, activity: Activity): String {
+    suspend fun authenticate(optionsJson: String): String {
         android.util.Log.d("PasskeyAuth", "authenticate: creating request with options: ${optionsJson.take(200)}")
         val request = GetCredentialRequest(
             listOf(GetPublicKeyCredentialOption(optionsJson))
         )
         android.util.Log.d("PasskeyAuth", "authenticate: calling getCredential")
         try {
-            val result = credentialManager.getCredential(activity, request)
+            val result = credentialManager.getCredential(context, request)
             android.util.Log.d("PasskeyAuth", "authenticate: got result, credential type=${result.credential.type}")
             val credential = result.credential as PublicKeyCredential
             android.util.Log.d("PasskeyAuth", "authenticate: success")
@@ -52,11 +51,11 @@ class PasskeyManager @Inject constructor(
 
     @SuppressLint("PublicKeyCredential")
     @RequiresApi(Build.VERSION_CODES.P)
-    suspend fun register(optionsJson: String, activity: Activity): String {
+    suspend fun register(optionsJson: String, context: Context): String {
         android.util.Log.d("PasskeyAuth", "register: creating request")
         val request = CreatePublicKeyCredentialRequest(optionsJson)
         try {
-            val result = credentialManager.createCredential(activity, request)
+            val result = credentialManager.createCredential(context, request)
             android.util.Log.d("PasskeyAuth", "register: success")
             val credential = result as CreatePublicKeyCredentialResponse
             return credential.registrationResponseJson

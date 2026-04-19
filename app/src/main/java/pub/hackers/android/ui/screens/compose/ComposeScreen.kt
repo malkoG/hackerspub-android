@@ -48,8 +48,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -57,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
@@ -84,6 +83,34 @@ import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
 import kotlin.math.roundToInt
 
+private data class MentionPopupPositionInputs(
+    val scrollY: Int,
+    val cursorRect: Rect,
+    val textFieldBounds: Rect,
+)
+
+private fun calculateMentionPopupOffset(
+    inputs: MentionPopupPositionInputs,
+    paddingPx: Float,
+    popupWidthPx: Float,
+    popupYOffsetPx: Float,
+): IntOffset {
+    val cursorYInBox = inputs.cursorRect.bottom - inputs.scrollY + paddingPx
+    val cursorXInBox = inputs.cursorRect.left + paddingPx
+    val visibleCursorY = cursorYInBox.coerceIn(
+        paddingPx,
+        inputs.textFieldBounds.height - paddingPx
+    )
+
+    return IntOffset(
+        x = cursorXInBox.roundToInt().coerceIn(
+            0,
+            (inputs.textFieldBounds.width - popupWidthPx).toInt().coerceAtLeast(0)
+        ),
+        y = (visibleCursorY + popupYOffsetPx).roundToInt()
+    )
+}
+
 @Composable
 fun ComposeScreen(
     replyToId: String?,
@@ -107,13 +134,36 @@ fun ComposeScreen(
     // Track cursor and text field positions for popup placement
     var cursorRect by remember { mutableStateOf(Rect.Zero) }
     var textFieldBounds by remember { mutableStateOf(Rect.Zero) }
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val scrollState = rememberScrollState()
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
-    val popupHeight = with(density) { 200.dp.toPx() } // Estimated popup height
-    val coroutineScope = rememberCoroutineScope()
+    val mentionPopupPaddingPx = with(density) { 16.dp.toPx() }
+    val mentionPopupWidthPx = with(density) { 280.dp.toPx() }
+    val mentionPopupYOffsetPx = with(density) { 20.dp.toPx() }
+    var mentionPopupOffset by remember { mutableStateOf(IntOffset.Zero) }
+
+    LaunchedEffect(
+        scrollState,
+        mentionPopupPaddingPx,
+        mentionPopupWidthPx,
+        mentionPopupYOffsetPx
+    ) {
+        snapshotFlow {
+            MentionPopupPositionInputs(
+                scrollY = scrollState.value,
+                cursorRect = cursorRect,
+                textFieldBounds = textFieldBounds,
+            )
+        }.collect { inputs ->
+            mentionPopupOffset = calculateMentionPopupOffset(
+                inputs = inputs,
+                paddingPx = mentionPopupPaddingPx,
+                popupWidthPx = mentionPopupWidthPx,
+                popupYOffsetPx = mentionPopupYOffsetPx,
+            )
+        }
+    }
 
     // Auto-scroll to keep cursor visible when text overflows
     LaunchedEffect(cursorRect) {
@@ -250,7 +300,6 @@ fun ComposeScreen(
                                     )
                                 },
                                 onTextLayout = { result: TextLayoutResult ->
-                                    textLayoutResult = result
                                     // Update cursor position
                                     val cursorPos = textFieldValue.selection.start
                                         .coerceIn(0, textFieldValue.text.length)
@@ -287,25 +336,9 @@ fun ComposeScreen(
 
                     // Mention autocomplete popup
                     if (uiState.mentionSuggestions.isNotEmpty() || uiState.isLoadingMentions) {
-                        // Calculate cursor position accounting for padding and scroll
-                        val paddingPx = with(density) { 16.dp.toPx() }
-                        val cursorYInBox = cursorRect.bottom - scrollState.value + paddingPx
-                        val cursorXInBox = cursorRect.left + paddingPx
-
-                        // Clamp to visible area
-                        val visibleCursorY =
-                            cursorYInBox.coerceIn(paddingPx, textFieldBounds.height - paddingPx)
-
                         Popup(
                             alignment = Alignment.TopStart,
-                            offset = IntOffset(
-                                x = cursorXInBox.roundToInt().coerceIn(
-                                    0,
-                                    (textFieldBounds.width - with(density) { 280.dp.toPx() }).toInt()
-                                        .coerceAtLeast(0)
-                                ),
-                                y = (visibleCursorY + with(density) { 20.dp.toPx() }).roundToInt()
-                            ),
+                            offset = mentionPopupOffset,
                             properties = PopupProperties(focusable = false)
                         ) {
                             MentionAutocomplete(

@@ -87,6 +87,16 @@ app/src/main/java/pub/hackers/android/
    ./gradlew generateApolloSources
    ```
 
+### Before pushing
+
+Run lint after finishing each task and again right before `git push` to catch any new errors you introduced:
+
+```bash
+./gradlew :app:lintDebug
+```
+
+Target is **0 errors**. For a genuine false positive (e.g., AGP bug), suppress narrowly at the single site with a comment or `tools:ignore="..."` — never disable the check globally. See [CONVENTION.md §10.5](./CONVENTION.md).
+
 ## GraphQL
 
 The app uses Apollo GraphQL to communicate with the Hackers' Pub API at `https://hackers.pub/graphql`.

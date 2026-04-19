@@ -1,6 +1,5 @@
 package pub.hackers.android.ui.screens.auth
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -111,10 +109,9 @@ fun SignInScreen(
                         pub.hackers.android.FeatureFlags.PASSKEY_AUTH_ENABLED &&
                         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
                     ) {
-                        val activity = LocalContext.current as Activity
                         {
                             keyboardController?.hide()
-                            viewModel.signInWithPasskey(activity)
+                            viewModel.signInWithPasskey()
                         }
                     } else null,
                     isLoading = uiState.isLoading

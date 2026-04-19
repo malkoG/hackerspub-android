@@ -1,6 +1,4 @@
 package pub.hackers.android.ui.screens.settings
-
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -419,7 +417,7 @@ fun SettingsScreen(
     // Add passkey dialog
     if (passkeyEnabled && showAddPasskeyDialog) {
         var passkeyName by remember { mutableStateOf("") }
-        val activity = LocalContext.current as Activity
+        val context = LocalContext.current
 
         AlertDialog(
             onDismissRequest = { showAddPasskeyDialog = false },
@@ -441,7 +439,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = {
                         showAddPasskeyDialog = false
-                        viewModel.registerPasskey(passkeyName.ifBlank { "Android" }, activity)
+                        viewModel.registerPasskey(passkeyName.ifBlank { "Android" }, context)
                     },
                     enabled = !uiState.isRegisteringPasskey
                 ) {

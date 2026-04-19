@@ -67,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -405,6 +406,9 @@ private fun NoteCard(
 
                 // Inline translate link
                 if (!isTranslating && translationError == null) {
+                    // Read Configuration from composition state so locale changes
+                    // trigger recomposition instead of serving stale values.
+                    val configuration = LocalConfiguration.current
                     Text(
                         text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
                             R.string.translate
@@ -425,7 +429,7 @@ private fun NoteCard(
                                 }
 
                                 val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                                    .getLocales(context.resources.configuration)
+                                    .getLocales(configuration)
                                     .get(0)?.language ?: Locale.getDefault().language
                                 scope.launch {
                                     isTranslating = true

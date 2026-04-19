@@ -48,10 +48,10 @@ class SignInViewModelTest {
         val expectedMessage = "No passkey found."
         every { context.getString(R.string.no_passkey_registered) } returns expectedMessage
         coEvery { repository.getPasskeyAuthenticationOptions(any()) } returns Result.success("{}")
-        coEvery { passkeyManager.authenticate(any(), any()) } throws NoCredentialException()
+        coEvery { passkeyManager.authenticate(any()) } throws NoCredentialException()
 
         val vm = newViewModel()
-        vm.signInWithPasskey(activity)
+        vm.signInWithPasskey()
         advanceUntilIdle()
 
         assertEquals(expectedMessage, vm.uiState.value.error)
@@ -62,10 +62,10 @@ class SignInViewModelTest {
     @Test
     fun `signInWithPasskey shows exception message on generic failure`() = runTest {
         coEvery { repository.getPasskeyAuthenticationOptions(any()) } returns Result.success("{}")
-        coEvery { passkeyManager.authenticate(any(), any()) } throws RuntimeException("timeout")
+        coEvery { passkeyManager.authenticate(any()) } throws RuntimeException("timeout")
 
         val vm = newViewModel()
-        vm.signInWithPasskey(activity)
+        vm.signInWithPasskey()
         advanceUntilIdle()
 
         assertEquals("timeout", vm.uiState.value.error)

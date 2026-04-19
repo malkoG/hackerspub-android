@@ -157,6 +157,44 @@ Composable parameters follow the Compose API Guidelines for `Modifier`:
 
 This is an established convention in the project — see commit `0e92f03` (PR #86) which refactored `HtmlContent` specifically to fix a violation, and every `ui/components/*.kt` Composable follows the pattern.
 
+### §5.5 Read configuration from Compose state
+
+When a Composable needs locale / screen / orientation-dependent values from the current Android configuration, read `LocalConfiguration.current` instead of reaching through `LocalContext.current.resources.configuration`.
+
+- `LocalContext.current.resources.configuration` is not tracked as Compose state, so configuration changes can leave the caller with stale values.
+- `LocalConfiguration.current` invalidates and recomposes correctly when the `Configuration` changes.
+- If code only needs resources lookup (`getString`, dimensions, etc.), `stringResource(...)` and other Compose resource APIs remain preferred. Use `LocalConfiguration.current` specifically when you need the `Configuration` object itself.
+
+Reference examples:
+
+- `ui/components/PostCard.kt` translation locale selection
+- `ui/screens/postdetail/PostDetailScreen.kt` translation locale selection
+
+### §5.6 Avoid unnecessary `LocalContext` and `Activity` dependencies
+
+Do not read `LocalContext.current` just to satisfy an obsolete parameter or to pass context through layers that do not need it. In Compose, every `LocalContext.current` read is still a composition-local dependency; keep it scoped to the smallest call site that actually uses Android context APIs.
+
+- Prefer removing the context parameter entirely when the callee already owns the context it needs.
+- Prefer `Context` over `Activity` unless the called API explicitly requires an `Activity` or an activity-bound lifecycle/window token.
+- Do not cast `LocalContext.current as Activity` speculatively. If an API can operate with `Context`, keep the UI and ViewModel signatures context-free or `Context`-based.
+
+Reference examples:
+
+- Passkey sign-in uses the `PasskeyManager`'s injected application context instead of threading an `Activity` through `SignInScreen` / `SignInViewModel`.
+- Passkey registration accepts a `Context` from `SettingsScreen` only where Credential Manager registration is initiated.
+
+### §5.7 Do not read frequently changing state in composition
+
+Values annotated with `@FrequentlyChangingValue` should not be read directly in Composable function bodies. Reading them during composition makes that composition depend on high-frequency updates and can cause avoidable recompositions.
+
+- Use `derivedStateOf` only when the derived result changes much less often than the source value, such as reducing scroll position to "at top" / "not at top".
+- Use `snapshotFlow` inside `LaunchedEffect` when a frequently changing value needs to drive state updates or side effects without being read directly by composition.
+- Prefer layout- or draw-phase reads, such as lambda-based modifiers, when the value only affects placement or drawing.
+
+Reference example:
+
+- `ui/screens/compose/ComposeScreen.kt` mention autocomplete observes text-field scroll with `snapshotFlow` and feeds a calculated popup offset into composition.
+
 ---
 
 ## §6 ViewModel and state
@@ -258,6 +296,14 @@ The `debug` build type sets `applicationIdSuffix = ".dev"` and ships a distinct 
 
 `release` build type has `isMinifyEnabled = true`. Don't disable minification to "make debugging easier" — add the missing keep rule instead.
 
+### §10.5 Run lint before pushing
+
+Run `./gradlew :app:lintDebug` after finishing each task and again right before `git push`. The target is **0 errors** — warnings are tolerated but new warnings should be justified in the PR body.
+
+Lint catches problems that `compileDebugKotlin` and unit tests do not: manifest issues, API-level traps (§13), resource hygiene, and typographic issues. Compilation passing does not mean lint passes.
+
+For a **genuine false positive** (e.g., the AGP 9.1.1 `Instantiatable` bug on `@AndroidEntryPoint` activities), suppress narrowly at the single call site with `tools:ignore="..."` or a `//noinspection` comment, and cite the upstream issue in the commit message. Do not disable a check globally via `lintOptions { disable ... }` — it hides future real failures of the same kind.
+
 ---
 
 ## §11 Localization and accessibility
@@ -267,6 +313,8 @@ The `debug` build type sets `applicationIdSuffix = ".dev"` and ships a distinct 
 All user-visible text goes through `stringResource(R.string.xxx)`. No string literals in Composables that will render to the screen. Exceptions: debug-only labels, log messages, format templates that are themselves composed from resources.
 
 String keys are descriptive: `error_no_network`, not `msg3`.
+
+Use the single ellipsis character (`…`) instead of three periods (`...`) in user-facing strings.
 
 ### §11.2 `contentDescription` on interactive icons
 
@@ -333,6 +381,7 @@ AI code-completion tools frequently suggest API calls that match the intent but 
 | §6.3 | One-shot events → `Channel` / `SharedFlow` |
 | §7.1 | Repository returns `Result<T>` |
 | §10.1 | Dependencies → Version Catalog |
+| §10.5 | Run `./gradlew :app:lintDebug` before pushing; target 0 errors |
 | §11.1 | No hardcoded user-facing strings |
 | §11.2 | `contentDescription` on interactive icons |
 | §12.2 | Don't commit generated Apollo code |

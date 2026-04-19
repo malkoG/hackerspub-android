@@ -1,6 +1,4 @@
 package pub.hackers.android.ui.screens.settings
-
-import android.app.Activity
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
@@ -241,7 +239,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
-    fun registerPasskey(name: String, activity: Activity) {
+    fun registerPasskey(name: String, context: Context) {
         val accountId = _uiState.value.accountId ?: run {
             android.util.Log.e("PasskeyAuth", "registerPasskey: accountId is null")
             return
@@ -254,7 +252,7 @@ class SettingsViewModel @Inject constructor(
                     .getOrThrow()
                 android.util.Log.d("PasskeyAuth", "registerPasskey: got options")
 
-                val registrationResponse = passkeyManager.register(optionsJson, activity)
+                val registrationResponse = passkeyManager.register(optionsJson, context)
                 android.util.Log.d("PasskeyAuth", "registerPasskey: got registration response: ${registrationResponse.take(200)}")
 
                 // Parse and re-serialize to ensure clean JSON, then convert to Map for Apollo

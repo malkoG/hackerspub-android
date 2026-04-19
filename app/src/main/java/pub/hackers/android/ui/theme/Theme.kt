@@ -1,6 +1,9 @@
 package pub.hackers.android.ui.theme
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -93,6 +96,11 @@ private fun dynamicAppColors(scheme: ColorScheme, dark: Boolean) = AppColorSchem
     hashtag = if (dark) DarkAppColors.hashtag else LightAppColors.hashtag,
 )
 
+@RequiresApi(Build.VERSION_CODES.S)
+@SuppressLint("NewApi")
+private fun dynamicColorSchemeFor(context: Context, darkTheme: Boolean): ColorScheme =
+    if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+
 @Composable
 fun HackersPubTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -109,8 +117,7 @@ fun HackersPubTheme(
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     val colorScheme = when {
-        dynamicAvailable ->
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        dynamicAvailable -> dynamicColorSchemeFor(context, darkTheme)
         darkTheme -> darkColorSchemeFrom(DarkAppColors)
         else -> lightColorSchemeFrom(LightAppColors)
     }
