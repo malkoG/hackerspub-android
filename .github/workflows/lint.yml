@@ -58,6 +58,7 @@ jobs:
         shell: python
         run: |
           import os, re, sys
+          import xml.etree.ElementTree as ET
 
           workspace = os.environ.get("GITHUB_WORKSPACE", "")
 
@@ -70,35 +71,64 @@ jobs:
           except FileNotFoundError:
               pass
 
-          pattern = re.compile(
-              r"^(?P<sev>[we]):\s+file://(?P<path>[^:]+):(?P<line>\d+):(?P<col>\d+)\s+(?P<msg>.*)$"
-          )
-
           errors = 0
           warnings = 0
-          with open("lint.log", "r", errors="replace") as f:
-              for raw in f:
-                  line = raw.rstrip("\n")
-                  m = pattern.match(line)
-                  if not m:
+
+          def emit(sev, path, line, col, msg):
+              global errors, warnings
+              if workspace and path.startswith(workspace + "/"):
+                  path = path[len(workspace) + 1:]
+              if changed is not None and path not in changed:
+                  return
+              if sev == "error":
+                  errors += 1
+              elif sev == "warning":
+                  warnings += 1
+              msg = msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              loc = f"file={path},line={line}"
+              if col:
+                  loc += f",col={col}"
+              print(f"::{sev} {loc}::{msg}")
+
+          # Kotlin compiler diagnostics from the Gradle console log.
+          compiler_pattern = re.compile(
+              r"^(?P<sev>[we]):\s+file://(?P<path>[^:]+):(?P<line>\d+):(?P<col>\d+)\s+(?P<msg>.*)$"
+          )
+          try:
+              with open("lint.log", "r", errors="replace") as f:
+                  for raw in f:
+                      m = compiler_pattern.match(raw.rstrip("\n"))
+                      if not m:
+                          continue
+                      sev = "error" if m.group("sev") == "e" else "warning"
+                      emit(sev, m.group("path"), m.group("line"), m.group("col"), m.group("msg"))
+          except FileNotFoundError:
+              pass
+
+          # Android Lint issues from the XML report. The text report drops
+          # column info and the console only prints a summary, so the XML is
+          # the authoritative source for inline annotations.
+          severity_map = {
+              "Fatal": "error",
+              "Error": "error",
+              "Warning": "warning",
+              "Informational": "notice",
+          }
+          lint_xml = "app/build/reports/lint-results-debug.xml"
+          if os.path.exists(lint_xml):
+              tree = ET.parse(lint_xml)
+              for issue in tree.getroot().findall("issue"):
+                  sev = severity_map.get(issue.get("severity", ""), "warning")
+                  if sev == "notice":
                       continue
-                  path = m.group("path")
-                  if workspace and path.startswith(workspace + "/"):
-                      path = path[len(workspace) + 1:]
-                  if changed is not None and path not in changed:
-                      continue
-                  sev = "error" if m.group("sev") == "e" else "warning"
-                  if sev == "error":
-                      errors += 1
-                  else:
-                      warnings += 1
-                  msg = (
-                      m.group("msg")
-                      .replace("%", "%25")
-                      .replace("\r", "%0D")
-                      .replace("\n", "%0A")
-                  )
-                  print(f"::{sev} file={path},line={m.group('line')},col={m.group('col')}::{msg}")
+                  base_msg = issue.get("message", "").strip()
+                  issue_id = issue.get("id", "")
+                  msg = f"{base_msg} [{issue_id}]" if issue_id else base_msg
+                  for loc in issue.findall("location"):
+                      path = loc.get("file", "")
+                      if not path:
+                          continue
+                      emit(sev, path, loc.get("line") or "1", loc.get("column") or "", msg)
 
           print(f"::notice::Lint (changed files) — errors: {errors}, warnings: {warnings}")
           sys.exit(1 if errors > 0 else 0)
