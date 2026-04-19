@@ -170,6 +170,19 @@ Reference examples:
 - `ui/components/PostCard.kt` translation locale selection
 - `ui/screens/postdetail/PostDetailScreen.kt` translation locale selection
 
+### §5.6 Avoid unnecessary `LocalContext` and `Activity` dependencies
+
+Do not read `LocalContext.current` just to satisfy an obsolete parameter or to pass context through layers that do not need it. In Compose, every `LocalContext.current` read is still a composition-local dependency; keep it scoped to the smallest call site that actually uses Android context APIs.
+
+- Prefer removing the context parameter entirely when the callee already owns the context it needs.
+- Prefer `Context` over `Activity` unless the called API explicitly requires an `Activity` or an activity-bound lifecycle/window token.
+- Do not cast `LocalContext.current as Activity` speculatively. If an API can operate with `Context`, keep the UI and ViewModel signatures context-free or `Context`-based.
+
+Reference examples:
+
+- Passkey sign-in uses the `PasskeyManager`'s injected application context instead of threading an `Activity` through `SignInScreen` / `SignInViewModel`.
+- Passkey registration accepts a `Context` from `SettingsScreen` only where Credential Manager registration is initiated.
+
 ---
 
 ## §6 ViewModel and state
