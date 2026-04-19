@@ -1,0 +1,105 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run lintDebug
+        run: ./gradlew lintDebug --console=plain 2>&1 | tee lint.log
+        continue-on-error: true
+
+      - name: Collect changed files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+            git diff --name-only "$BASE" "$HEAD" > changed.txt
+          else
+            git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" > changed.txt || true
+          fi
+          echo "changed files:"
+          cat changed.txt
+
+      - name: Emit annotations
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+
+          workspace = os.environ.get("GITHUB_WORKSPACE", "")
+
+          changed = set()
+          try:
+              with open("changed.txt") as f:
+                  for line in f:
+                      line = line.strip()
+                      if line:
+                          changed.add(line)
+          except FileNotFoundError:
+              pass
+
+          pattern = re.compile(
+              r"^(?P<sev>[we]):\s+file://(?P<path>[^:]+):(?P<line>\d+):(?P<col>\d+)\s+(?P<msg>.*)$"
+          )
+
+          errors = 0
+          warnings = 0
+          with open("lint.log", "r", errors="replace") as f:
+              for raw in f:
+                  line = raw.rstrip("\n")
+                  m = pattern.match(line)
+                  if not m:
+                      continue
+                  path = m.group("path")
+                  if workspace and path.startswith(workspace + "/"):
+                      path = path[len(workspace) + 1:]
+                  if changed and path not in changed:
+                      continue
+                  sev = "error" if m.group("sev") == "e" else "warning"
+                  if sev == "error":
+                      errors += 1
+                  else:
+                      warnings += 1
+                  msg = (
+                      m.group("msg")
+                      .replace("%", "%25")
+                      .replace("\r", "%0D")
+                      .replace("\n", "%0A")
+                  )
+                  print(f"::{sev} file={path},line={m.group('line')},col={m.group('col')}::{msg}")
+
+          print(f"::notice::Lint (changed files) — errors: {errors}, warnings: {warnings}")
+          sys.exit(1 if errors > 0 else 0)
+          PY
+
+      - name: Upload lint log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-log
+          path: lint.log
