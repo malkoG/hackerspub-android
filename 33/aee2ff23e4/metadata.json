@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "33aee2ff23e4",
+  "strategy": "manual-commit",
+  "branch": "ci/add-lint-workflow",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".github/workflows/lint.yml",
+    "app/src/main/java/pub/hackers/android/ui/components/HtmlContent.kt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/33/aee2ff23e4/0/metadata.json",
+      "transcript": "/33/aee2ff23e4/0/full.jsonl",
+      "context": "/33/aee2ff23e4/0/context.md",
+      "content_hash": "/33/aee2ff23e4/0/content_hash.txt",
+      "prompt": "/33/aee2ff23e4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1403,
+    "cache_creation_tokens": 53147,
+    "cache_read_tokens": 887292,
+    "output_tokens": 11921,
+    "api_call_count": 23
+  }
+}
