@@ -48,9 +48,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -58,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
@@ -136,13 +134,10 @@ fun ComposeScreen(
     // Track cursor and text field positions for popup placement
     var cursorRect by remember { mutableStateOf(Rect.Zero) }
     var textFieldBounds by remember { mutableStateOf(Rect.Zero) }
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val scrollState = rememberScrollState()
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
-    val popupHeight = with(density) { 200.dp.toPx() } // Estimated popup height
-    val coroutineScope = rememberCoroutineScope()
     val mentionPopupPaddingPx = with(density) { 16.dp.toPx() }
     val mentionPopupWidthPx = with(density) { 280.dp.toPx() }
     val mentionPopupYOffsetPx = with(density) { 20.dp.toPx() }
@@ -305,7 +300,6 @@ fun ComposeScreen(
                                     )
                                 },
                                 onTextLayout = { result: TextLayoutResult ->
-                                    textLayoutResult = result
                                     // Update cursor position
                                     val cursorPos = textFieldValue.selection.start
                                         .coerceIn(0, textFieldValue.text.length)
