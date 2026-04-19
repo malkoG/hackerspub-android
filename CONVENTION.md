@@ -306,6 +306,8 @@ All user-visible text goes through `stringResource(R.string.xxx)`. No string lit
 
 String keys are descriptive: `error_no_network`, not `msg3`.
 
+Use the single ellipsis character (`…`) instead of three periods (`...`) in user-facing strings.
+
 ### §11.2 `contentDescription` on interactive icons
 
 Every `Icon`, `IconButton`, `AsyncImage` that carries meaning requires a `contentDescription`, usually sourced from `stringResource`. Decorative-only icons pass `contentDescription = null` explicitly — the argument is never omitted.

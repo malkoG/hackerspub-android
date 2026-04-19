@@ -118,7 +118,7 @@
     <string name="download">Download</string>
     <string name="translate">Translate</string>
     <string name="show_original">Show original</string>
-    <string name="translating">Translating...</string>
+    <string name="translating">Translating…</string>
     <string name="translation_failed">Translation failed</string>
 
     <!-- Settings -->
