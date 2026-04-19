@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a2cf709de1e7",
+  "session_id": "1c022aa0-0890-4137-97b1-5980703b88e2",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-19T15:01:33.464441Z",
+  "branch": "ci/add-lint-workflow",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/lint.yml"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "9e22f6e7-7558-4687-b8bb-b7ea3dcbd105",
+  "checkpoint_transcript_start": 142,
+  "transcript_lines_at_start": 142,
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 22097,
+    "cache_read_tokens": 941080,
+    "output_tokens": 12030,
+    "api_call_count": 16
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-19T15:01:33.345535Z",
+    "agent_lines": 17,
+    "human_added": 72379,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 72396,
+    "agent_percentage": 0.023481960329299962
+  },
+  "transcript_path": ".claude/projects/-Users-kodingwarrior-fediverse-hackerspub-android/1c022aa0-0890-4137-97b1-5980703b88e2.jsonl"
+}

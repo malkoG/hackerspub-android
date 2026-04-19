@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.4",
+  "checkpoint_id": "a2cf709de1e7",
+  "strategy": "manual-commit",
+  "branch": "ci/add-lint-workflow",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/lint.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a2/cf709de1e7/0/metadata.json",
+      "transcript": "/a2/cf709de1e7/0/full.jsonl",
+      "context": "/a2/cf709de1e7/0/context.md",
+      "content_hash": "/a2/cf709de1e7/0/content_hash.txt",
+      "prompt": "/a2/cf709de1e7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 22097,
+    "cache_read_tokens": 941080,
+    "output_tokens": 12030,
+    "api_call_count": 16
+  }
+}
