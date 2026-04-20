@@ -155,6 +155,7 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_dynamic">Dynamic color (Material You)</string>
     <string name="settings_theme_dynamic_unavailable">Requires Android 12+</string>
+    <string name="licenses">Open-source Licenses</string>
     <string name="back">Back</string>
 
     <!-- Profile -->

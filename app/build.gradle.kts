@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.apollo)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.aboutlibraries)
 }
 
 android {
@@ -131,6 +132,8 @@ dependencies {
     implementation(libs.androidx.browser)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
+
+    implementation(libs.aboutlibraries.compose.m3)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

@@ -52,6 +52,7 @@ import pub.hackers.android.ui.screens.editprofile.EditProfileScreen
 import pub.hackers.android.ui.screens.profile.ProfileScreen
 import pub.hackers.android.ui.screens.recommendedactors.RecommendedActorsScreen
 import pub.hackers.android.ui.screens.search.SearchScreen
+import pub.hackers.android.ui.screens.licenses.LicensesScreen
 import pub.hackers.android.ui.screens.settings.SettingsScreen
 import pub.hackers.android.ui.screens.timeline.TimelineScreen
 import pub.hackers.android.ui.screens.webview.WebViewScreen
@@ -150,6 +151,7 @@ sealed class DetailScreen(val route: String) {
             return "webview?url=$encoded"
         }
     }
+    data object Licenses : DetailScreen("licenses")
 }
 
 @Composable
@@ -445,6 +447,9 @@ fun HackersPubApp(
                     onDraftsClick = {
                         navController.navigate(DetailScreen.Drafts.route)
                     },
+                    onLicensesClick = {
+                        navController.navigate(DetailScreen.Licenses.route)
+                    },
                     isLoggedIn = isLoggedIn
                 )
             }
@@ -662,6 +667,14 @@ fun HackersPubApp(
                 val url = backStackEntry.arguments?.getString("url") ?: return@composable
                 WebViewScreen(
                     url = url,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(DetailScreen.Licenses.route) {
+                LicensesScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     }
