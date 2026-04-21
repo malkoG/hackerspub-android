@@ -148,6 +148,8 @@ fun PostDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val bookmarkedMessage = stringResource(R.string.bookmarked)
+    val bookmarkRemovedMessage = stringResource(R.string.bookmark_removed)
     val colors = LocalAppColors.current
     val confirmBeforeDelete by viewModel.preferencesManager.confirmBeforeDelete.collectAsState(
         initial = true
@@ -491,13 +493,11 @@ fun PostDetailScreen(
                         onBookmarkClick = {
                             Toast.makeText(
                                 context,
-                                context.getString(
-                                    if (resolvedPost.viewerHasBookmarked) {
-                                        R.string.bookmark_removed
-                                    } else {
-                                        R.string.bookmarked
-                                    }
-                                ),
+                                if (resolvedPost.viewerHasBookmarked) {
+                                    bookmarkRemovedMessage
+                                } else {
+                                    bookmarkedMessage
+                                },
                                 Toast.LENGTH_SHORT
                             ).show()
                             viewModel.toggleBookmark()

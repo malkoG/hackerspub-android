@@ -68,6 +68,8 @@ fun BookmarksScreen(
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val bookmarkedMessage = stringResource(R.string.bookmarked)
+    val bookmarkRemovedMessage = stringResource(R.string.bookmark_removed)
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
 
@@ -212,13 +214,11 @@ fun BookmarksScreen(
                                             val displayPost = post.sharedPost ?: post
                                             Toast.makeText(
                                                 context,
-                                                context.getString(
-                                                    if (displayPost.viewerHasBookmarked) {
-                                                        R.string.bookmark_removed
-                                                    } else {
-                                                        R.string.bookmarked
-                                                    }
-                                                ),
+                                                if (displayPost.viewerHasBookmarked) {
+                                                    bookmarkRemovedMessage
+                                                } else {
+                                                    bookmarkedMessage
+                                                },
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                             viewModel.toggleBookmark(post)

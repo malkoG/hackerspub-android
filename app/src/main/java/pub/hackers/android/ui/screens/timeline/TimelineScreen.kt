@@ -73,6 +73,8 @@ fun TimelineScreen(
     val items = viewModel.posts.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val bookmarkedMessage = stringResource(R.string.bookmarked)
+    val bookmarkRemovedMessage = stringResource(R.string.bookmark_removed)
     val colors = LocalAppColors.current
 
     // Refresh draft count when screen becomes visible (e.g., returning from Drafts)
@@ -269,13 +271,11 @@ fun TimelineScreen(
                                         val displayPost = post.sharedPost ?: post
                                         Toast.makeText(
                                             context,
-                                            context.getString(
-                                                if (displayPost.viewerHasBookmarked) {
-                                                    R.string.bookmark_removed
-                                                } else {
-                                                    R.string.bookmarked
-                                                }
-                                            ),
+                                            if (displayPost.viewerHasBookmarked) {
+                                                bookmarkRemovedMessage
+                                            } else {
+                                                bookmarkedMessage
+                                            },
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         viewModel.toggleBookmark(post)
