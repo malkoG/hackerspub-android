@@ -23,6 +23,7 @@ import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.domain.model.TocItem
+import pub.hackers.android.ui.bookmark.BookmarkMutationCoordinator
 import pub.hackers.android.ui.screens.compose.ReplyPostedSignal
 import javax.inject.Inject
 
@@ -62,6 +63,27 @@ class PostDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(PostDetailUiState())
     val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
+    private val bookmarkCoordinator = BookmarkMutationCoordinator(
+        scope = viewModelScope,
+        requestMutation = { targetPostId, shouldBookmark ->
+            if (shouldBookmark) repository.bookmarkPost(targetPostId)
+            else repository.unbookmarkPost(targetPostId)
+        },
+        applyDesiredState = { targetPostId, isBookmarked ->
+            _uiState.update { state ->
+                val post = state.post
+                if (post == null || post.id != targetPostId) state
+                else state.copy(post = post.copy(viewerHasBookmarked = isBookmarked))
+            }
+        },
+        revertFailedState = { targetPostId, attemptedState ->
+            _uiState.update { state ->
+                val post = state.post
+                if (post == null || post.id != targetPostId) state
+                else state.copy(post = post.copy(viewerHasBookmarked = !attemptedState))
+            }
+        },
+    )
 
     // Locally-composed replies appended optimistically after a successful reply
     // from this screen. Rendered after the paginated replies; cleared on refresh
@@ -288,27 +310,7 @@ class PostDetailViewModel @Inject constructor(
 
     fun toggleBookmark() {
         val post = _uiState.value.post ?: return
-        val willBookmark = !post.viewerHasBookmarked
-
-        _uiState.update {
-            it.copy(post = post.copy(viewerHasBookmarked = willBookmark))
-        }
-
-        viewModelScope.launch {
-            val result = if (willBookmark) {
-                repository.bookmarkPost(postId)
-            } else {
-                repository.unbookmarkPost(postId)
-            }
-
-            result.onFailure {
-                _uiState.update { state ->
-                    state.copy(
-                        post = state.post?.copy(viewerHasBookmarked = !willBookmark)
-                    )
-                }
-            }
-        }
+        bookmarkCoordinator.toggle(post.id, post.viewerHasBookmarked)
     }
 
     fun toggleReaction(emoji: String) {

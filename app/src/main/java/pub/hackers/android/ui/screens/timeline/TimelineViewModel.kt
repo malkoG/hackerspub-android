@@ -26,6 +26,7 @@ import pub.hackers.android.data.paging.personalTimelinePage
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
+import pub.hackers.android.ui.bookmark.BookmarkMutationCoordinator
 import javax.inject.Inject
 
 data class TimelineUiState(
@@ -45,6 +46,23 @@ class TimelineViewModel @Inject constructor(
     val uiState: StateFlow<TimelineUiState> = _uiState.asStateFlow()
 
     private val overlayStore = PostOverlayStore()
+    private val bookmarkCoordinator = BookmarkMutationCoordinator(
+        scope = viewModelScope,
+        requestMutation = { postId, shouldBookmark ->
+            if (shouldBookmark) repository.bookmarkPost(postId)
+            else repository.unbookmarkPost(postId)
+        },
+        applyDesiredState = { postId, isBookmarked ->
+            overlayStore.mutate(postId) {
+                it.copy(viewerHasBookmarked = isBookmarked)
+            }
+        },
+        revertFailedState = { postId, attemptedState ->
+            overlayStore.mutate(postId) { prev ->
+                prev.copy(viewerHasBookmarked = !attemptedState)
+            }
+        },
+    )
 
     private var currentPagingSource: PagingSource<String, Post>? = null
 
@@ -124,24 +142,7 @@ class TimelineViewModel @Inject constructor(
 
     fun toggleBookmark(post: Post) {
         val target = post.sharedPost ?: post
-        val willBookmark = !target.viewerHasBookmarked
-
-        overlayStore.mutate(target.id) {
-            it.copy(viewerHasBookmarked = willBookmark)
-        }
-
-        viewModelScope.launch {
-            val result = if (willBookmark) {
-                repository.bookmarkPost(target.id)
-            } else {
-                repository.unbookmarkPost(target.id)
-            }
-            result.onFailure {
-                overlayStore.mutate(target.id) { prev ->
-                    prev.copy(viewerHasBookmarked = !willBookmark)
-                }
-            }
-        }
+        bookmarkCoordinator.toggle(target.id, target.viewerHasBookmarked)
     }
 
     /**

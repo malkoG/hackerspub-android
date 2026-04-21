@@ -25,6 +25,7 @@ import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.graphql.type.PostType as GqlPostType
+import pub.hackers.android.ui.bookmark.BookmarkMutationCoordinator
 import javax.inject.Inject
 
 enum class BookmarkTab {
@@ -48,6 +49,23 @@ class BookmarksViewModel @Inject constructor(
     val uiState: StateFlow<BookmarksUiState> = _uiState.asStateFlow()
 
     private val overlayStore = PostOverlayStore()
+    private val bookmarkCoordinator = BookmarkMutationCoordinator(
+        scope = viewModelScope,
+        requestMutation = { postId, shouldBookmark ->
+            if (shouldBookmark) repository.bookmarkPost(postId)
+            else repository.unbookmarkPost(postId)
+        },
+        applyDesiredState = { postId, isBookmarked ->
+            overlayStore.mutate(postId) {
+                it.copy(viewerHasBookmarked = isBookmarked)
+            }
+        },
+        revertFailedState = { postId, attemptedState ->
+            overlayStore.mutate(postId) { prev ->
+                prev.copy(viewerHasBookmarked = !attemptedState)
+            }
+        },
+    )
 
     val posts: Flow<PagingData<Post>> = _selectedTab
         .flatMapLatest { tab ->
@@ -104,24 +122,7 @@ class BookmarksViewModel @Inject constructor(
 
     fun toggleBookmark(post: Post) {
         val target = post.sharedPost ?: post
-        val willBookmark = !target.viewerHasBookmarked
-
-        overlayStore.mutate(target.id) {
-            it.copy(viewerHasBookmarked = willBookmark)
-        }
-
-        viewModelScope.launch {
-            val result = if (willBookmark) {
-                repository.bookmarkPost(target.id)
-            } else {
-                repository.unbookmarkPost(target.id)
-            }
-            result.onFailure {
-                overlayStore.mutate(target.id) { prev ->
-                    prev.copy(viewerHasBookmarked = !willBookmark)
-                }
-            }
-        }
+        bookmarkCoordinator.toggle(target.id, target.viewerHasBookmarked)
     }
 
     fun toggleReaction(post: Post, emoji: String) {
