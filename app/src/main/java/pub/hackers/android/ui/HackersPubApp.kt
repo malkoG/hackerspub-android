@@ -41,6 +41,7 @@ import pub.hackers.android.ui.components.BottomNavItem
 import pub.hackers.android.ui.components.LocalFontScale
 import pub.hackers.android.ui.components.ProvideInAppBrowserUriHandler
 import pub.hackers.android.ui.screens.auth.SignInScreen
+import pub.hackers.android.ui.screens.bookmarks.BookmarksScreen
 import pub.hackers.android.ui.screens.compose.ComposeArticleScreen
 import pub.hackers.android.ui.screens.compose.ComposeScreen
 import pub.hackers.android.ui.screens.drafts.DraftsScreen
@@ -144,6 +145,7 @@ sealed class DetailScreen(val route: String) {
         }
     }
     data object Drafts : DetailScreen("drafts")
+    data object Bookmarks : DetailScreen("bookmarks")
     data object EditProfile : DetailScreen("edit-profile")
     data object WebView : DetailScreen("webview?url={url}") {
         fun createRoute(url: String): String {
@@ -447,6 +449,9 @@ fun HackersPubApp(
                     onDraftsClick = {
                         navController.navigate(DetailScreen.Drafts.route)
                     },
+                    onBookmarksClick = {
+                        navController.navigate(DetailScreen.Bookmarks.route)
+                    },
                     onLicensesClick = {
                         navController.navigate(DetailScreen.Licenses.route)
                     },
@@ -644,6 +649,26 @@ fun HackersPubApp(
                     onDraftClick = { draftId ->
                         navController.navigate(DetailScreen.ComposeArticle.createRoute(draftId))
                     }
+                )
+            }
+
+            composable(DetailScreen.Bookmarks.route) {
+                BookmarksScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onPostClick = { postId ->
+                        navController.navigate(DetailScreen.PostDetail.createRoute(postId))
+                    },
+                    onProfileClick = { handle ->
+                        navController.navigate(DetailScreen.Profile.createRoute(handle))
+                    },
+                    onReplyClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(replyTo = postId))
+                    },
+                    onQuoteClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
+                    },
                 )
             }
 

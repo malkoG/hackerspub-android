@@ -1,4 +1,4 @@
-package pub.hackers.android.ui.screens.explore
+package pub.hackers.android.ui.screens.bookmarks
 
 import android.content.Intent
 import android.widget.Toast
@@ -7,19 +7,26 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -30,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
@@ -47,14 +55,13 @@ import pub.hackers.android.ui.theme.LocalAppTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(
+fun BookmarksScreen(
+    onNavigateBack: () -> Unit,
     onPostClick: (String) -> Unit,
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
-    onQuoteClick: (String) -> Unit = {},
-    onSignInClick: () -> Unit,
-    isLoggedIn: Boolean,
-    viewModel: ExploreViewModel = hiltViewModel()
+    onQuoteClick: (String) -> Unit,
+    viewModel: BookmarksViewModel = hiltViewModel(),
 ) {
     val items = viewModel.posts.collectAsLazyPagingItems()
     val selectedTab by viewModel.selectedTab.collectAsState()
@@ -66,12 +73,10 @@ fun ExploreScreen(
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
 
-    // Scroll to top when tab changes.
     LaunchedEffect(selectedTab) {
         listState.scrollToItem(0)
     }
 
-    // Reaction picker bottom sheet — look up the currently-loaded post.
     val pickerPostId = uiState.reactionPickerPostId
     if (pickerPostId != null) {
         val pickerPost = items.itemSnapshotList.items.find {
@@ -97,14 +102,16 @@ fun ExploreScreen(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             LargeTitleHeader(
-                title = "Explore",
-                trailingContent = if (!isLoggedIn) {
-                    {
-                        TextButton(onClick = onSignInClick) {
-                            Text(stringResource(R.string.sign_in))
-                        }
+                title = stringResource(R.string.bookmarks),
+                leadingContent = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = colors.accent
+                        )
                     }
-                } else null
+                }
             )
         }
     ) { paddingValues ->
@@ -113,9 +120,8 @@ fun ExploreScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Custom tab row
             Row(modifier = Modifier.fillMaxWidth()) {
-                ExploreTab.entries.forEach { tab ->
+                BookmarkTab.entries.forEach { tab ->
                     val isSelected = selectedTab == tab
                     Column(
                         modifier = Modifier
@@ -125,27 +131,20 @@ fun ExploreScreen(
                     ) {
                         Text(
                             text = when (tab) {
-                                ExploreTab.LOCAL -> "Local"
-                                ExploreTab.GLOBAL -> "Global"
+                                BookmarkTab.ALL -> stringResource(R.string.all)
+                                BookmarkTab.ARTICLES -> stringResource(R.string.articles)
+                                BookmarkTab.NOTES -> stringResource(R.string.notes)
                             },
                             style = if (isSelected) typography.bodyLargeSemiBold else typography.bodyLarge,
                             color = if (isSelected) colors.accent else colors.textSecondary,
                             modifier = Modifier.padding(vertical = 12.dp)
                         )
-                        if (isSelected) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(2.dp)
-                                    .background(colors.accent)
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(2.dp)
-                            )
-                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .background(if (isSelected) colors.accent else colors.surface)
+                        )
                     }
                 }
             }
@@ -161,20 +160,18 @@ fun ExploreScreen(
                 when {
                     refresh is LoadState.Error && items.itemCount == 0 -> {
                         ErrorMessage(
-                            message = refresh.error.message
-                                ?: stringResource(R.string.error_generic),
+                            message = refresh.error.message ?: stringResource(R.string.error_generic),
                             onRetry = { items.refresh() }
                         )
                     }
 
-                    items.itemCount == 0 && refresh is LoadState.NotLoading && refresh.endOfPaginationReached -> {
-                        ErrorMessage(
-                            message = stringResource(R.string.no_posts),
+                    items.itemCount == 0 && refresh is LoadState.NotLoading -> {
+                        BookmarksEmptyState(
                             onRefresh = { items.refresh() }
                         )
                     }
 
-                    items.itemCount == 0 -> {
+                    refresh is LoadState.Loading && items.itemCount == 0 -> {
                         FullScreenLoading()
                     }
 
@@ -186,53 +183,46 @@ fun ExploreScreen(
                             LazyColumn(state = listState) {
                                 items(
                                     count = items.itemCount,
-                                    key = items.itemKey { it.id }
+                                    key = items.itemKey { it.sharedPost?.id ?: it.id }
                                 ) { index ->
                                     val post = items[index] ?: return@items
                                     PostCard(
                                         post = post,
                                         onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
                                         onProfileClick = onProfileClick,
-                                        onReplyClick = if (isLoggedIn) {
-                                            { onReplyClick(post.sharedPost?.id ?: post.id) }
-                                        } else null,
-                                        onShareClick = if (isLoggedIn) {
-                                            {
-                                                if (post.viewerHasShared) {
-                                                    viewModel.unsharePost(post.id)
+                                        onReplyClick = {
+                                            onReplyClick(post.sharedPost?.id ?: post.id)
+                                        },
+                                        onShareClick = {
+                                            val targetId = post.sharedPost?.id ?: post.id
+                                            if (post.viewerHasShared) {
+                                                viewModel.unsharePost(targetId)
+                                            } else {
+                                                viewModel.sharePost(targetId)
+                                            }
+                                        },
+                                        onQuoteClick = {
+                                            onQuoteClick(post.sharedPost?.id ?: post.id)
+                                        },
+                                        onReactionClick = {
+                                            viewModel.toggleFavourite(post)
+                                        },
+                                        onReactionLongPress = {
+                                            viewModel.showReactionPicker(post.sharedPost?.id ?: post.id)
+                                        },
+                                        onBookmarkClick = {
+                                            val displayPost = post.sharedPost ?: post
+                                            Toast.makeText(
+                                                context,
+                                                if (displayPost.viewerHasBookmarked) {
+                                                    bookmarkRemovedMessage
                                                 } else {
-                                                    viewModel.sharePost(post.id)
-                                                }
-                                            }
-                                        } else null,
-                                        onQuoteClick = if (isLoggedIn) {
-                                            { onQuoteClick(post.sharedPost?.id ?: post.id) }
-                                        } else null,
-                                        onReactionClick = if (isLoggedIn) {
-                                            { viewModel.toggleFavourite(post) }
-                                        } else null,
-                                        onReactionLongPress = if (isLoggedIn) {
-                                            {
-                                                viewModel.showReactionPicker(
-                                                    post.sharedPost?.id ?: post.id
-                                                )
-                                            }
-                                        } else null,
-                                        onBookmarkClick = if (isLoggedIn) {
-                                            {
-                                                val displayPost = post.sharedPost ?: post
-                                                Toast.makeText(
-                                                    context,
-                                                    if (displayPost.viewerHasBookmarked) {
-                                                        bookmarkRemovedMessage
-                                                    } else {
-                                                        bookmarkedMessage
-                                                    },
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                viewModel.toggleBookmark(post)
-                                            }
-                                        } else null,
+                                                    bookmarkedMessage
+                                                },
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            viewModel.toggleBookmark(post)
+                                        },
                                         onExternalShareClick = {
                                             val displayPost = post.sharedPost ?: post
                                             val shareUrl = displayPost.url ?: displayPost.iri
@@ -242,9 +232,7 @@ fun ExploreScreen(
                                                     putExtra(Intent.EXTRA_TEXT, shareUrl)
                                                     type = "text/plain"
                                                 }
-                                                context.startActivity(
-                                                    Intent.createChooser(sendIntent, null)
-                                                )
+                                                context.startActivity(Intent.createChooser(sendIntent, null))
                                             }
                                         },
                                         onQuotedPostClick = onPostClick
@@ -264,6 +252,47 @@ fun ExploreScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun BookmarksEmptyState(
+    onRefresh: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Bookmark,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = colors.bookmark,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.no_bookmarks),
+            style = typography.bodyLargeSemiBold,
+            color = colors.textPrimary,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.no_bookmarks_description),
+            style = typography.bodyMedium,
+            color = colors.textSecondary,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        androidx.compose.material3.Button(onClick = onRefresh) {
+            Text(stringResource(R.string.refresh))
         }
     }
 }

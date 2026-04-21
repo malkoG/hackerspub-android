@@ -10,6 +10,7 @@ An Android client for [Hackers' Pub](https://hackers.pub), a fediverse-compatibl
 - **Search**: Find posts and users across the fediverse
 - **Compose**: Create posts with Markdown support, mention autocomplete, and visibility controls
 - **Drafts**: Save and resume in-progress posts
+- **Bookmarks**: Save posts and browse bookmarked articles or notes
 - **Profiles**: View user profiles and their posts; recommended-actor discovery
 - **Post Details**: See full posts with replies and reactions
 - **Translation**: On-device post translation via ML Kit
@@ -139,6 +140,7 @@ For the rules reviewers enforce during PRs — null-safety, Paging config, threa
 | Sign In | Two-step email verification flow |
 | Compose | New post creation with visibility options and mention autocomplete |
 | Drafts | Saved drafts list with resume/delete |
+| Bookmarks | Saved posts with article/note filtering |
 | Post Detail | Full post view with replies and reactions |
 | Profile | User profile with bio and posts |
 | Recommended Actors | Suggested accounts to follow |

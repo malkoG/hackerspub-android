@@ -78,6 +78,7 @@ data class Post(
     val url: String?,
     val iri: String? = null,
     val viewerHasShared: Boolean,
+    val viewerHasBookmarked: Boolean = false,
     val actor: Actor,
     val media: List<Media>,
     val link: PostLink? = null,

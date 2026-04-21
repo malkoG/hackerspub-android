@@ -1,9 +1,10 @@
-package pub.hackers.android.ui.screens.explore
+package pub.hackers.android.ui.screens.bookmarks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,36 +18,35 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.paging.PostOverlayStore
 import pub.hackers.android.data.paging.applyOverlays
+import pub.hackers.android.data.paging.bookmarksPage
 import pub.hackers.android.data.paging.cursorPager
 import pub.hackers.android.data.paging.distinctByEffectiveId
-import pub.hackers.android.data.paging.localTimelinePage
-import pub.hackers.android.data.paging.publicTimelinePage
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
+import pub.hackers.android.graphql.type.PostType as GqlPostType
 import pub.hackers.android.ui.bookmark.BookmarkMutationCoordinator
 import javax.inject.Inject
 
-enum class ExploreTab {
-    LOCAL, GLOBAL
+enum class BookmarkTab {
+    ALL, ARTICLES, NOTES
 }
 
-data class ExploreUiState(
+data class BookmarksUiState(
     val reactionPickerPostId: String? = null,
-    val error: String? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ExploreViewModel @Inject constructor(
+class BookmarksViewModel @Inject constructor(
     private val repository: HackersPubRepository,
 ) : ViewModel() {
 
-    private val _selectedTab = MutableStateFlow(ExploreTab.LOCAL)
-    val selectedTab: StateFlow<ExploreTab> = _selectedTab.asStateFlow()
+    private val _selectedTab = MutableStateFlow(BookmarkTab.ALL)
+    val selectedTab: StateFlow<BookmarkTab> = _selectedTab.asStateFlow()
 
-    private val _uiState = MutableStateFlow(ExploreUiState())
-    val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(BookmarksUiState())
+    val uiState: StateFlow<BookmarksUiState> = _uiState.asStateFlow()
 
     private val overlayStore = PostOverlayStore()
     private val bookmarkCoordinator = BookmarkMutationCoordinator(
@@ -61,8 +61,8 @@ class ExploreViewModel @Inject constructor(
             }
         },
         revertFailedState = { postId, attemptedState ->
-            overlayStore.mutate(postId) {
-                it.copy(viewerHasBookmarked = !attemptedState)
+            overlayStore.mutate(postId) { prev ->
+                prev.copy(viewerHasBookmarked = !attemptedState)
             }
         },
     )
@@ -70,18 +70,17 @@ class ExploreViewModel @Inject constructor(
     val posts: Flow<PagingData<Post>> = _selectedTab
         .flatMapLatest { tab ->
             cursorPager { after ->
-                when (tab) {
-                    ExploreTab.LOCAL -> repository.localTimelinePage(after)
-                    ExploreTab.GLOBAL -> repository.publicTimelinePage(after)
-                }
+                repository.bookmarksPage(after, tab.toGraphqlPostType())
             }.flow.distinctByEffectiveId().cachedIn(viewModelScope)
         }
         .combine(overlayStore.overlays) { paging, overlays ->
-            paging.map { post -> post.applyOverlays(overlays) }
+            paging
+                .map { post -> post.applyOverlays(overlays) }
+                .filter { post -> (post.sharedPost ?: post).viewerHasBookmarked }
         }
         .cachedIn(viewModelScope)
 
-    fun selectTab(tab: ExploreTab) {
+    fun selectTab(tab: BookmarkTab) {
         if (_selectedTab.value != tab) _selectedTab.value = tab
     }
 
@@ -126,13 +125,6 @@ class ExploreViewModel @Inject constructor(
         bookmarkCoordinator.toggle(target.id, target.viewerHasBookmarked)
     }
 
-    /**
-     * Optimistically toggle a reaction on [post] (or its sharedPost target).
-     * The overlay is computed from the post's current reactionGroups (possibly
-     * already overlaid) and persisted in [overlayStore] until the server
-     * confirms. On failure, the overlay for that post is cleared so the
-     * server-authoritative state wins on the next emission.
-     */
     fun toggleReaction(post: Post, emoji: String) {
         val target = post.sharedPost ?: post
         val existing = target.reactionGroups.find { it.emoji == emoji }
@@ -155,7 +147,6 @@ class ExploreViewModel @Inject constructor(
                 repository.addReactionToPost(target.id, emoji)
             }
             result.onFailure {
-                // Revert by clearing overlay; server-fetched post data will win
                 overlayStore.clear(target.id)
             }
         }
@@ -190,10 +181,19 @@ class ExploreViewModel @Inject constructor(
                 }
             } else {
                 groups + ReactionGroup(
-                    emoji = emoji, customEmoji = null,
-                    count = 1, reactors = emptyList(), viewerHasReacted = true,
+                    emoji = emoji,
+                    customEmoji = null,
+                    count = 1,
+                    reactors = emptyList(),
+                    viewerHasReacted = true,
                 )
             }
         }
+    }
+
+    private fun BookmarkTab.toGraphqlPostType(): GqlPostType? = when (this) {
+        BookmarkTab.ALL -> null
+        BookmarkTab.ARTICLES -> GqlPostType.ARTICLE
+        BookmarkTab.NOTES -> GqlPostType.NOTE
     }
 }

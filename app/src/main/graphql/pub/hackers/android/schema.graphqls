@@ -484,6 +484,8 @@ type Article implements Node & Post & Reactable {
 
   uuid: UUID!
 
+  viewerHasBookmarked: Boolean!
+
   viewerHasShared: Boolean!
 
   visibility: PostVisibility!
@@ -560,6 +562,20 @@ type BlockActorPayload {
 }
 
 union BlockActorResult = BlockActorPayload|InvalidInputError|NotAuthenticatedError
+
+input BookmarkPostInput {
+  clientMutationId: ID
+
+  postId: ID!
+}
+
+type BookmarkPostPayload {
+  clientMutationId: ID
+
+  post: Post!
+}
+
+union BookmarkPostResult = BookmarkPostPayload|InvalidInputError|NotAuthenticatedError
 
 union CreateInvitationLinkResult = InvalidInputError|InvitationLinkPayload|NotAuthenticatedError
 
@@ -885,6 +901,8 @@ type Mutation {
 
   blockActor(input: BlockActorInput!): BlockActorResult!
 
+  bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
+
   completeLoginChallenge("The code of the login challenge." code: String!, "The token of the login challenge." token: UUID!): Session
 
   """
@@ -938,6 +956,8 @@ type Mutation {
   sharePost(input: SharePostInput!): SharePostResult!
 
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
+
+  unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
 
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
 
@@ -1010,6 +1030,8 @@ type Note implements Node & Post & Reactable {
   url: URL
 
   uuid: UUID!
+
+  viewerHasBookmarked: Boolean!
 
   viewerHasShared: Boolean!
 
@@ -1207,6 +1229,8 @@ interface Post implements Node & Reactable {
 
   uuid: UUID!
 
+  viewerHasBookmarked: Boolean!
+
   viewerHasShared: Boolean!
 
   visibility: PostVisibility!
@@ -1381,6 +1405,8 @@ type Query {
 
   availableLocales: [Locale!]!
 
+  bookmarks(after: String, before: String, first: Int, last: Int, postType: PostType): QueryBookmarksConnection!
+
   codeOfConduct("The locale for the Code of Conduct." locale: Locale!): Document!
 
   instanceByHost(host: String!): Instance
@@ -1427,6 +1453,18 @@ type Query {
   verifySignupToken("The verification code." code: String!, "The signup token to verify." token: UUID!): SignupInfo
 
   viewer: Account
+}
+
+type QueryBookmarksConnection {
+  edges: [QueryBookmarksConnectionEdge!]!
+
+  pageInfo: PageInfo!
+}
+
+type QueryBookmarksConnectionEdge {
+  cursor: String!
+
+  node: Post!
 }
 
 type QueryPersonalTimelineConnection {
@@ -1529,6 +1567,8 @@ type Question implements Node & Post & Reactable {
   url: URL
 
   uuid: UUID!
+
+  viewerHasBookmarked: Boolean!
 
   viewerHasShared: Boolean!
 
@@ -1896,6 +1936,22 @@ type UnblockActorPayload {
 
 union UnblockActorResult = InvalidInputError|NotAuthenticatedError|UnblockActorPayload
 
+input UnbookmarkPostInput {
+  clientMutationId: ID
+
+  postId: ID!
+}
+
+type UnbookmarkPostPayload {
+  clientMutationId: ID
+
+  post: Post!
+
+  unbookmarkedPostId: ID!
+}
+
+union UnbookmarkPostResult = InvalidInputError|NotAuthenticatedError|UnbookmarkPostPayload
+
 input UnfollowActorInput {
   actorId: ID!
 
@@ -2023,4 +2079,3 @@ type WebFingerResult {
 
   url: URL
 }
-

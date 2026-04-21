@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.screens.timeline
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -72,6 +73,8 @@ fun TimelineScreen(
     val items = viewModel.posts.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val bookmarkedMessage = stringResource(R.string.bookmarked)
+    val bookmarkRemovedMessage = stringResource(R.string.bookmark_removed)
     val colors = LocalAppColors.current
 
     // Refresh draft count when screen becomes visible (e.g., returning from Drafts)
@@ -263,6 +266,19 @@ fun TimelineScreen(
                                     onReactionClick = { viewModel.toggleFavourite(post) },
                                     onReactionLongPress = {
                                         viewModel.showReactionPicker(post.sharedPost?.id ?: post.id)
+                                    },
+                                    onBookmarkClick = {
+                                        val displayPost = post.sharedPost ?: post
+                                        Toast.makeText(
+                                            context,
+                                            if (displayPost.viewerHasBookmarked) {
+                                                bookmarkRemovedMessage
+                                            } else {
+                                                bookmarkedMessage
+                                            },
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        viewModel.toggleBookmark(post)
                                     },
                                     onExternalShareClick = {
                                         val displayPost = post.sharedPost ?: post

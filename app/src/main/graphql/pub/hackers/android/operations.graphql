@@ -33,6 +33,7 @@ fragment PostFields on Post {
     url
     iri
     viewerHasShared
+    viewerHasBookmarked
     actor {
         ...ActorFields
     }
@@ -102,6 +103,7 @@ fragment SharedPostFields on Post {
     url
     iri
     viewerHasShared
+    viewerHasBookmarked
     actor {
         ...ActorFields
     }
@@ -462,6 +464,24 @@ query PostReplies($id: ID!, $after: String) {
     }
 }
 
+query Bookmarks($after: String, $postType: PostType) {
+    bookmarks(first: 20, after: $after, postType: $postType) {
+        edges {
+            cursor
+            node {
+                ...PostFields
+                sharedPost {
+                    ...SharedPostFields
+                }
+            }
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+    }
+}
+
 mutation LoginByUsername($username: String!, $locale: Locale!, $verifyUrl: URITemplate!) {
     loginByUsername(username: $username, locale: $locale, verifyUrl: $verifyUrl) {
         ... on LoginChallenge {
@@ -515,6 +535,31 @@ mutation VerifyPasskeyRegistration($accountId: ID!, $name: String!, $registratio
             name
             created
             lastUsed
+        }
+    }
+}
+
+mutation BookmarkPost($postId: ID!) {
+    bookmarkPost(input: { postId: $postId }) {
+        __typename
+        ... on BookmarkPostPayload {
+            post {
+                id
+                viewerHasBookmarked
+            }
+        }
+    }
+}
+
+mutation UnbookmarkPost($postId: ID!) {
+    unbookmarkPost(input: { postId: $postId }) {
+        __typename
+        ... on UnbookmarkPostPayload {
+            post {
+                id
+                viewerHasBookmarked
+            }
+            unbookmarkedPostId
         }
     }
 }

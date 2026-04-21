@@ -108,6 +108,17 @@
     <string name="article">Article</string>
     <string name="read_full_article">Read full article</string>
     <string name="read_on_web">Read on web</string>
+    <string name="bookmark">Bookmark</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="bookmarked">Bookmarked</string>
+    <string name="bookmark_removed">Bookmark removed</string>
+    <string name="failed_to_bookmark">Failed to bookmark</string>
+    <string name="failed_to_remove_bookmark">Failed to remove bookmark</string>
+    <string name="no_bookmarks">No bookmarks yet</string>
+    <string name="no_bookmarks_description">Posts and articles you save will show up here.</string>
+    <string name="all">All</string>
+    <string name="articles">Articles</string>
+    <string name="notes">Notes</string>
     <string name="replies">Replies</string>
     <string name="shares">Shares</string>
     <string name="reactions">Reactions</string>

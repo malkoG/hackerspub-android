@@ -115,4 +115,10 @@ suspend fun HackersPubRepository.actorArticlesPage(handle: String, after: String
     getActorArticles(handle, after)
         .map { CursorPage(it.posts, it.endCursor, it.hasNextPage) }
 
+suspend fun HackersPubRepository.bookmarksPage(
+    after: String?,
+    postType: pub.hackers.android.graphql.type.PostType?,
+) = getBookmarks(after, postType)
+    .map { CursorPage(it.posts, it.endCursor, it.hasNextPage) }
+
 // endregion

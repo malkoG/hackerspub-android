@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
@@ -67,6 +68,7 @@ fun SettingsScreen(
     onProfileClick: (String) -> Unit,
     onNavigateBack: () -> Unit,
     onDraftsClick: () -> Unit = {},
+    onBookmarksClick: () -> Unit = {},
     onLicensesClick: () -> Unit = {},
     isLoggedIn: Boolean,
     viewModel: SettingsViewModel = hiltViewModel()
@@ -227,6 +229,28 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = stringResource(R.string.my_drafts),
+                        style = typography.bodyLarge,
+                        color = colors.textPrimary
+                    )
+                }
+
+                HorizontalDivider(color = colors.divider, thickness = 1.dp)
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onBookmarksClick() }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        contentDescription = null,
+                        tint = colors.textSecondary
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = stringResource(R.string.bookmarks),
                         style = typography.bodyLarge,
                         color = colors.textPrimary
                     )

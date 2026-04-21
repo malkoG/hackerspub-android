@@ -14,6 +14,8 @@ import pub.hackers.android.graphql.ActorByHandleQuery
 import pub.hackers.android.graphql.ActorNotesQuery
 import pub.hackers.android.graphql.ActorPostsQuery
 import pub.hackers.android.graphql.AddReactionToPostMutation
+import pub.hackers.android.graphql.BookmarkPostMutation
+import pub.hackers.android.graphql.BookmarksQuery
 import pub.hackers.android.graphql.BlockActorMutation
 import pub.hackers.android.graphql.CompleteLoginChallengeMutation
 import pub.hackers.android.graphql.CreateNoteMutation
@@ -50,6 +52,7 @@ import pub.hackers.android.graphql.SearchPostQuery
 import pub.hackers.android.graphql.SharePostMutation
 import pub.hackers.android.graphql.UnblockActorMutation
 import pub.hackers.android.graphql.UnfollowActorMutation
+import pub.hackers.android.graphql.UnbookmarkPostMutation
 import pub.hackers.android.graphql.UnsharePostMutation
 import pub.hackers.android.graphql.UpdateAccountMutation
 import pub.hackers.android.graphql.ViewerQuery
@@ -196,6 +199,36 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
+    suspend fun bookmarkPost(postId: String): Result<Unit> {
+        return try {
+            val response = apolloClient.mutation(BookmarkPostMutation(postId)).execute()
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else if (response.data?.bookmarkPost?.onBookmarkPostPayload != null) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to bookmark"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun unbookmarkPost(postId: String): Result<Unit> {
+        return try {
+            val response = apolloClient.mutation(UnbookmarkPostMutation(postId)).execute()
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else if (response.data?.unbookmarkPost?.onUnbookmarkPostPayload != null) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to remove bookmark"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun searchPosts(
         query: String,
         languages: List<String>
@@ -215,6 +248,39 @@ class HackersPubRepository @Inject constructor(
                     edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
                 } ?: emptyList()
                 Result.success(posts)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getBookmarks(
+        after: String? = null,
+        postType: pub.hackers.android.graphql.type.PostType? = null,
+    ): Result<TimelineResult> {
+        return try {
+            val response = apolloClient.query(
+                BookmarksQuery(
+                    after = Optional.presentIfNotNull(after),
+                    postType = Optional.presentIfNotNull(postType)
+                )
+            ).fetchPolicy(FetchPolicy.NetworkOnly).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val data = response.data?.bookmarks
+                withContext(Dispatchers.Default) {
+                    Result.success(
+                        TimelineResult(
+                            posts = data?.edges?.map { edge ->
+                                edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
+                            } ?: emptyList(),
+                            hasNextPage = data?.pageInfo?.hasNextPage ?: false,
+                            endCursor = data?.pageInfo?.endCursor
+                        )
+                    )
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -1399,6 +1465,7 @@ class HackersPubRepository @Inject constructor(
             url = url?.toString(),
             iri = iri.toString(),
             viewerHasShared = viewerHasShared,
+            viewerHasBookmarked = viewerHasBookmarked,
             actor = actor.actorFields.toActor(),
             media = media.map { it.mediaFields.toMedia() },
             link = link?.let { l ->
@@ -1465,6 +1532,7 @@ class HackersPubRepository @Inject constructor(
             url = url?.toString(),
             iri = iri.toString(),
             viewerHasShared = viewerHasShared,
+            viewerHasBookmarked = viewerHasBookmarked,
             actor = actor.actorFields.toActor(),
             media = media.map { it.mediaFields.toMedia() },
             engagementStats = engagementStats.engagementStatsFields.toEngagementStats(),

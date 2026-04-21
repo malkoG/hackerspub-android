@@ -92,6 +92,7 @@ private fun dynamicAppColors(scheme: ColorScheme, dark: Boolean) = AppColorSchem
     composeAccent = scheme.primaryContainer,
     composeOnAccent = scheme.onPrimaryContainer,
     reaction = if (dark) DarkAppColors.reaction else LightAppColors.reaction,
+    bookmark = if (dark) DarkAppColors.bookmark else LightAppColors.bookmark,
     share = if (dark) DarkAppColors.share else LightAppColors.share,
     hashtag = if (dark) DarkAppColors.hashtag else LightAppColors.hashtag,
 )
