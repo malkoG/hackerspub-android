@@ -270,6 +270,28 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun toggleBookmark(post: Post) {
+        val target = post.sharedPost ?: post
+        val willBookmark = !target.viewerHasBookmarked
+
+        overlayStore.mutate(target.id) {
+            it.copy(viewerHasBookmarked = willBookmark)
+        }
+
+        viewModelScope.launch {
+            val result = if (willBookmark) {
+                repository.bookmarkPost(target.id)
+            } else {
+                repository.unbookmarkPost(target.id)
+            }
+            result.onFailure {
+                overlayStore.mutate(target.id) { prev ->
+                    prev.copy(viewerHasBookmarked = !willBookmark)
+                }
+            }
+        }
+    }
+
     @Suppress("unused")
     fun toggleReaction(post: Post, emoji: String) {
         val target = post.sharedPost ?: post

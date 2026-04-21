@@ -286,6 +286,31 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    fun toggleBookmark() {
+        val post = _uiState.value.post ?: return
+        val willBookmark = !post.viewerHasBookmarked
+
+        _uiState.update {
+            it.copy(post = post.copy(viewerHasBookmarked = willBookmark))
+        }
+
+        viewModelScope.launch {
+            val result = if (willBookmark) {
+                repository.bookmarkPost(postId)
+            } else {
+                repository.unbookmarkPost(postId)
+            }
+
+            result.onFailure {
+                _uiState.update { state ->
+                    state.copy(
+                        post = state.post?.copy(viewerHasBookmarked = !willBookmark)
+                    )
+                }
+            }
+        }
+    }
+
     fun toggleReaction(emoji: String) {
         if (_uiState.value.isReacting) return
 

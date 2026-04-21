@@ -122,6 +122,28 @@ class TimelineViewModel @Inject constructor(
         toggleReaction(post, "❤️")
     }
 
+    fun toggleBookmark(post: Post) {
+        val target = post.sharedPost ?: post
+        val willBookmark = !target.viewerHasBookmarked
+
+        overlayStore.mutate(target.id) {
+            it.copy(viewerHasBookmarked = willBookmark)
+        }
+
+        viewModelScope.launch {
+            val result = if (willBookmark) {
+                repository.bookmarkPost(target.id)
+            } else {
+                repository.unbookmarkPost(target.id)
+            }
+            result.onFailure {
+                overlayStore.mutate(target.id) { prev ->
+                    prev.copy(viewerHasBookmarked = !willBookmark)
+                }
+            }
+        }
+    }
+
     /**
      * Optimistically toggle a reaction on [post] (or its sharedPost target).
      * The overlay is computed from the post's current reactionGroups (possibly

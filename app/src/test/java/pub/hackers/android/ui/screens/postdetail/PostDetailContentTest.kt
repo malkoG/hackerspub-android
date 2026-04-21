@@ -158,6 +158,7 @@ class PostDetailContentTest {
                     onReplyClick = {},
                     onReactionClick = {},
                     onReactionPickerClick = {},
+                    onBookmarkClick = {},
                     onQuoteClick = {},
                     onSharesClick = {},
                     onQuotesClick = {},

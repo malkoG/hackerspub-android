@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Card
@@ -57,6 +59,7 @@ fun ArticleCard(
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
     onReactionLongPress: (() -> Unit)? = null,
+    onBookmarkClick: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null
 ) {
     val displayPost = post.sharedPost ?: post
@@ -218,6 +221,7 @@ fun ArticleCard(
                 onShareClick = onShareClick,
                 onReactionClick = onReactionClick,
                 onReactionLongPress = onReactionLongPress,
+                onBookmarkClick = onBookmarkClick,
                 onExternalShareClick = onExternalShareClick
             )
         }
@@ -232,11 +236,13 @@ private fun ArticleEngagementBar(
     onShareClick: (() -> Unit)?,
     onReactionClick: (() -> Unit)?,
     onReactionLongPress: (() -> Unit)?,
+    onBookmarkClick: (() -> Unit)?,
     onExternalShareClick: (() -> Unit)?
 ) {
     val colors = LocalAppColors.current
     val isShared = post.viewerHasShared
     val isReacted = post.reactionGroups.any { it.viewerHasReacted }
+    val isBookmarked = post.viewerHasBookmarked
 
     Row(
         modifier = Modifier
@@ -272,6 +278,13 @@ private fun ArticleEngagementBar(
                 imageVector = if (isReacted) Icons.Filled.Favorite else Icons.Outlined.Favorite,
                 contentDescription = stringResource(R.string.reactions),
                 tint = if (isReacted) colors.reaction else colors.textSecondary
+            )
+        }
+        IconButton(onClick = { onBookmarkClick?.invoke() }, enabled = onBookmarkClick != null) {
+            Icon(
+                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                contentDescription = stringResource(R.string.bookmark),
+                tint = if (isBookmarked) colors.accent else colors.textSecondary
             )
         }
         if (onExternalShareClick != null) {

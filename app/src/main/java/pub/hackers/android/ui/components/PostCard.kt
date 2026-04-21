@@ -36,9 +36,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FormatQuote
@@ -107,6 +109,7 @@ fun PostCard(
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
     onReactionLongPress: (() -> Unit)? = null,
+    onBookmarkClick: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0
@@ -123,6 +126,7 @@ fun PostCard(
             onQuoteClick = onQuoteClick,
             onReactionClick = onReactionClick,
             onReactionLongPress = onReactionLongPress,
+            onBookmarkClick = onBookmarkClick,
             onExternalShareClick = onExternalShareClick,
             modifier = modifier
         )
@@ -136,6 +140,7 @@ fun PostCard(
             onQuoteClick = onQuoteClick,
             onReactionClick = onReactionClick,
             onReactionLongPress = onReactionLongPress,
+            onBookmarkClick = onBookmarkClick,
             onExternalShareClick = onExternalShareClick,
             onQuotedPostClick = onQuotedPostClick,
             contentMaxLength = contentMaxLength,
@@ -155,6 +160,7 @@ private fun NoteCard(
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
     onReactionLongPress: (() -> Unit)? = null,
+    onBookmarkClick: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0
@@ -541,6 +547,7 @@ private fun NoteCard(
                     onQuoteClick = onQuoteClick,
                     onReactionClick = onReactionClick,
                     onReactionLongPress = onReactionLongPress,
+                    onBookmarkClick = onBookmarkClick,
                     onExternalShareClick = onExternalShareClick
                 )
             }
@@ -557,12 +564,14 @@ private fun EngagementBar(
     onQuoteClick: (() -> Unit)? = null,
     onReactionClick: (() -> Unit)? = null,
     onReactionLongPress: (() -> Unit)? = null,
+    onBookmarkClick: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null
 ) {
     val colors = LocalAppColors.current
     val isReplied = post.engagementStats.replies > 0 && post.replyTarget != null
     val isShared = post.viewerHasShared
     val isReacted = post.reactionGroups.any { it.viewerHasReacted }
+    val isBookmarked = post.viewerHasBookmarked
 
     Row(
         modifier = Modifier
@@ -596,6 +605,11 @@ private fun EngagementBar(
             onLongClick = onReactionLongPress
         )
 
+        BookmarkEngagementButton(
+            isBookmarked = isBookmarked,
+            onClick = onBookmarkClick,
+        )
+
         Spacer(modifier = Modifier.weight(1f))
 
         // External share — always textSecondary, offset back to align right edge
@@ -612,6 +626,30 @@ private fun EngagementBar(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun BookmarkEngagementButton(
+    isBookmarked: Boolean,
+    onClick: (() -> Unit)?,
+) {
+    val colors = LocalAppColors.current
+    val tint = if (isBookmarked) colors.accent else colors.textSecondary
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(enabled = onClick != null) { onClick?.invoke() }
+    ) {
+        Icon(
+            imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+            contentDescription = stringResource(R.string.bookmark),
+            tint = tint,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 

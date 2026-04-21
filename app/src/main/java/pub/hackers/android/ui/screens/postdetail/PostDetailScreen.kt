@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.text.Html
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
@@ -33,11 +34,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.AddReaction
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
@@ -485,6 +488,20 @@ fun PostDetailScreen(
                         },
                         onReactionClick = { group -> viewModel.showReactorsSheet(group) },
                         onReactionPickerClick = { viewModel.toggleReactionPicker() },
+                        onBookmarkClick = {
+                            Toast.makeText(
+                                context,
+                                context.getString(
+                                    if (resolvedPost.viewerHasBookmarked) {
+                                        R.string.bookmark_removed
+                                    } else {
+                                        R.string.bookmarked
+                                    }
+                                ),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.toggleBookmark()
+                        },
                         onQuoteClick = { onQuoteClick(postId) },
                         onSharesClick = { viewModel.showSharesSheet() },
                         onQuotesClick = { viewModel.showQuotesSheet() },
@@ -571,6 +588,7 @@ internal fun PostDetailContent(
     onReplyClick: () -> Unit,
     onReactionClick: (ReactionGroup) -> Unit,
     onReactionPickerClick: () -> Unit,
+    onBookmarkClick: () -> Unit,
     onQuoteClick: () -> Unit,
     onSharesClick: () -> Unit,
     onQuotesClick: () -> Unit,
@@ -975,6 +993,13 @@ internal fun PostDetailContent(
                                 colors.accent
                             else
                                 colors.textSecondary
+                        )
+                    }
+                    IconButton(onClick = onBookmarkClick) {
+                        Icon(
+                            imageVector = if (post.viewerHasBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                            contentDescription = stringResource(R.string.bookmark),
+                            tint = if (post.viewerHasBookmarked) colors.accent else colors.textSecondary
                         )
                     }
                     IconButton(onClick = onQuoteClick) {

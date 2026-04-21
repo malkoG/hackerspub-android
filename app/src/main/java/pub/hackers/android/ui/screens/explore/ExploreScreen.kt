@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.screens.explore
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -213,6 +214,23 @@ fun ExploreScreen(
                                                 viewModel.showReactionPicker(
                                                     post.sharedPost?.id ?: post.id
                                                 )
+                                            }
+                                        } else null,
+                                        onBookmarkClick = if (isLoggedIn) {
+                                            {
+                                                val displayPost = post.sharedPost ?: post
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(
+                                                        if (displayPost.viewerHasBookmarked) {
+                                                            R.string.bookmark_removed
+                                                        } else {
+                                                            R.string.bookmarked
+                                                        }
+                                                    ),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                viewModel.toggleBookmark(post)
                                             }
                                         } else null,
                                         onExternalShareClick = {
