@@ -280,12 +280,14 @@ private fun ArticleEngagementBar(
                 tint = if (isReacted) colors.reaction else colors.textSecondary
             )
         }
-        IconButton(onClick = { onBookmarkClick?.invoke() }, enabled = onBookmarkClick != null) {
-            Icon(
-                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                contentDescription = stringResource(R.string.bookmark),
-                tint = if (isBookmarked) colors.bookmark else colors.textSecondary
-            )
+        if (onBookmarkClick != null) {
+            IconButton(onClick = onBookmarkClick) {
+                Icon(
+                    imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                    contentDescription = stringResource(R.string.bookmark),
+                    tint = if (isBookmarked) colors.bookmark else colors.textSecondary
+                )
+            }
         }
         if (onExternalShareClick != null) {
             IconButton(onClick = onExternalShareClick) {

@@ -605,10 +605,12 @@ private fun EngagementBar(
             onLongClick = onReactionLongPress
         )
 
-        BookmarkEngagementButton(
-            isBookmarked = isBookmarked,
-            onClick = onBookmarkClick,
-        )
+        if (onBookmarkClick != null) {
+            BookmarkEngagementButton(
+                isBookmarked = isBookmarked,
+                onClick = onBookmarkClick,
+            )
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 

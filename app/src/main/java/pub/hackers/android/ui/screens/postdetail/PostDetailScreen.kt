@@ -490,17 +490,21 @@ fun PostDetailScreen(
                         },
                         onReactionClick = { group -> viewModel.showReactorsSheet(group) },
                         onReactionPickerClick = { viewModel.toggleReactionPicker() },
-                        onBookmarkClick = {
-                            Toast.makeText(
-                                context,
-                                if (resolvedPost.viewerHasBookmarked) {
-                                    bookmarkRemovedMessage
-                                } else {
-                                    bookmarkedMessage
-                                },
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            viewModel.toggleBookmark()
+                        onBookmarkClick = if (isLoggedIn) {
+                            {
+                                Toast.makeText(
+                                    context,
+                                    if (resolvedPost.viewerHasBookmarked) {
+                                        bookmarkRemovedMessage
+                                    } else {
+                                        bookmarkedMessage
+                                    },
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                viewModel.toggleBookmark()
+                            }
+                        } else {
+                            null
                         },
                         onQuoteClick = { onQuoteClick(postId) },
                         onSharesClick = { viewModel.showSharesSheet() },
@@ -588,7 +592,7 @@ internal fun PostDetailContent(
     onReplyClick: () -> Unit,
     onReactionClick: (ReactionGroup) -> Unit,
     onReactionPickerClick: () -> Unit,
-    onBookmarkClick: () -> Unit,
+    onBookmarkClick: (() -> Unit)?,
     onQuoteClick: () -> Unit,
     onSharesClick: () -> Unit,
     onQuotesClick: () -> Unit,
@@ -995,12 +999,14 @@ internal fun PostDetailContent(
                                 colors.textSecondary
                         )
                     }
-                    IconButton(onClick = onBookmarkClick) {
-                        Icon(
-                            imageVector = if (post.viewerHasBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                            contentDescription = stringResource(R.string.bookmark),
-                            tint = if (post.viewerHasBookmarked) colors.bookmark else colors.textSecondary
-                        )
+                    if (onBookmarkClick != null) {
+                        IconButton(onClick = onBookmarkClick) {
+                            Icon(
+                                imageVector = if (post.viewerHasBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                                contentDescription = stringResource(R.string.bookmark),
+                                tint = if (post.viewerHasBookmarked) colors.bookmark else colors.textSecondary
+                            )
+                        }
                     }
                     IconButton(onClick = onQuoteClick) {
                         Icon(
