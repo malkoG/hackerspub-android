@@ -437,6 +437,18 @@ class HtmlContentKtTest {
     }
 
     @Test
+    fun `parseHtmlToAnnotatedString removes trailing line breaks`() {
+        val result = parseHtmlToAnnotatedString("Hello<br>", linkColor, hashtagColor, mentionBg, codeBg)
+        assertEquals("Hello", result.text)
+    }
+
+    @Test
+    fun `parseHtmlToAnnotatedString removes compact list trailing line break`() {
+        val result = parseHtmlToAnnotatedString("<ul><li>item</li></ul>", linkColor, hashtagColor, mentionBg, codeBg)
+        assertEquals("\u2022 item", result.text)
+    }
+
+    @Test
     fun `parseHtmlToAnnotatedString decodes entities in text`() {
         val result = parseHtmlToAnnotatedString("<p>A &amp; B</p>", linkColor, hashtagColor, mentionBg, codeBg)
         assertEquals("A & B", result.text)

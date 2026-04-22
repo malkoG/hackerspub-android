@@ -981,7 +981,15 @@ internal fun parseHtmlToAnnotatedString(
                 pos = tagMatch.range.last + 1
             }
         }
+    }.trimTrailingLineBreaks()
+}
+
+private fun AnnotatedString.trimTrailingLineBreaks(): AnnotatedString {
+    var end = text.length
+    while (end > 0 && text[end - 1] == '\n') {
+        end--
     }
+    return if (end == text.length) this else subSequence(0, end)
 }
 
 private fun appendStyledText(
