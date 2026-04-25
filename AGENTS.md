@@ -11,3 +11,4 @@ Minimum expectations for any change:
 - Run `./gradlew :app:lintDebug` before pushing.
 - Do not introduce new `!!` in production code.
 - For paged post feeds, keep using the existing Paging overlay and deduplication patterns.
+- When resolving merge conflicts, fast-forward local `main` from `origin/main` first (otherwise the merge silently uses a stale base), then after the merge inspect files touched by both branches against `main` directly — git's 3-way auto-merge can drop one side's hunks without surfacing a conflict marker.

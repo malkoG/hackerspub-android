@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import pub.hackers.android.data.auth.PasskeyManager
 import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
+import pub.hackers.android.data.messaging.FcmTokenManager
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Passkey
 import pub.hackers.android.ui.theme.ThemeMode
@@ -58,6 +59,7 @@ class SettingsViewModel @Inject constructor(
     private val apolloClient: ApolloClient,
     private val notificationStateManager: NotificationStateManager,
     private val passkeyManager: PasskeyManager,
+    private val fcmTokenManager: FcmTokenManager,
     private val workManager: WorkManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -156,6 +158,7 @@ class SettingsViewModel @Inject constructor(
 
     fun signOut() {
         viewModelScope.launch {
+            fcmTokenManager.unregisterCurrentToken()
             val sessionId = sessionManager.sessionToken.first()
             if (sessionId != null) {
                 repository.revokeSession(sessionId)

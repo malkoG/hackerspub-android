@@ -63,6 +63,14 @@
                     android:pathPrefix="/tags/" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".data.messaging.HackersPubMessagingService"
+            android:exported="false"
+            tools:ignore="Instantiatable">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

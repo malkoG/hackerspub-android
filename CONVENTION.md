@@ -276,6 +276,22 @@ assertEquals(expected, outer.sharedPost!!.field)  // setUp guarantees sharedPost
 
 New or substantially refactored ViewModels ship with tests in the same PR. Reference tests live in `app/src/test/java/pub/hackers/android/ui/screens/**/*ViewModelTest.kt`.
 
+### §9.4 Build real `ApolloResponse` instead of mocking it
+
+`ApolloResponse` exposes `data`, `errors`, and `requestUuid` as `@JvmField`s, so mockk cannot intercept the field reads — `every { response.data } returns ...` fails with "missing mocked calls" because there is no getter to record. Construct real instances via the public Builder:
+
+```kotlin
+import com.apollographql.apollo.api.ApolloResponse
+import com.benasher44.uuid.uuid4
+
+val response = ApolloResponse.Builder(operation = mutation, requestUuid = uuid4())
+    .data(data)
+    .errors(errors)
+    .build()
+```
+
+Mock the `ApolloCall` chain (`apolloClient.mutation(any())`) and have `coEvery { call.execute() } returns response`. Reference: `app/src/test/java/pub/hackers/android/data/messaging/FcmTokenManagerTest.kt`.
+
 ---
 
 ## §10 Build and variants
