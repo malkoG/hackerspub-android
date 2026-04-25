@@ -1,6 +1,6 @@
 package pub.hackers.android
 
 object FeatureFlags {
-    const val PASSKEY_AUTH_ENABLED = false
+    const val PASSKEY_AUTH_ENABLED = true
     const val MARK_NOTIFICATIONS_AS_READ_ENABLED = false
 }
