@@ -61,6 +61,12 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    fun unregisterFcmToken() {
+        viewModelScope.launch {
+            fcmTokenManager.unregisterCurrentToken()
+        }
+    }
+
     fun enqueueNotificationPolling() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

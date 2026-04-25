@@ -73,9 +73,13 @@ class FcmTokenManager @Inject constructor(
         val token = try {
             FirebaseMessaging.getInstance().token.await()
         } catch (e: Exception) {
+            Log.w(TAG, "Failed to get FCM token", e)
             return
         }
+        unregisterToken(token)
+    }
 
+    suspend fun unregisterToken(token: String) {
         try {
             val response = apolloClient.mutation(
                 UnregisterFcmDeviceTokenMutation(

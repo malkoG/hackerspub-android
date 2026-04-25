@@ -46,12 +46,12 @@ class HackersPubMessagingService : FirebaseMessagingService() {
         val alert = data["alert"] ?: return
         val notificationId = data["notificationId"] ?: return
 
-        kotlinx.coroutines.runBlocking {
+        serviceScope.launch {
             notificationStateManager.updateLastPolledId(notificationId)
         }
 
         if (hasNotificationPermission()) {
-            showNotification(alert)
+            showNotification(notificationId, alert)
         }
     }
 
@@ -66,7 +66,7 @@ class HackersPubMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun showNotification(text: String) {
+    private fun showNotification(notificationId: String, text: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra("navigate_to", "notifications")
@@ -85,6 +85,6 @@ class HackersPubMessagingService : FirebaseMessagingService() {
             .build()
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(System.currentTimeMillis().toInt(), notification)
+        manager.notify(notificationId.hashCode(), notification)
     }
 }

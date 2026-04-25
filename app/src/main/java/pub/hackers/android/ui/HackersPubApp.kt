@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -204,12 +206,18 @@ fun HackersPubApp(
         }
     }
 
-    // Enqueue background polling fallback and register FCM token when user logs in
+    // Enqueue background polling fallback and register FCM token on login;
+    // unregister on the true→false transition so cold starts while logged
+    // out don't fire a guaranteed-to-fail unauthenticated mutation.
+    var prevLoggedIn by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             viewModel.enqueueNotificationPolling()
             viewModel.registerFcmToken()
+        } else if (prevLoggedIn == true) {
+            viewModel.unregisterFcmToken()
         }
+        prevLoggedIn = isLoggedIn
     }
 
     ProvideInAppBrowserUriHandler(
