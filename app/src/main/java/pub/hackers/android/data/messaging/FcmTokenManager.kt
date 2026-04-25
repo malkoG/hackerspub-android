@@ -53,8 +53,13 @@ class FcmTokenManager @Inject constructor(
 
             val result = response.data?.registerFcmDeviceToken
             when {
-                result?.onRegisterFcmDeviceTokenPayload != null ->
+                result?.onRegisterFcmDeviceTokenPayload != null -> {
                     Log.d(TAG, "FCM token registered")
+                    if (!sessionManager.isLoggedIn.first()) {
+                        Log.w(TAG, "Session ended during registration; rolling back")
+                        unregisterToken(token)
+                    }
+                }
                 result?.onRegisterFcmDeviceTokenFailedError != null ->
                     Log.w(TAG, "FCM token registration failed: ${result.onRegisterFcmDeviceTokenFailedError.message}")
                 result?.onInvalidInputError != null ->
