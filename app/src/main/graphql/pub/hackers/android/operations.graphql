@@ -122,8 +122,8 @@ fragment SharedPostFields on Post {
     }
 }
 
-query PublicTimeline($after: String) {
-    publicTimeline(first: 20, after: $after) {
+query PublicTimeline($first: Int, $after: String, $before: String, $last: Int) {
+    publicTimeline(first: $first, after: $after, before: $before, last: $last) {
         edges {
             cursor
             node {
@@ -135,13 +135,15 @@ query PublicTimeline($after: String) {
         }
         pageInfo {
             hasNextPage
+            hasPreviousPage
+            startCursor
             endCursor
         }
     }
 }
 
-query LocalTimeline($after: String) {
-    publicTimeline(local: true, first: 20, after: $after) {
+query LocalTimeline($first: Int, $after: String, $before: String, $last: Int) {
+    publicTimeline(local: true, first: $first, after: $after, before: $before, last: $last) {
         edges {
             cursor
             node {
@@ -153,13 +155,15 @@ query LocalTimeline($after: String) {
         }
         pageInfo {
             hasNextPage
+            hasPreviousPage
+            startCursor
             endCursor
         }
     }
 }
 
-query PersonalTimeline($after: String) {
-    personalTimeline(first: 20, after: $after) {
+query PersonalTimeline($first: Int, $after: String, $before: String, $last: Int) {
+    personalTimeline(first: $first, after: $after, before: $before, last: $last) {
         edges {
             cursor
             lastSharer {
@@ -179,6 +183,8 @@ query PersonalTimeline($after: String) {
         }
         pageInfo {
             hasNextPage
+            hasPreviousPage
+            startCursor
             endCursor
         }
     }
@@ -464,8 +470,8 @@ query PostReplies($id: ID!, $after: String) {
     }
 }
 
-query Bookmarks($after: String, $postType: PostType) {
-    bookmarks(first: 20, after: $after, postType: $postType) {
+query Bookmarks($first: Int, $after: String, $before: String, $last: Int, $postType: PostType) {
+    bookmarks(first: $first, after: $after, before: $before, last: $last, postType: $postType) {
         edges {
             cursor
             node {
@@ -477,6 +483,8 @@ query Bookmarks($after: String, $postType: PostType) {
         }
         pageInfo {
             hasNextPage
+            hasPreviousPage
+            startCursor
             endCursor
         }
     }

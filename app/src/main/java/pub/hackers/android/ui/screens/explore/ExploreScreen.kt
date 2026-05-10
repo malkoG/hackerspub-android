@@ -1,5 +1,6 @@
 package pub.hackers.android.ui.screens.explore
 
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -36,12 +37,14 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import pub.hackers.android.R
+import pub.hackers.android.domain.model.Post
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.ReactionPicker
+import pub.hackers.android.ui.theme.AppColorScheme
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
 
@@ -57,6 +60,7 @@ fun ExploreScreen(
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
     val items = viewModel.posts.collectAsLazyPagingItems()
+    val newerPosts by viewModel.newerPosts.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
@@ -74,7 +78,7 @@ fun ExploreScreen(
     // Reaction picker bottom sheet — look up the currently-loaded post.
     val pickerPostId = uiState.reactionPickerPostId
     if (pickerPostId != null) {
-        val pickerPost = items.itemSnapshotList.items.find {
+        val pickerPost = (newerPosts + items.itemSnapshotList.items).find {
             it.id == pickerPostId || it.sharedPost?.id == pickerPostId
         }
         val targetPost = pickerPost?.sharedPost ?: pickerPost
@@ -180,79 +184,53 @@ fun ExploreScreen(
 
                     else -> {
                         PullToRefreshBox(
-                            isRefreshing = refresh is LoadState.Loading,
-                            onRefresh = { items.refresh() }
+                            isRefreshing = refresh is LoadState.Loading || uiState.isLoadingNewer,
+                            onRefresh = {
+                                if (items.itemCount > 0) viewModel.loadNewerPosts()
+                                else items.refresh()
+                            }
                         ) {
                             LazyColumn(state = listState) {
+                                items(
+                                    count = newerPosts.size,
+                                    key = { index ->
+                                        val post = newerPosts[index]
+                                        "newer-${post.sharedPost?.id ?: post.id}"
+                                    }
+                                ) { index ->
+                                    val post = newerPosts[index]
+                                    ExplorePostItem(
+                                        post = post,
+                                        isLoggedIn = isLoggedIn,
+                                        colors = colors,
+                                        context = context,
+                                        bookmarkedMessage = bookmarkedMessage,
+                                        bookmarkRemovedMessage = bookmarkRemovedMessage,
+                                        onPostClick = onPostClick,
+                                        onProfileClick = onProfileClick,
+                                        onReplyClick = onReplyClick,
+                                        onQuoteClick = onQuoteClick,
+                                        viewModel = viewModel,
+                                    )
+                                }
+
                                 items(
                                     count = items.itemCount,
                                     key = items.itemKey { it.id }
                                 ) { index ->
                                     val post = items[index] ?: return@items
-                                    PostCard(
+                                    ExplorePostItem(
                                         post = post,
-                                        onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                        isLoggedIn = isLoggedIn,
+                                        colors = colors,
+                                        context = context,
+                                        bookmarkedMessage = bookmarkedMessage,
+                                        bookmarkRemovedMessage = bookmarkRemovedMessage,
+                                        onPostClick = onPostClick,
                                         onProfileClick = onProfileClick,
-                                        onReplyClick = if (isLoggedIn) {
-                                            { onReplyClick(post.sharedPost?.id ?: post.id) }
-                                        } else null,
-                                        onShareClick = if (isLoggedIn) {
-                                            {
-                                                if (post.viewerHasShared) {
-                                                    viewModel.unsharePost(post.id)
-                                                } else {
-                                                    viewModel.sharePost(post.id)
-                                                }
-                                            }
-                                        } else null,
-                                        onQuoteClick = if (isLoggedIn) {
-                                            { onQuoteClick(post.sharedPost?.id ?: post.id) }
-                                        } else null,
-                                        onReactionClick = if (isLoggedIn) {
-                                            { viewModel.toggleFavourite(post) }
-                                        } else null,
-                                        onReactionLongPress = if (isLoggedIn) {
-                                            {
-                                                viewModel.showReactionPicker(
-                                                    post.sharedPost?.id ?: post.id
-                                                )
-                                            }
-                                        } else null,
-                                        onBookmarkClick = if (isLoggedIn) {
-                                            {
-                                                val displayPost = post.sharedPost ?: post
-                                                Toast.makeText(
-                                                    context,
-                                                    if (displayPost.viewerHasBookmarked) {
-                                                        bookmarkRemovedMessage
-                                                    } else {
-                                                        bookmarkedMessage
-                                                    },
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                viewModel.toggleBookmark(post)
-                                            }
-                                        } else null,
-                                        onExternalShareClick = {
-                                            val displayPost = post.sharedPost ?: post
-                                            val shareUrl = displayPost.url ?: displayPost.iri
-                                            if (shareUrl != null) {
-                                                val sendIntent = Intent().apply {
-                                                    action = Intent.ACTION_SEND
-                                                    putExtra(Intent.EXTRA_TEXT, shareUrl)
-                                                    type = "text/plain"
-                                                }
-                                                context.startActivity(
-                                                    Intent.createChooser(sendIntent, null)
-                                                )
-                                            }
-                                        },
-                                        onQuotedPostClick = onPostClick
-                                    )
-                                    HorizontalDivider(
-                                        color = colors.divider,
-                                        thickness = 1.dp,
-                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                        onReplyClick = onReplyClick,
+                                        onQuoteClick = onQuoteClick,
+                                        viewModel = viewModel,
                                     )
                                 }
 
@@ -266,4 +244,85 @@ fun ExploreScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ExplorePostItem(
+    post: Post,
+    isLoggedIn: Boolean,
+    colors: AppColorScheme,
+    context: Context,
+    bookmarkedMessage: String,
+    bookmarkRemovedMessage: String,
+    onPostClick: (String) -> Unit,
+    onProfileClick: (String) -> Unit,
+    onReplyClick: (String) -> Unit,
+    onQuoteClick: (String) -> Unit,
+    viewModel: ExploreViewModel,
+) {
+    PostCard(
+        post = post,
+        onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+        onProfileClick = onProfileClick,
+        onReplyClick = if (isLoggedIn) {
+            { onReplyClick(post.sharedPost?.id ?: post.id) }
+        } else null,
+        onShareClick = if (isLoggedIn) {
+            {
+                if (post.viewerHasShared) {
+                    viewModel.unsharePost(post.id)
+                } else {
+                    viewModel.sharePost(post.id)
+                }
+            }
+        } else null,
+        onQuoteClick = if (isLoggedIn) {
+            { onQuoteClick(post.sharedPost?.id ?: post.id) }
+        } else null,
+        onReactionClick = if (isLoggedIn) {
+            { viewModel.toggleFavourite(post) }
+        } else null,
+        onReactionLongPress = if (isLoggedIn) {
+            {
+                viewModel.showReactionPicker(
+                    post.sharedPost?.id ?: post.id
+                )
+            }
+        } else null,
+        onBookmarkClick = if (isLoggedIn) {
+            {
+                val displayPost = post.sharedPost ?: post
+                Toast.makeText(
+                    context,
+                    if (displayPost.viewerHasBookmarked) {
+                        bookmarkRemovedMessage
+                    } else {
+                        bookmarkedMessage
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+                viewModel.toggleBookmark(post)
+            }
+        } else null,
+        onExternalShareClick = {
+            val displayPost = post.sharedPost ?: post
+            val shareUrl = displayPost.url ?: displayPost.iri
+            if (shareUrl != null) {
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, shareUrl)
+                    type = "text/plain"
+                }
+                context.startActivity(
+                    Intent.createChooser(sendIntent, null)
+                )
+            }
+        },
+        onQuotedPostClick = onPostClick
+    )
+    HorizontalDivider(
+        color = colors.divider,
+        thickness = 1.dp,
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
 }

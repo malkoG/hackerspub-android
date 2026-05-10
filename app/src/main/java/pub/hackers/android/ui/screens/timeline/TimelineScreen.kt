@@ -71,6 +71,7 @@ fun TimelineScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val items = viewModel.posts.collectAsLazyPagingItems()
+    val newerPosts by viewModel.newerPosts.collectAsState()
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val bookmarkedMessage = stringResource(R.string.bookmarked)
@@ -94,7 +95,8 @@ fun TimelineScreen(
     LaunchedEffect(tabRetapped) {
         if (tabRetapped > 0L) {
             if (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
-                items.refresh()
+                if (items.itemCount > 0) viewModel.loadNewerPosts()
+                else items.refresh()
             } else {
                 listState.animateScrollToItem(0)
             }
@@ -104,7 +106,7 @@ fun TimelineScreen(
     // Reaction picker bottom sheet — look up the currently-loaded post by id.
     val pickerPostId = uiState.reactionPickerPostId
     if (pickerPostId != null) {
-        val pickerPost = items.itemSnapshotList.items.find {
+        val pickerPost = (newerPosts + items.itemSnapshotList.items).find {
             it.id == pickerPostId || it.sharedPost?.id == pickerPostId
         }
         val targetPost = pickerPost?.sharedPost ?: pickerPost
@@ -239,10 +241,76 @@ fun TimelineScreen(
 
                 else -> {
                     PullToRefreshBox(
-                        isRefreshing = refresh is LoadState.Loading,
-                        onRefresh = { items.refresh() }
+                        isRefreshing = refresh is LoadState.Loading || uiState.isLoadingNewer,
+                        onRefresh = {
+                            if (items.itemCount > 0) viewModel.loadNewerPosts()
+                            else items.refresh()
+                        }
                     ) {
                         LazyColumn(state = listState) {
+                            items(
+                                count = newerPosts.size,
+                                key = { index ->
+                                    val post = newerPosts[index]
+                                    "newer-${post.sharedPost?.id ?: post.id}"
+                                }
+                            ) { index ->
+                                val post = newerPosts[index]
+                                PostCard(
+                                    post = post,
+                                    onClick = { onPostClick(post.sharedPost?.id ?: post.id) },
+                                    onProfileClick = onProfileClick,
+                                    onReplyClick = {
+                                        onComposeClick(post.sharedPost?.id ?: post.id)
+                                    },
+                                    onShareClick = {
+                                        if (post.viewerHasShared) {
+                                            viewModel.unsharePost(post.id)
+                                        } else {
+                                            viewModel.sharePost(post.id)
+                                        }
+                                    },
+                                    onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                    onReactionClick = { viewModel.toggleFavourite(post) },
+                                    onReactionLongPress = {
+                                        viewModel.showReactionPicker(post.sharedPost?.id ?: post.id)
+                                    },
+                                    onBookmarkClick = {
+                                        val displayPost = post.sharedPost ?: post
+                                        Toast.makeText(
+                                            context,
+                                            if (displayPost.viewerHasBookmarked) {
+                                                bookmarkRemovedMessage
+                                            } else {
+                                                bookmarkedMessage
+                                            },
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        viewModel.toggleBookmark(post)
+                                    },
+                                    onExternalShareClick = {
+                                        val displayPost = post.sharedPost ?: post
+                                        val shareUrl = displayPost.url ?: displayPost.iri
+                                        if (shareUrl != null) {
+                                            val sendIntent = Intent().apply {
+                                                action = Intent.ACTION_SEND
+                                                putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                                type = "text/plain"
+                                            }
+                                            context.startActivity(
+                                                Intent.createChooser(sendIntent, null)
+                                            )
+                                        }
+                                    },
+                                    onQuotedPostClick = onPostClick
+                                )
+                                HorizontalDivider(
+                                    color = colors.divider,
+                                    thickness = 1.dp,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+
                             items(
                                 count = items.itemCount,
                                 key = items.itemKey { it.id }
