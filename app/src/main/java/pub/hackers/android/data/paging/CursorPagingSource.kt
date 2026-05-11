@@ -14,6 +14,8 @@ data class CursorPage<T>(
     val items: List<T>,
     val endCursor: String?,
     val hasNextPage: Boolean,
+    val startCursor: String? = null,
+    val hasPreviousPage: Boolean = false,
 )
 
 /**
@@ -89,15 +91,15 @@ suspend fun HackersPubRepository.notificationsPage(after: String?) =
 
 suspend fun HackersPubRepository.personalTimelinePage(after: String?) =
     getPersonalTimeline(after = after, refresh = (after == null))
-        .map { CursorPage(it.posts, it.endCursor, it.hasNextPage) }
+        .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
 suspend fun HackersPubRepository.publicTimelinePage(after: String?) =
     getPublicTimeline(after = after, refresh = (after == null))
-        .map { CursorPage(it.posts, it.endCursor, it.hasNextPage) }
+        .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
 suspend fun HackersPubRepository.localTimelinePage(after: String?) =
     getLocalTimeline(after = after, refresh = (after == null))
-        .map { CursorPage(it.posts, it.endCursor, it.hasNextPage) }
+        .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
 suspend fun HackersPubRepository.postRepliesPage(postId: String, after: String?) =
     getPostReplies(postId, after)
@@ -118,7 +120,7 @@ suspend fun HackersPubRepository.actorArticlesPage(handle: String, after: String
 suspend fun HackersPubRepository.bookmarksPage(
     after: String?,
     postType: pub.hackers.android.graphql.type.PostType?,
-) = getBookmarks(after, postType)
-    .map { CursorPage(it.posts, it.endCursor, it.hasNextPage) }
+) = getBookmarks(after = after, postType = postType)
+    .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
 // endregion

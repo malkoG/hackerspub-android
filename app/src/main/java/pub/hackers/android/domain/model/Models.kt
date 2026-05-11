@@ -229,7 +229,9 @@ data class PasskeyRegistrationResult(
 data class TimelineResult(
     val posts: List<Post>,
     val hasNextPage: Boolean,
-    val endCursor: String?
+    val endCursor: String?,
+    val hasPreviousPage: Boolean = false,
+    val startCursor: String? = null,
 )
 
 @Immutable

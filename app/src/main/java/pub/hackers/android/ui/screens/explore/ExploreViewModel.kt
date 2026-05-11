@@ -6,13 +6,16 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.paging.PostOverlayStore
@@ -34,6 +37,7 @@ enum class ExploreTab {
 data class ExploreUiState(
     val reactionPickerPostId: String? = null,
     val error: String? = null,
+    val isLoadingNewer: Boolean = false,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,6 +53,16 @@ class ExploreViewModel @Inject constructor(
     val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
 
     private val overlayStore = PostOverlayStore()
+    private var topCursor: String? = null
+    private var loadNewerJob: Job? = null
+    private val _newerPosts = MutableStateFlow<List<Post>>(emptyList())
+    val newerPosts: StateFlow<List<Post>> = combine(
+        _newerPosts,
+        overlayStore.overlays,
+    ) { posts, overlays ->
+        posts.map { post -> post.applyOverlays(overlays) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     private val bookmarkCoordinator = BookmarkMutationCoordinator(
         scope = viewModelScope,
         requestMutation = { postId, shouldBookmark ->
@@ -70,9 +84,14 @@ class ExploreViewModel @Inject constructor(
     val posts: Flow<PagingData<Post>> = _selectedTab
         .flatMapLatest { tab ->
             cursorPager { after ->
-                when (tab) {
+                val pageResult = when (tab) {
                     ExploreTab.LOCAL -> repository.localTimelinePage(after)
                     ExploreTab.GLOBAL -> repository.publicTimelinePage(after)
+                }
+                pageResult.onSuccess { page ->
+                    if (after == null && _newerPosts.value.isEmpty()) {
+                        topCursor = page.startCursor
+                    }
                 }
             }.flow.distinctByEffectiveId().cachedIn(viewModelScope)
         }
@@ -82,7 +101,44 @@ class ExploreViewModel @Inject constructor(
         .cachedIn(viewModelScope)
 
     fun selectTab(tab: ExploreTab) {
-        if (_selectedTab.value != tab) _selectedTab.value = tab
+        if (_selectedTab.value != tab) {
+            loadNewerJob?.cancel()
+            topCursor = null
+            _newerPosts.value = emptyList()
+            _uiState.update { it.copy(error = null, isLoadingNewer = false) }
+            _selectedTab.value = tab
+        }
+    }
+
+    fun loadNewerPosts() {
+        val before = topCursor ?: return
+        if (_uiState.value.isLoadingNewer) return
+        val tab = _selectedTab.value
+        _uiState.update { it.copy(isLoadingNewer = true, error = null) }
+        loadNewerJob = viewModelScope.launch {
+            val result = when (tab) {
+                ExploreTab.LOCAL -> repository.getLocalTimeline(before = before, refresh = true)
+                ExploreTab.GLOBAL -> repository.getPublicTimeline(before = before, refresh = true)
+            }
+            if (_selectedTab.value != tab) return@launch
+            result
+                .onSuccess { page -> prependNewerPosts(page.posts, page.startCursor) }
+                .onFailure { error ->
+                    _uiState.update { it.copy(error = error.message) }
+                }
+            if (_selectedTab.value == tab) {
+                _uiState.update { it.copy(isLoadingNewer = false) }
+            }
+        }
+    }
+
+    private fun prependNewerPosts(posts: List<Post>, startCursor: String?) {
+        if (posts.isEmpty()) return
+        topCursor = startCursor ?: topCursor
+        _newerPosts.update { current ->
+            val seen = current.mapTo(mutableSetOf()) { it.effectiveId }
+            posts.filter { seen.add(it.effectiveId) } + current
+        }
     }
 
     fun sharePost(postId: String) {
@@ -197,3 +253,6 @@ class ExploreViewModel @Inject constructor(
         }
     }
 }
+
+private val Post.effectiveId: String
+    get() = sharedPost?.id ?: id

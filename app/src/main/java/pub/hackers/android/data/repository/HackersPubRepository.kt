@@ -72,10 +72,22 @@ import javax.inject.Singleton
 class HackersPubRepository @Inject constructor(
     private val apolloClient: ApolloClient
 ) {
-    suspend fun getPublicTimeline(after: String? = null, refresh: Boolean = false): Result<TimelineResult> {
+    suspend fun getPublicTimeline(
+        after: String? = null,
+        before: String? = null,
+        refresh: Boolean = false,
+    ): Result<TimelineResult> {
         return try {
-            val response = apolloClient.query(PublicTimelineQuery(Optional.presentIfNotNull(after)))
-                .apply { if (refresh) fetchPolicy(FetchPolicy.NetworkOnly) }
+            val backwards = before != null
+            val response = apolloClient.query(
+                PublicTimelineQuery(
+                    first = Optional.presentIfNotNull(if (backwards) null else 20),
+                    after = Optional.presentIfNotNull(if (backwards) null else after),
+                    before = Optional.presentIfNotNull(before),
+                    last = Optional.presentIfNotNull(if (backwards) 20 else null),
+                )
+            )
+                .apply { if (refresh || backwards) fetchPolicy(FetchPolicy.NetworkOnly) }
                 .execute()
 
             if (response.hasErrors()) {
@@ -89,7 +101,9 @@ class HackersPubRepository @Inject constructor(
                                 edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
                             }?.distinctBy { it.id } ?: emptyList(),
                             hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                            endCursor = data?.pageInfo?.endCursor
+                            endCursor = data?.pageInfo?.endCursor,
+                            hasPreviousPage = data?.pageInfo?.hasPreviousPage ?: false,
+                            startCursor = data?.pageInfo?.startCursor,
                         )
                     )
                 }
@@ -99,10 +113,22 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
-    suspend fun getLocalTimeline(after: String? = null, refresh: Boolean = false): Result<TimelineResult> {
+    suspend fun getLocalTimeline(
+        after: String? = null,
+        before: String? = null,
+        refresh: Boolean = false,
+    ): Result<TimelineResult> {
         return try {
-            val response = apolloClient.query(LocalTimelineQuery(Optional.presentIfNotNull(after)))
-                .apply { if (refresh) fetchPolicy(FetchPolicy.NetworkOnly) }
+            val backwards = before != null
+            val response = apolloClient.query(
+                LocalTimelineQuery(
+                    first = Optional.presentIfNotNull(if (backwards) null else 20),
+                    after = Optional.presentIfNotNull(if (backwards) null else after),
+                    before = Optional.presentIfNotNull(before),
+                    last = Optional.presentIfNotNull(if (backwards) 20 else null),
+                )
+            )
+                .apply { if (refresh || backwards) fetchPolicy(FetchPolicy.NetworkOnly) }
                 .execute()
 
             if (response.hasErrors()) {
@@ -116,7 +142,9 @@ class HackersPubRepository @Inject constructor(
                                 edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
                             }?.distinctBy { it.id } ?: emptyList(),
                             hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                            endCursor = data?.pageInfo?.endCursor
+                            endCursor = data?.pageInfo?.endCursor,
+                            hasPreviousPage = data?.pageInfo?.hasPreviousPage ?: false,
+                            startCursor = data?.pageInfo?.startCursor,
                         )
                     )
                 }
@@ -126,10 +154,22 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
-    suspend fun getPersonalTimeline(after: String? = null, refresh: Boolean = false): Result<TimelineResult> {
+    suspend fun getPersonalTimeline(
+        after: String? = null,
+        before: String? = null,
+        refresh: Boolean = false,
+    ): Result<TimelineResult> {
         return try {
-            val response = apolloClient.query(PersonalTimelineQuery(Optional.presentIfNotNull(after)))
-                .apply { if (refresh) fetchPolicy(FetchPolicy.NetworkOnly) }
+            val backwards = before != null
+            val response = apolloClient.query(
+                PersonalTimelineQuery(
+                    first = Optional.presentIfNotNull(if (backwards) null else 20),
+                    after = Optional.presentIfNotNull(if (backwards) null else after),
+                    before = Optional.presentIfNotNull(before),
+                    last = Optional.presentIfNotNull(if (backwards) 20 else null),
+                )
+            )
+                .apply { if (refresh || backwards) fetchPolicy(FetchPolicy.NetworkOnly) }
                 .execute()
 
             if (response.hasErrors()) {
@@ -149,7 +189,9 @@ class HackersPubRepository @Inject constructor(
                                 )
                             } ?: emptyList(),
                             hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                            endCursor = data?.pageInfo?.endCursor
+                            endCursor = data?.pageInfo?.endCursor,
+                            hasPreviousPage = data?.pageInfo?.hasPreviousPage ?: false,
+                            startCursor = data?.pageInfo?.startCursor,
                         )
                     )
                 }
@@ -256,12 +298,17 @@ class HackersPubRepository @Inject constructor(
 
     suspend fun getBookmarks(
         after: String? = null,
+        before: String? = null,
         postType: pub.hackers.android.graphql.type.PostType? = null,
     ): Result<TimelineResult> {
         return try {
+            val backwards = before != null
             val response = apolloClient.query(
                 BookmarksQuery(
-                    after = Optional.presentIfNotNull(after),
+                    first = Optional.presentIfNotNull(if (backwards) null else 20),
+                    after = Optional.presentIfNotNull(if (backwards) null else after),
+                    before = Optional.presentIfNotNull(before),
+                    last = Optional.presentIfNotNull(if (backwards) 20 else null),
                     postType = Optional.presentIfNotNull(postType)
                 )
             ).fetchPolicy(FetchPolicy.NetworkOnly).execute()
@@ -277,7 +324,9 @@ class HackersPubRepository @Inject constructor(
                                 edge.node.postFields.toPost(edge.node.sharedPost?.sharedPostFields?.toPost())
                             } ?: emptyList(),
                             hasNextPage = data?.pageInfo?.hasNextPage ?: false,
-                            endCursor = data?.pageInfo?.endCursor
+                            endCursor = data?.pageInfo?.endCursor,
+                            hasPreviousPage = data?.pageInfo?.hasPreviousPage ?: false,
+                            startCursor = data?.pageInfo?.startCursor,
                         )
                     )
                 }
