@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pub.hackers.android.data.repository.HackersPubRepository
+import pub.hackers.android.domain.model.QuotePolicy
 import javax.inject.Inject
 
 data class ComposeArticleUiState(
@@ -26,6 +27,7 @@ data class ComposeArticleUiState(
     val slug: String = "",
     val language: String = java.util.Locale.getDefault().language,
     val allowLlmTranslation: Boolean = true,
+    val quotePolicy: QuotePolicy = QuotePolicy.EVERYONE,
     val showPublishFields: Boolean = false,
     val isPublishing: Boolean = false,
     val isPublished: Boolean = false,
@@ -92,6 +94,10 @@ class ComposeArticleViewModel @Inject constructor(
 
     fun updateAllowLlmTranslation(allow: Boolean) {
         _uiState.update { it.copy(allowLlmTranslation = allow) }
+    }
+
+    fun updateQuotePolicy(quotePolicy: QuotePolicy) {
+        _uiState.update { it.copy(quotePolicy = quotePolicy) }
     }
 
     fun saveDraft() {
@@ -195,7 +201,8 @@ class ComposeArticleViewModel @Inject constructor(
                 id = draftId,
                 slug = state.slug,
                 language = state.language,
-                allowLlmTranslation = state.allowLlmTranslation
+                allowLlmTranslation = state.allowLlmTranslation,
+                quotePolicy = state.quotePolicy
             )
                 .onSuccess { article ->
                     _uiState.update {

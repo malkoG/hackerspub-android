@@ -20,6 +20,7 @@ import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostVisibility
+import pub.hackers.android.domain.model.QuotePolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
 import javax.inject.Inject
@@ -29,6 +30,7 @@ data class ComposeUiState(
     val cursorPosition: Int = 0,
     val language: String = java.util.Locale.getDefault().language,
     val visibility: PostVisibility = PostVisibility.PUBLIC,
+    val quotePolicy: QuotePolicy = QuotePolicy.EVERYONE,
     val replyToId: String? = null,
     val replyTargetPost: Post? = null,
     val isLoadingReplyTarget: Boolean = false,
@@ -194,11 +196,25 @@ class ComposeViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getPostDetail(postId)
                 .onSuccess { result ->
-                    _uiState.update {
-                        it.copy(
-                            quotedPost = result.post,
-                            isLoadingQuotedPost = false
-                        )
+                    val post = result.post
+                    if (post.viewerCanQuote) {
+                        _uiState.update {
+                            it.copy(
+                                quotedPost = post,
+                                quotedPostId = post.id,
+                                isLoadingQuotedPost = false
+                            )
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                quotedPostId = null,
+                                quotedPost = null,
+                                isLoadingQuotedPost = false,
+                                quotedPostLoadFailed = false,
+                                error = "You cannot quote this post"
+                            )
+                        }
                     }
                 }
                 .onFailure {
@@ -284,6 +300,10 @@ class ComposeViewModel @Inject constructor(
         _uiState.update { it.copy(visibility = visibility) }
     }
 
+    fun updateQuotePolicy(quotePolicy: QuotePolicy) {
+        _uiState.update { it.copy(quotePolicy = quotePolicy) }
+    }
+
     fun post() {
         val state = _uiState.value
         if (state.content.isBlank() || state.isPosting) return
@@ -295,6 +315,7 @@ class ComposeViewModel @Inject constructor(
                 content = state.content,
                 language = state.language,
                 visibility = state.visibility,
+                quotePolicy = state.effectiveQuotePolicy(),
                 replyTargetId = state.replyToId,
                 quotedPostId = state.quotedPostId
             )
@@ -317,5 +338,13 @@ class ComposeViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    private fun ComposeUiState.effectiveQuotePolicy(): QuotePolicy {
+        return if (visibility == PostVisibility.PUBLIC || visibility == PostVisibility.UNLISTED) {
+            quotePolicy
+        } else {
+            QuotePolicy.SELF
+        }
     }
 }

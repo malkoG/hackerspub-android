@@ -1008,12 +1008,14 @@ internal fun PostDetailContent(
                             )
                         }
                     }
-                    IconButton(onClick = onQuoteClick) {
-                        Icon(
-                            imageVector = Icons.Outlined.FormatQuote,
-                            contentDescription = stringResource(R.string.quotes),
-                            tint = colors.textSecondary
-                        )
+                    if (post.viewerCanQuote) {
+                        IconButton(onClick = onQuoteClick) {
+                            Icon(
+                                imageVector = Icons.Outlined.FormatQuote,
+                                contentDescription = stringResource(R.string.quotes),
+                                tint = colors.textSecondary
+                            )
+                        }
                     }
                     IconButton(onClick = onExternalShareClick) {
                         Icon(

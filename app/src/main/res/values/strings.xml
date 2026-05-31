@@ -47,9 +47,18 @@
     <string name="compose_preview">Preview</string>
     <string name="compose_preview_empty">Write something to see the preview</string>
     <string name="quote_load_failed">Unable to load quoted post</string>
+    <string name="visibility">Visibility</string>
     <string name="visibility_public">Public</string>
     <string name="visibility_unlisted">Unlisted</string>
     <string name="visibility_followers">Followers only</string>
+    <string name="visibility_direct">Mentioned only</string>
+    <string name="quote_permission">Quote permission</string>
+    <string name="quote_policy_everyone">Anyone can quote</string>
+    <string name="quote_policy_followers">Followers can quote</string>
+    <string name="quote_policy_self">Only you can quote</string>
+    <string name="quote_policy_short_everyone">Quote: Anyone</string>
+    <string name="quote_policy_short_followers">Quote: Followers</string>
+    <string name="quote_policy_short_self">Quote: Only you</string>
 
     <!-- Article Compose -->
     <string name="new_article">New Article</string>

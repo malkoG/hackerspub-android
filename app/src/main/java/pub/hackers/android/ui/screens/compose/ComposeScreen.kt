@@ -22,9 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
@@ -76,6 +78,7 @@ import coil3.compose.AsyncImage
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostVisibility
+import pub.hackers.android.domain.model.QuotePolicy
 import pub.hackers.android.ui.components.HtmlContent
 import pub.hackers.android.ui.components.MentionAutocomplete
 import pub.hackers.android.ui.theme.AppShapes
@@ -122,6 +125,10 @@ fun ComposeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showVisibilityMenu by remember { mutableStateOf(false) }
+    var showQuotePolicyMenu by remember { mutableStateOf(false) }
+    val quotePolicyLocked = uiState.visibility != PostVisibility.PUBLIC &&
+        uiState.visibility != PostVisibility.UNLISTED
+    val effectiveQuotePolicy = if (quotePolicyLocked) QuotePolicy.SELF else uiState.quotePolicy
 
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -383,19 +390,15 @@ fun ComposeScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = when (uiState.visibility) {
-                            PostVisibility.PUBLIC -> Icons.Filled.Public
-                            PostVisibility.UNLISTED -> Icons.Outlined.Lock
-                            PostVisibility.FOLLOWERS -> Icons.Outlined.Group
-                            else -> Icons.Filled.Public
-                        },
-                        contentDescription = when (uiState.visibility) {
-                            PostVisibility.PUBLIC -> stringResource(R.string.visibility_public)
-                            PostVisibility.UNLISTED -> stringResource(R.string.visibility_unlisted)
-                            PostVisibility.FOLLOWERS -> stringResource(R.string.visibility_followers)
-                            else -> stringResource(R.string.visibility_public)
-                        },
+                        imageVector = visibilityIcon(uiState.visibility),
+                        contentDescription = visibilityLabel(uiState.visibility),
                         tint = colors.textSecondary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = visibilityLabel(uiState.visibility),
+                        color = colors.textSecondary,
+                        style = typography.labelMedium
                     )
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
@@ -408,61 +411,95 @@ fun ComposeScreen(
                         expanded = showVisibilityMenu,
                         onDismissRequest = { showVisibilityMenu = false }
                     ) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = stringResource(R.string.visibility_public),
-                                    color = colors.textPrimary
-                                )
-                            },
+                        visibilityMenuItem(
+                            visibility = PostVisibility.PUBLIC,
+                            selectedVisibility = uiState.visibility,
                             onClick = {
                                 viewModel.updateVisibility(PostVisibility.PUBLIC)
                                 showVisibilityMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.Public,
-                                    contentDescription = null,
-                                    tint = colors.textSecondary
-                                )
                             }
                         )
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = stringResource(R.string.visibility_unlisted),
-                                    color = colors.textPrimary
-                                )
-                            },
+                        visibilityMenuItem(
+                            visibility = PostVisibility.UNLISTED,
+                            selectedVisibility = uiState.visibility,
                             onClick = {
                                 viewModel.updateVisibility(PostVisibility.UNLISTED)
                                 showVisibilityMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.Lock,
-                                    contentDescription = null,
-                                    tint = colors.textSecondary
-                                )
                             }
                         )
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = stringResource(R.string.visibility_followers),
-                                    color = colors.textPrimary
-                                )
-                            },
+                        visibilityMenuItem(
+                            visibility = PostVisibility.FOLLOWERS,
+                            selectedVisibility = uiState.visibility,
                             onClick = {
                                 viewModel.updateVisibility(PostVisibility.FOLLOWERS)
                                 showVisibilityMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.Group,
-                                    contentDescription = null,
-                                    tint = colors.textSecondary
-                                )
+                            }
+                        )
+                        visibilityMenuItem(
+                            visibility = PostVisibility.DIRECT,
+                            selectedVisibility = uiState.visibility,
+                            onClick = {
+                                viewModel.updateVisibility(PostVisibility.DIRECT)
+                                showVisibilityMenu = false
+                            }
+                        )
+                    }
+                }
+
+                TextButton(
+                    onClick = { showQuotePolicyMenu = true },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = 8.dp,
+                        vertical = 4.dp
+                    )
+                ) {
+                    Icon(
+                        imageVector = quotePolicyIcon(effectiveQuotePolicy),
+                        contentDescription = quotePolicyLabel(effectiveQuotePolicy),
+                        tint = colors.textSecondary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = quotePolicyShortLabel(effectiveQuotePolicy),
+                        color = colors.textSecondary,
+                        style = typography.labelMedium
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    DropdownMenu(
+                        expanded = showQuotePolicyMenu,
+                        onDismissRequest = { showQuotePolicyMenu = false }
+                    ) {
+                        quotePolicyMenuItem(
+                            policy = QuotePolicy.EVERYONE,
+                            selectedPolicy = effectiveQuotePolicy,
+                            enabled = !quotePolicyLocked,
+                            onClick = {
+                                viewModel.updateQuotePolicy(QuotePolicy.EVERYONE)
+                                showQuotePolicyMenu = false
+                            }
+                        )
+                        quotePolicyMenuItem(
+                            policy = QuotePolicy.FOLLOWERS,
+                            selectedPolicy = effectiveQuotePolicy,
+                            enabled = !quotePolicyLocked,
+                            onClick = {
+                                viewModel.updateQuotePolicy(QuotePolicy.FOLLOWERS)
+                                showQuotePolicyMenu = false
+                            }
+                        )
+                        quotePolicyMenuItem(
+                            policy = QuotePolicy.SELF,
+                            selectedPolicy = effectiveQuotePolicy,
+                            enabled = true,
+                            onClick = {
+                                viewModel.updateQuotePolicy(QuotePolicy.SELF)
+                                showQuotePolicyMenu = false
                             }
                         )
                     }
@@ -487,6 +524,111 @@ fun ComposeScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun visibilityMenuItem(
+    visibility: PostVisibility,
+    selectedVisibility: PostVisibility,
+    onClick: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = visibilityLabel(visibility),
+                color = colors.textPrimary
+            )
+        },
+        onClick = onClick,
+        leadingIcon = {
+            Icon(
+                visibilityIcon(visibility),
+                contentDescription = null,
+                tint = colors.textSecondary
+            )
+        },
+        trailingIcon = {
+            if (selectedVisibility == visibility) {
+                Icon(Icons.Filled.Check, contentDescription = null)
+            }
+        }
+    )
+}
+
+@Composable
+private fun visibilityLabel(visibility: PostVisibility): String {
+    return when (visibility) {
+        PostVisibility.PUBLIC -> stringResource(R.string.visibility_public)
+        PostVisibility.UNLISTED -> stringResource(R.string.visibility_unlisted)
+        PostVisibility.FOLLOWERS -> stringResource(R.string.visibility_followers)
+        PostVisibility.DIRECT -> stringResource(R.string.visibility_direct)
+        PostVisibility.NONE -> stringResource(R.string.visibility_public)
+    }
+}
+
+private fun visibilityIcon(visibility: PostVisibility) = when (visibility) {
+    PostVisibility.PUBLIC -> Icons.Filled.Public
+    PostVisibility.UNLISTED -> Icons.Outlined.Lock
+    PostVisibility.FOLLOWERS -> Icons.Outlined.Group
+    PostVisibility.DIRECT -> Icons.Outlined.Lock
+    PostVisibility.NONE -> Icons.Filled.Public
+}
+
+@Composable
+internal fun quotePolicyMenuItem(
+    policy: QuotePolicy,
+    selectedPolicy: QuotePolicy,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = quotePolicyLabel(policy),
+                color = if (enabled) colors.textPrimary else colors.textSecondary
+            )
+        },
+        onClick = onClick,
+        enabled = enabled,
+        leadingIcon = {
+            Icon(
+                quotePolicyIcon(policy),
+                contentDescription = null,
+                tint = colors.textSecondary
+            )
+        },
+        trailingIcon = {
+            if (selectedPolicy == policy) {
+                Icon(Icons.Filled.Check, contentDescription = null)
+            }
+        }
+    )
+}
+
+@Composable
+internal fun quotePolicyLabel(policy: QuotePolicy): String {
+    return when (policy) {
+        QuotePolicy.EVERYONE -> stringResource(R.string.quote_policy_everyone)
+        QuotePolicy.FOLLOWERS -> stringResource(R.string.quote_policy_followers)
+        QuotePolicy.SELF -> stringResource(R.string.quote_policy_self)
+    }
+}
+
+internal fun quotePolicyIcon(policy: QuotePolicy) = when (policy) {
+    QuotePolicy.EVERYONE -> Icons.Filled.Repeat
+    QuotePolicy.FOLLOWERS -> Icons.Outlined.Group
+    QuotePolicy.SELF -> Icons.Outlined.Lock
+}
+
+@Composable
+internal fun quotePolicyShortLabel(policy: QuotePolicy): String {
+    return when (policy) {
+        QuotePolicy.EVERYONE -> stringResource(R.string.quote_policy_short_everyone)
+        QuotePolicy.FOLLOWERS -> stringResource(R.string.quote_policy_short_followers)
+        QuotePolicy.SELF -> stringResource(R.string.quote_policy_short_self)
     }
 }
 

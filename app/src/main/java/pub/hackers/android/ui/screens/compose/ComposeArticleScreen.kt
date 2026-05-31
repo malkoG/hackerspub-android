@@ -24,10 +24,12 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,11 +41,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import pub.hackers.android.R
+import pub.hackers.android.domain.model.QuotePolicy
 import pub.hackers.android.ui.theme.AppShapes
 import pub.hackers.android.ui.theme.LocalAppColors
 import pub.hackers.android.ui.theme.LocalAppTypography
@@ -70,6 +76,7 @@ fun ComposeArticleScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showQuotePolicyMenu by remember { mutableStateOf(false) }
 
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -346,6 +353,66 @@ fun ComposeArticleScreen(
                             style = typography.bodyMedium,
                             color = colors.textPrimary
                         )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(
+                        onClick = { showQuotePolicyMenu = true },
+                        enabled = !uiState.isPublishing,
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 8.dp,
+                            vertical = 4.dp
+                        )
+                    ) {
+                        Icon(
+                            imageVector = quotePolicyIcon(uiState.quotePolicy),
+                            contentDescription = quotePolicyLabel(uiState.quotePolicy),
+                            tint = colors.textSecondary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = quotePolicyShortLabel(uiState.quotePolicy),
+                            color = colors.textSecondary,
+                            style = typography.labelMedium
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = colors.textSecondary
+                        )
+
+                        DropdownMenu(
+                            expanded = showQuotePolicyMenu,
+                            onDismissRequest = { showQuotePolicyMenu = false }
+                        ) {
+                            quotePolicyMenuItem(
+                                policy = QuotePolicy.EVERYONE,
+                                selectedPolicy = uiState.quotePolicy,
+                                enabled = true,
+                                onClick = {
+                                    viewModel.updateQuotePolicy(QuotePolicy.EVERYONE)
+                                    showQuotePolicyMenu = false
+                                }
+                            )
+                            quotePolicyMenuItem(
+                                policy = QuotePolicy.FOLLOWERS,
+                                selectedPolicy = uiState.quotePolicy,
+                                enabled = true,
+                                onClick = {
+                                    viewModel.updateQuotePolicy(QuotePolicy.FOLLOWERS)
+                                    showQuotePolicyMenu = false
+                                }
+                            )
+                            quotePolicyMenuItem(
+                                policy = QuotePolicy.SELF,
+                                selectedPolicy = uiState.quotePolicy,
+                                enabled = true,
+                                onClick = {
+                                    viewModel.updateQuotePolicy(QuotePolicy.SELF)
+                                    showQuotePolicyMenu = false
+                                }
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 

@@ -594,7 +594,7 @@ private fun EngagementBar(
             isShared = isShared,
             count = post.engagementStats.shares,
             onShareClick = onShareClick,
-            onQuoteClick = onQuoteClick
+            onQuoteClick = if (post.viewerCanQuote) onQuoteClick else null
         )
 
         // Heart/React — tap to toggle ❤️, long-press for emoji picker
