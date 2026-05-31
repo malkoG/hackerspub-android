@@ -592,6 +592,8 @@ input CreateNoteInput {
 
   language: Locale!
 
+  media: [CreateNoteMediumInput!] = []
+
   quotePolicy: QuotePolicy
 
   quotedPostId: ID
@@ -599,6 +601,12 @@ input CreateNoteInput {
   replyTargetId: ID
 
   visibility: PostVisibility!
+}
+
+input CreateNoteMediumInput {
+  alt: String!
+
+  mediumId: UUID!
 }
 
 type CreateNotePayload {
@@ -666,6 +674,20 @@ type DeletePostPayload {
 }
 
 union DeletePostResult = DeletePostPayload|InvalidInputError|NotAuthenticatedError|SharedPostDeletionNotAllowedError
+
+input FinishMediumUploadInput {
+  clientMutationId: ID
+
+  uploadId: UUID!
+}
+
+type FinishMediumUploadPayload {
+  clientMutationId: ID
+
+  medium: Medium!
+}
+
+union FinishMediumUploadResult = FinishMediumUploadPayload|InvalidInputError|NotAuthenticatedError
 
 """
 A document in a specific language.
@@ -890,6 +912,34 @@ scalar Markdown
 
 scalar MediaType
 
+scalar Sha256
+
+type Medium implements Node {
+  contentHash: Sha256
+
+  created: DateTime!
+
+  generatedAltText(context: String, language: Locale!): String
+
+  height: Int
+
+  id: ID!
+
+  type: MediaType!
+
+  url: URL!
+
+  uuid: UUID!
+
+  width: Int
+}
+
+type MediumUploadHeader {
+  name: String!
+
+  value: String!
+}
+
 type MentionNotification implements Node & Notification {
   account: Account!
 
@@ -964,6 +1014,10 @@ type Mutation {
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
 
   sharePost(input: SharePostInput!): SharePostResult!
+
+  startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
+
+  finishMediumUpload(input: FinishMediumUploadInput!): FinishMediumUploadResult!
 
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
 
@@ -1974,6 +2028,30 @@ type SignupValidationErrors {
 type StandardEmoji {
   raw: String!
 }
+
+input StartMediumUploadInput {
+  clientMutationId: ID
+
+  contentLength: Int!
+
+  contentType: MediaType!
+}
+
+type StartMediumUploadPayload {
+  clientMutationId: ID
+
+  expires: DateTime!
+
+  headers: [MediumUploadHeader!]!
+
+  method: String!
+
+  uploadId: UUID!
+
+  uploadUrl: URL!
+}
+
+union StartMediumUploadResult = InvalidInputError|NotAuthenticatedError|StartMediumUploadPayload
 
 scalar URITemplate
 

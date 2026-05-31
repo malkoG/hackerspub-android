@@ -1,6 +1,7 @@
 package pub.hackers.android.ui.screens.compose
 
 import android.content.Context
+import android.net.Uri
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -17,10 +18,12 @@ import org.robolectric.annotation.Config
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.EngagementStats
+import pub.hackers.android.domain.model.NoteMediumAttachment
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostDetailResult
 import pub.hackers.android.domain.model.PostVisibility
 import pub.hackers.android.domain.model.QuotePolicy
+import pub.hackers.android.domain.model.UploadedMedium
 import pub.hackers.android.testutil.MainDispatcherRule
 import java.time.Instant
 
@@ -185,6 +188,92 @@ class ComposeViewModelTest {
                 quotePolicy = QuotePolicy.SELF,
                 replyTargetId = null,
                 quotedPostId = null,
+            )
+        }
+    }
+
+    @Test
+    fun `post sends uploaded media with required alt text`() = runTest {
+        val createdPost = samplePost(id = "created")
+        coEvery { repository.uploadMedium(any(), any()) } coAnswers {
+            secondArg<(Int) -> Unit>().invoke(100)
+            Result.success(
+                UploadedMedium(
+                    relayId = "relay-medium-1",
+                    uuid = "medium-uuid-1",
+                    url = "https://example.com/image.webp",
+                    width = 100,
+                    height = 80,
+                )
+            )
+        }
+        coEvery {
+            repository.createNote(
+                content = "hello with image",
+                language = any(),
+                visibility = PostVisibility.PUBLIC,
+                quotePolicy = QuotePolicy.EVERYONE,
+                replyTargetId = null,
+                quotedPostId = null,
+                media = listOf(NoteMediumAttachment(mediumId = "medium-uuid-1", alt = "diagram")),
+            )
+        } returns Result.success(createdPost)
+
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.updateContent("hello with image")
+        vm.addMediaUris(listOf(Uri.parse("content://images/1")))
+        advanceUntilIdle()
+        val attachmentId = vm.uiState.value.mediaAttachments.single().localId
+        vm.updateMediaAltText(attachmentId, "diagram")
+        vm.post()
+        advanceUntilIdle()
+
+        coVerify {
+            repository.createNote(
+                content = "hello with image",
+                language = any(),
+                visibility = PostVisibility.PUBLIC,
+                quotePolicy = QuotePolicy.EVERYONE,
+                replyTargetId = null,
+                quotedPostId = null,
+                media = listOf(NoteMediumAttachment(mediumId = "medium-uuid-1", alt = "diagram")),
+            )
+        }
+    }
+
+    @Test
+    fun `post blocks media without alt text`() = runTest {
+        coEvery { repository.uploadMedium(any(), any()) } returns Result.success(
+            UploadedMedium(
+                relayId = "relay-medium-1",
+                uuid = "medium-uuid-1",
+                url = "https://example.com/image.webp",
+                width = 100,
+                height = 80,
+            )
+        )
+
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.updateContent("hello with image")
+        vm.addMediaUris(listOf(Uri.parse("content://images/1")))
+        advanceUntilIdle()
+        vm.post()
+        advanceUntilIdle()
+
+        assertEquals("Alt text is required for every image", vm.uiState.value.error)
+        coVerify(exactly = 0) {
+            repository.createNote(
+                content = any(),
+                language = any(),
+                visibility = any(),
+                quotePolicy = any(),
+                replyTargetId = any(),
+                quotedPostId = any(),
+                media = any(),
             )
         }
     }

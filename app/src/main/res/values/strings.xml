@@ -59,6 +59,12 @@
     <string name="quote_policy_short_everyone">Quote: Anyone</string>
     <string name="quote_policy_short_followers">Quote: Followers</string>
     <string name="quote_policy_short_self">Quote: Only you</string>
+    <string name="attach_images">Attach images</string>
+    <string name="attached_image_number">Image %1$d</string>
+    <string name="remove_image">Remove image</string>
+    <string name="alt_text_required">Alt text</string>
+    <string name="alt_text_required_supporting">Required before posting</string>
+    <string name="auto_fill_alt_text">Auto-fill</string>
 
     <!-- Article Compose -->
     <string name="new_article">New Article</string>

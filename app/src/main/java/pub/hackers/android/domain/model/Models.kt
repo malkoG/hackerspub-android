@@ -40,6 +40,21 @@ data class Media(
 }
 
 @Immutable
+data class UploadedMedium(
+    val relayId: String,
+    val uuid: String,
+    val url: String,
+    val width: Int,
+    val height: Int
+)
+
+@Immutable
+data class NoteMediumAttachment(
+    val mediumId: String,
+    val alt: String
+)
+
+@Immutable
 data class EngagementStats(
     val replies: Int,
     val reactions: Int,

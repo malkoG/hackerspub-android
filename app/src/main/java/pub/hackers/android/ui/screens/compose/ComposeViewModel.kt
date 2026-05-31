@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,18 +13,36 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import android.icu.util.ULocale
+import android.net.Uri
 import android.os.Build
 import android.view.textclassifier.TextClassificationManager
 import android.view.textclassifier.TextLanguage
+import androidx.compose.runtime.Immutable
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
+import pub.hackers.android.domain.model.NoteMediumAttachment
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostVisibility
 import pub.hackers.android.domain.model.QuotePolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
+import java.util.UUID
 import javax.inject.Inject
+
+private const val MAX_NOTE_MEDIA = 20
+
+@Immutable
+data class ComposeMediaAttachment(
+    val localId: String,
+    val uri: Uri,
+    val altText: String = "",
+    val uploadProgress: Int = 0,
+    val uploadedMediumId: String? = null,
+    val uploadedMediumRelayId: String? = null,
+    val isUploading: Boolean = true,
+    val isGeneratingAltText: Boolean = false,
+    val error: String? = null,
+)
 
 data class ComposeUiState(
     val content: String = "",
@@ -38,6 +57,7 @@ data class ComposeUiState(
     val quotedPost: Post? = null,
     val isLoadingQuotedPost: Boolean = false,
     val quotedPostLoadFailed: Boolean = false,
+    val mediaAttachments: List<ComposeMediaAttachment> = emptyList(),
     val isPosting: Boolean = false,
     val isPosted: Boolean = false,
     val error: String? = null,
@@ -52,7 +72,7 @@ data class ComposeUiState(
 @HiltViewModel
 class ComposeViewModel @Inject constructor(
     private val repository: HackersPubRepository,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val replyPostedSignal: ReplyPostedSignal,
 ) : ViewModel() {
 
@@ -60,6 +80,7 @@ class ComposeViewModel @Inject constructor(
     val uiState: StateFlow<ComposeUiState> = _uiState.asStateFlow()
 
     private var viewerHandle: String? = null
+    private val uploadJobs = mutableMapOf<String, Job>()
 
     // Regex to detect @mention at cursor position
     // Matches: @handle or @user@domain patterns that are incomplete
@@ -304,9 +325,149 @@ class ComposeViewModel @Inject constructor(
         _uiState.update { it.copy(quotePolicy = quotePolicy) }
     }
 
+    fun addMediaUris(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+
+        val currentCount = _uiState.value.mediaAttachments.size
+        val remainingSlots = MAX_NOTE_MEDIA - currentCount
+        if (remainingSlots <= 0) {
+            _uiState.update { it.copy(error = "You can attach up to $MAX_NOTE_MEDIA images") }
+            return
+        }
+
+        val acceptedUris = uris.take(remainingSlots)
+        if (acceptedUris.size < uris.size) {
+            _uiState.update { it.copy(error = "Some images were skipped because the limit is $MAX_NOTE_MEDIA") }
+        }
+
+        val attachments = acceptedUris.map { uri ->
+            ComposeMediaAttachment(
+                localId = UUID.randomUUID().toString(),
+                uri = uri,
+            )
+        }
+
+        _uiState.update { state ->
+            state.copy(mediaAttachments = state.mediaAttachments + attachments)
+        }
+
+        attachments.forEach { attachment ->
+            uploadMediaAttachment(attachment.localId, attachment.uri)
+        }
+    }
+
+    fun removeMediaAttachment(localId: String) {
+        uploadJobs.remove(localId)?.cancel()
+        _uiState.update { state ->
+            state.copy(mediaAttachments = state.mediaAttachments.filterNot { it.localId == localId })
+        }
+    }
+
+    fun updateMediaAltText(localId: String, altText: String) {
+        updateMediaAttachment(localId) { it.copy(altText = altText) }
+    }
+
+    fun generateAltText(localId: String) {
+        val attachment = _uiState.value.mediaAttachments.firstOrNull { it.localId == localId }
+        val mediumRelayId = attachment?.uploadedMediumRelayId ?: return
+        if (attachment.isGeneratingAltText) return
+
+        updateMediaAttachment(localId) { it.copy(isGeneratingAltText = true, error = null) }
+        viewModelScope.launch {
+            repository.generateMediumAltText(
+                mediumRelayId = mediumRelayId,
+                language = _uiState.value.language,
+                context = _uiState.value.content,
+            )
+                .onSuccess { altText ->
+                    updateMediaAttachment(localId) {
+                        it.copy(
+                            altText = altText,
+                            isGeneratingAltText = false,
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    updateMediaAttachment(localId) {
+                        it.copy(
+                            isGeneratingAltText = false,
+                            error = error.message,
+                        )
+                    }
+                    _uiState.update { it.copy(error = error.message ?: "Alt text generation failed") }
+                }
+        }
+    }
+
+    private fun uploadMediaAttachment(localId: String, uri: Uri) {
+        uploadJobs[localId]?.cancel()
+        uploadJobs[localId] = viewModelScope.launch {
+            try {
+                repository.uploadMedium(uri) { progress ->
+                    updateMediaAttachment(localId) { it.copy(uploadProgress = progress) }
+                }
+                    .onSuccess { medium ->
+                        updateMediaAttachment(localId) {
+                            it.copy(
+                                uploadProgress = 100,
+                                uploadedMediumId = medium.uuid,
+                                uploadedMediumRelayId = medium.relayId,
+                                isUploading = false,
+                            )
+                        }
+                    }
+                    .onFailure { error ->
+                        updateMediaAttachment(localId) {
+                            it.copy(
+                                isUploading = false,
+                                error = error.message,
+                            )
+                        }
+                        _uiState.update { it.copy(error = error.message ?: "Image upload failed") }
+                    }
+            } finally {
+                uploadJobs.remove(localId)
+            }
+        }
+    }
+
+    private fun updateMediaAttachment(
+        localId: String,
+        transform: (ComposeMediaAttachment) -> ComposeMediaAttachment,
+    ) {
+        _uiState.update { state ->
+            state.copy(
+                mediaAttachments = state.mediaAttachments.map { attachment ->
+                    if (attachment.localId == localId) transform(attachment) else attachment
+                }
+            )
+        }
+    }
+
     fun post() {
         val state = _uiState.value
         if (state.content.isBlank() || state.isPosting) return
+        val media = state.mediaAttachments.map { attachment ->
+            val mediumId = attachment.uploadedMediumId
+            when {
+                attachment.isUploading || mediumId == null -> {
+                    _uiState.update { it.copy(error = "Wait for image uploads to finish") }
+                    return
+                }
+                attachment.altText.isBlank() -> {
+                    _uiState.update { it.copy(error = "Alt text is required for every image") }
+                    return
+                }
+                attachment.error != null -> {
+                    _uiState.update { it.copy(error = attachment.error) }
+                    return
+                }
+                else -> NoteMediumAttachment(
+                    mediumId = mediumId,
+                    alt = attachment.altText.trim(),
+                )
+            }
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isPosting = true, error = null) }
@@ -317,7 +478,8 @@ class ComposeViewModel @Inject constructor(
                 visibility = state.visibility,
                 quotePolicy = state.effectiveQuotePolicy(),
                 replyTargetId = state.replyToId,
-                quotedPostId = state.quotedPostId
+                quotedPostId = state.quotedPostId,
+                media = media,
             )
                 .onSuccess { newPost ->
                     state.replyToId?.let { replyTargetId ->
@@ -346,5 +508,11 @@ class ComposeViewModel @Inject constructor(
         } else {
             QuotePolicy.SELF
         }
+    }
+
+    override fun onCleared() {
+        uploadJobs.values.forEach { it.cancel() }
+        uploadJobs.clear()
+        super.onCleared()
     }
 }

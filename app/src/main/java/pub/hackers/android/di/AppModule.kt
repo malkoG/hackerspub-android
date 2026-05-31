@@ -39,6 +39,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder().build()
+    }
+
+    @Provides
+    @Singleton
     fun provideApolloClient(
         @ApplicationContext context: Context,
         sessionManager: SessionManager
@@ -57,15 +63,16 @@ object AppModule {
             chain.proceed(request)
         }
 
-        val okHttpClient = OkHttpClient.Builder()
+        return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .build()
-
-        return ApolloClient.Builder()
-            .serverUrl("https://hackers.pub/graphql")
-            .okHttpClient(okHttpClient)
-            .normalizedCache(sqlNormalizedCacheFactory)
-            .build()
+            .let { okHttpClient ->
+                ApolloClient.Builder()
+                    .serverUrl("https://hackers.pub/graphql")
+                    .okHttpClient(okHttpClient)
+                    .normalizedCache(sqlNormalizedCacheFactory)
+                    .build()
+            }
     }
 
     @Provides

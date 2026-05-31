@@ -1,11 +1,16 @@
 package pub.hackers.android.ui.screens.compose
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,6 +21,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,9 +31,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
@@ -35,9 +45,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -100,9 +115,11 @@ private fun calculateMentionPopupOffset(
 ): IntOffset {
     val cursorYInBox = inputs.cursorRect.bottom - inputs.scrollY + paddingPx
     val cursorXInBox = inputs.cursorRect.left + paddingPx
+    val cursorMinY = paddingPx
+    val cursorMaxY = (inputs.textFieldBounds.height - paddingPx).coerceAtLeast(cursorMinY)
     val visibleCursorY = cursorYInBox.coerceIn(
-        paddingPx,
-        inputs.textFieldBounds.height - paddingPx
+        cursorMinY,
+        cursorMaxY
     )
 
     return IntOffset(
@@ -114,6 +131,7 @@ private fun calculateMentionPopupOffset(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComposeScreen(
     replyToId: String?,
@@ -132,6 +150,12 @@ fun ComposeScreen(
 
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 20),
+        onResult = { uris -> viewModel.addMediaUris(uris) }
+    )
+    var selectedAttachmentId by remember { mutableStateOf<String?>(null) }
+    val selectedAttachment = uiState.mediaAttachments.firstOrNull { it.localId == selectedAttachmentId }
 
     // Track TextFieldValue for cursor position
     var textFieldValue by remember {
@@ -223,7 +247,13 @@ fun ComposeScreen(
         focusRequester.requestFocus()
     }
 
-    val postEnabled = uiState.content.isNotBlank() && !uiState.isPosting
+    val mediaReady = uiState.mediaAttachments.all { attachment ->
+        !attachment.isUploading &&
+            attachment.uploadedMediumId != null &&
+            attachment.altText.isNotBlank() &&
+            attachment.error == null
+    }
+    val postEnabled = uiState.content.isNotBlank() && !uiState.isPosting && mediaReady
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -364,6 +394,12 @@ fun ComposeScreen(
                     }
                 }
 
+                MediaAttachmentSection(
+                    attachments = uiState.mediaAttachments,
+                    onRemove = viewModel::removeMediaAttachment,
+                    onAttachmentClick = { selectedAttachmentId = it },
+                )
+
                 // Quoted post preview
                 QuotedPostSection(
                     isLoading = uiState.isLoadingQuotedPost,
@@ -372,158 +408,468 @@ fun ComposeScreen(
             }
             // Close inner content Column
 
-            // Visibility toolbar pinned above keyboard
+            // Composer controls pinned above keyboard
             HorizontalDivider(color = colors.divider)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 4.dp)
+                    .padding(start = 4.dp, top = 10.dp, end = 4.dp, bottom = 4.dp),
             ) {
-                Spacer(modifier = Modifier.weight(1f))
-
-                TextButton(
-                    onClick = { showVisibilityMenu = true },
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 8.dp,
-                        vertical = 4.dp
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Icon(
-                        imageVector = visibilityIcon(uiState.visibility),
-                        contentDescription = visibilityLabel(uiState.visibility),
-                        tint = colors.textSecondary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = visibilityLabel(uiState.visibility),
-                        color = colors.textSecondary,
-                        style = typography.labelMedium
-                    )
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = colors.textSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-
-                    DropdownMenu(
-                        expanded = showVisibilityMenu,
-                        onDismissRequest = { showVisibilityMenu = false }
+                    IconButton(
+                        onClick = {
+                            imagePickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        enabled = !uiState.isPosting && uiState.mediaAttachments.size < 20,
                     ) {
-                        visibilityMenuItem(
-                            visibility = PostVisibility.PUBLIC,
-                            selectedVisibility = uiState.visibility,
-                            onClick = {
-                                viewModel.updateVisibility(PostVisibility.PUBLIC)
-                                showVisibilityMenu = false
-                            }
+                        Icon(
+                            imageVector = Icons.Filled.Image,
+                            contentDescription = stringResource(R.string.attach_images),
+                            tint = colors.textSecondary,
                         )
-                        visibilityMenuItem(
-                            visibility = PostVisibility.UNLISTED,
-                            selectedVisibility = uiState.visibility,
-                            onClick = {
-                                viewModel.updateVisibility(PostVisibility.UNLISTED)
-                                showVisibilityMenu = false
-                            }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    TextButton(
+                        onClick = { showVisibilityMenu = true },
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 8.dp,
+                            vertical = 4.dp
                         )
-                        visibilityMenuItem(
-                            visibility = PostVisibility.FOLLOWERS,
-                            selectedVisibility = uiState.visibility,
-                            onClick = {
-                                viewModel.updateVisibility(PostVisibility.FOLLOWERS)
-                                showVisibilityMenu = false
-                            }
+                    ) {
+                        Icon(
+                            imageVector = visibilityIcon(uiState.visibility),
+                            contentDescription = visibilityLabel(uiState.visibility),
+                            tint = colors.textSecondary
                         )
-                        visibilityMenuItem(
-                            visibility = PostVisibility.DIRECT,
-                            selectedVisibility = uiState.visibility,
-                            onClick = {
-                                viewModel.updateVisibility(PostVisibility.DIRECT)
-                                showVisibilityMenu = false
-                            }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = visibilityLabel(uiState.visibility),
+                            color = colors.textSecondary,
+                            style = typography.labelMedium
                         )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = colors.textSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        DropdownMenu(
+                            expanded = showVisibilityMenu,
+                            onDismissRequest = { showVisibilityMenu = false }
+                        ) {
+                            visibilityMenuItem(
+                                visibility = PostVisibility.PUBLIC,
+                                selectedVisibility = uiState.visibility,
+                                onClick = {
+                                    viewModel.updateVisibility(PostVisibility.PUBLIC)
+                                    showVisibilityMenu = false
+                                }
+                            )
+                            visibilityMenuItem(
+                                visibility = PostVisibility.UNLISTED,
+                                selectedVisibility = uiState.visibility,
+                                onClick = {
+                                    viewModel.updateVisibility(PostVisibility.UNLISTED)
+                                    showVisibilityMenu = false
+                                }
+                            )
+                            visibilityMenuItem(
+                                visibility = PostVisibility.FOLLOWERS,
+                                selectedVisibility = uiState.visibility,
+                                onClick = {
+                                    viewModel.updateVisibility(PostVisibility.FOLLOWERS)
+                                    showVisibilityMenu = false
+                                }
+                            )
+                            visibilityMenuItem(
+                                visibility = PostVisibility.DIRECT,
+                                selectedVisibility = uiState.visibility,
+                                onClick = {
+                                    viewModel.updateVisibility(PostVisibility.DIRECT)
+                                    showVisibilityMenu = false
+                                }
+                            )
+                        }
+                    }
+
+                    TextButton(
+                        onClick = { showQuotePolicyMenu = true },
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 8.dp,
+                            vertical = 4.dp
+                        )
+                    ) {
+                        Icon(
+                            imageVector = quotePolicyIcon(effectiveQuotePolicy),
+                            contentDescription = quotePolicyLabel(effectiveQuotePolicy),
+                            tint = colors.textSecondary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = quotePolicyShortLabel(effectiveQuotePolicy),
+                            color = colors.textSecondary,
+                            style = typography.labelMedium
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = colors.textSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        DropdownMenu(
+                            expanded = showQuotePolicyMenu,
+                            onDismissRequest = { showQuotePolicyMenu = false }
+                        ) {
+                            quotePolicyMenuItem(
+                                policy = QuotePolicy.EVERYONE,
+                                selectedPolicy = effectiveQuotePolicy,
+                                enabled = !quotePolicyLocked,
+                                onClick = {
+                                    viewModel.updateQuotePolicy(QuotePolicy.EVERYONE)
+                                    showQuotePolicyMenu = false
+                                }
+                            )
+                            quotePolicyMenuItem(
+                                policy = QuotePolicy.FOLLOWERS,
+                                selectedPolicy = effectiveQuotePolicy,
+                                enabled = !quotePolicyLocked,
+                                onClick = {
+                                    viewModel.updateQuotePolicy(QuotePolicy.FOLLOWERS)
+                                    showQuotePolicyMenu = false
+                                }
+                            )
+                            quotePolicyMenuItem(
+                                policy = QuotePolicy.SELF,
+                                selectedPolicy = effectiveQuotePolicy,
+                                enabled = true,
+                                onClick = {
+                                    viewModel.updateQuotePolicy(QuotePolicy.SELF)
+                                    showQuotePolicyMenu = false
+                                }
+                            )
+                        }
                     }
                 }
 
-                TextButton(
-                    onClick = { showQuotePolicyMenu = true },
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 8.dp,
-                        vertical = 4.dp
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = quotePolicyIcon(effectiveQuotePolicy),
-                        contentDescription = quotePolicyLabel(effectiveQuotePolicy),
-                        tint = colors.textSecondary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = quotePolicyShortLabel(effectiveQuotePolicy),
-                        color = colors.textSecondary,
-                        style = typography.labelMedium
-                    )
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = colors.textSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-
-                    DropdownMenu(
-                        expanded = showQuotePolicyMenu,
-                        onDismissRequest = { showQuotePolicyMenu = false }
+                    Button(
+                        onClick = { viewModel.post() },
+                        enabled = postEnabled,
+                        shape = RoundedCornerShape(AppShapes.pillRadius),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.composeAccent,
+                            contentColor = colors.composeOnAccent,
+                            disabledContainerColor = colors.composeAccent,
+                            disabledContentColor = colors.composeOnAccent,
+                        ),
+                        modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
                     ) {
-                        quotePolicyMenuItem(
-                            policy = QuotePolicy.EVERYONE,
-                            selectedPolicy = effectiveQuotePolicy,
-                            enabled = !quotePolicyLocked,
-                            onClick = {
-                                viewModel.updateQuotePolicy(QuotePolicy.EVERYONE)
-                                showQuotePolicyMenu = false
-                            }
-                        )
-                        quotePolicyMenuItem(
-                            policy = QuotePolicy.FOLLOWERS,
-                            selectedPolicy = effectiveQuotePolicy,
-                            enabled = !quotePolicyLocked,
-                            onClick = {
-                                viewModel.updateQuotePolicy(QuotePolicy.FOLLOWERS)
-                                showQuotePolicyMenu = false
-                            }
-                        )
-                        quotePolicyMenuItem(
-                            policy = QuotePolicy.SELF,
-                            selectedPolicy = effectiveQuotePolicy,
-                            enabled = true,
-                            onClick = {
-                                viewModel.updateQuotePolicy(QuotePolicy.SELF)
-                                showQuotePolicyMenu = false
-                            }
+                        Text(
+                            text = stringResource(R.string.post),
+                            color = colors.composeOnAccent
                         )
                     }
                 }
+            }
+        }
+    }
 
-                Button(
-                    onClick = { viewModel.post() },
-                    enabled = postEnabled,
-                    shape = RoundedCornerShape(AppShapes.pillRadius),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.composeAccent,
-                        contentColor = colors.composeOnAccent,
-                        disabledContainerColor = colors.composeAccent,
-                        disabledContentColor = colors.composeOnAccent,
-                    ),
-                    modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
+    selectedAttachment?.let { attachment ->
+        ModalBottomSheet(
+            onDismissRequest = { selectedAttachmentId = null },
+        ) {
+            MediaAttachmentEditorSheet(
+                attachment = attachment,
+                onAltTextChange = viewModel::updateMediaAltText,
+                onGenerateAltText = viewModel::generateAltText,
+                onRemove = {
+                    viewModel.removeMediaAttachment(attachment.localId)
+                    selectedAttachmentId = null
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun MediaAttachmentSection(
+    attachments: List<ComposeMediaAttachment>,
+    onRemove: (String) -> Unit,
+    onAttachmentClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (attachments.isEmpty()) return
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 12.dp),
+    ) {
+        HorizontalDivider(color = LocalAppColors.current.divider)
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 2.dp),
+        ) {
+            itemsIndexed(
+                items = attachments,
+                key = { _, attachment -> attachment.localId },
+            ) { index, attachment ->
+                MediaAttachmentThumbnailCard(
+                    attachment = attachment,
+                    index = index,
+                    onRemove = onRemove,
+                    onClick = { onAttachmentClick(attachment.localId) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MediaAttachmentThumbnailCard(
+    attachment: ComposeMediaAttachment,
+    index: Int,
+    onRemove: (String) -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val requiresAltText = !attachment.isUploading &&
+        attachment.uploadedMediumId != null &&
+        attachment.altText.isBlank() &&
+        attachment.error == null
+    val hasWarning = requiresAltText || attachment.error != null
+    val warningColor = MaterialTheme.colorScheme.error
+
+    Surface(
+        modifier = modifier
+            .width(104.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        color = colors.surface,
+        border = BorderStroke(1.dp, if (hasWarning) warningColor else colors.divider),
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp)
+                    .clip(RoundedCornerShape(AppShapes.mediaRadius))
+            ) {
+                AsyncImage(
+                    model = attachment.uri,
+                    contentDescription = attachment.altText.ifBlank { null },
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+                if (attachment.isUploading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(0.65f),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(
+                            progress = { attachment.uploadProgress / 100f },
+                            modifier = Modifier.size(32.dp),
+                            color = colors.composeAccent,
+                        )
+                    }
+                }
+                if (requiresAltText) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                            .size(24.dp),
+                        shape = CircleShape,
+                        color = warningColor,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "!",
+                                style = typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onError,
+                            )
+                        }
+                    }
+                }
+                IconButton(
+                    onClick = { onRemove(attachment.localId) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(32.dp),
                 ) {
-                    Text(
-                        text = stringResource(R.string.post),
-                        color = colors.composeOnAccent
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.remove_image),
+                        tint = colors.composeOnAccent,
+                    )
+                }
+            }
+
+            if (attachment.isUploading) {
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { attachment.uploadProgress / 100f },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = colors.composeAccent,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (requiresAltText) {
+                    "! ${stringResource(R.string.attached_image_number, index + 1)}"
+                } else {
+                    stringResource(R.string.attached_image_number, index + 1)
+                },
+                style = typography.labelSmall,
+                color = if (hasWarning) warningColor else colors.textSecondary,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MediaAttachmentEditorSheet(
+    attachment: ComposeMediaAttachment,
+    onAltTextChange: (String, String) -> Unit,
+    onGenerateAltText: (String) -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.alt_text_required),
+                style = typography.titleMedium,
+                color = colors.textPrimary,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.remove_image),
+                    tint = colors.textSecondary,
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .clip(RoundedCornerShape(AppShapes.mediaRadius))
+        ) {
+            AsyncImage(
+                model = attachment.uri,
+                contentDescription = attachment.altText.ifBlank { null },
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+            if (attachment.isUploading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.65f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        progress = { attachment.uploadProgress / 100f },
+                        modifier = Modifier.size(40.dp),
+                        color = colors.composeAccent,
                     )
                 }
             }
         }
+
+        if (attachment.isUploading) {
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { attachment.uploadProgress / 100f },
+                modifier = Modifier.fillMaxWidth(),
+                color = colors.composeAccent,
+            )
+        }
+
+        attachment.error?.let { error ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = error,
+                style = typography.labelSmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = attachment.altText,
+            onValueChange = { onAltTextChange(attachment.localId, it) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !attachment.isUploading,
+            textStyle = typography.bodyMedium,
+            label = { Text(stringResource(R.string.alt_text_required)) },
+            singleLine = false,
+            minLines = 3,
+            supportingText = {
+                Text(
+                    text = stringResource(R.string.alt_text_required_supporting),
+                    style = typography.labelSmall,
+                )
+            },
+        )
+
+        TextButton(
+            onClick = { onGenerateAltText(attachment.localId) },
+            enabled = !attachment.isUploading &&
+                attachment.uploadedMediumRelayId != null &&
+                !attachment.isGeneratingAltText,
+            modifier = Modifier.align(Alignment.End),
+        ) {
+            if (attachment.isGeneratingAltText) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.AutoFixHigh,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+            Text(stringResource(R.string.auto_fill_alt_text))
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

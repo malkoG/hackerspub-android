@@ -1,11 +1,26 @@
 package pub.hackers.android.data.repository
 
+import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.OpenableColumns
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
 import com.apollographql.apollo.cache.normalized.FetchPolicy
 import com.apollographql.apollo.cache.normalized.fetchPolicy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import dagger.hilt.android.qualifiers.ApplicationContext
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import okio.BufferedSink
 import pub.hackers.android.domain.model.*
 import pub.hackers.android.graphql.ArticleDraftQuery
 import pub.hackers.android.graphql.ArticleDraftsQuery
@@ -22,6 +37,7 @@ import pub.hackers.android.graphql.CreateNoteMutation
 import pub.hackers.android.graphql.DeleteArticleDraftMutation
 import pub.hackers.android.graphql.DeletePostMutation
 import pub.hackers.android.graphql.EditAccountQuery
+import pub.hackers.android.graphql.FinishMediumUploadMutation
 import pub.hackers.android.graphql.GetPasskeyAuthenticationOptionsMutation
 import pub.hackers.android.graphql.GetPasskeyRegistrationOptionsMutation
 import pub.hackers.android.graphql.FollowActorMutation
@@ -29,6 +45,7 @@ import pub.hackers.android.graphql.LocalTimelineQuery
 import pub.hackers.android.graphql.LoginByPasskeyMutation
 import pub.hackers.android.graphql.LoginByUsernameMutation
 import pub.hackers.android.graphql.MarkNotificationsAsReadMutation
+import pub.hackers.android.graphql.MediumGeneratedAltTextQuery
 import pub.hackers.android.graphql.NotificationsQuery
 import pub.hackers.android.graphql.PersonalTimelineQuery
 import pub.hackers.android.graphql.PostQuotesQuery
@@ -50,6 +67,7 @@ import pub.hackers.android.graphql.SearchActorsByHandleQuery
 import pub.hackers.android.graphql.SearchObjectQuery
 import pub.hackers.android.graphql.SearchPostQuery
 import pub.hackers.android.graphql.SharePostMutation
+import pub.hackers.android.graphql.StartMediumUploadMutation
 import pub.hackers.android.graphql.UnblockActorMutation
 import pub.hackers.android.graphql.UnfollowActorMutation
 import pub.hackers.android.graphql.UnbookmarkPostMutation
@@ -57,6 +75,7 @@ import pub.hackers.android.graphql.UnsharePostMutation
 import pub.hackers.android.graphql.UpdateAccountMutation
 import pub.hackers.android.graphql.ViewerQuery
 import pub.hackers.android.graphql.type.AccountLinkInput
+import pub.hackers.android.graphql.type.CreateNoteMediumInput
 import pub.hackers.android.graphql.type.UpdateAccountInput
 import pub.hackers.android.graphql.fragment.ActorFields
 import pub.hackers.android.graphql.fragment.EngagementStatsFields
@@ -65,13 +84,18 @@ import pub.hackers.android.graphql.fragment.PostFields
 import pub.hackers.android.graphql.fragment.SharedPostFields
 import pub.hackers.android.graphql.type.PostVisibility as GqlPostVisibility
 import pub.hackers.android.graphql.type.QuotePolicy as GqlQuotePolicy
+import java.io.IOException
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 @Singleton
 class HackersPubRepository @Inject constructor(
-    private val apolloClient: ApolloClient
+    private val apolloClient: ApolloClient,
+    private val okHttpClient: OkHttpClient,
+    @param:ApplicationContext private val context: Context,
 ) {
     suspend fun getPublicTimeline(
         after: String? = null,
@@ -932,7 +956,8 @@ class HackersPubRepository @Inject constructor(
         visibility: PostVisibility = PostVisibility.PUBLIC,
         quotePolicy: QuotePolicy = QuotePolicy.EVERYONE,
         replyTargetId: String? = null,
-        quotedPostId: String? = null
+        quotedPostId: String? = null,
+        media: List<NoteMediumAttachment> = emptyList(),
     ): Result<Post> {
         return try {
             val gqlVisibility = when (visibility) {
@@ -955,7 +980,15 @@ class HackersPubRepository @Inject constructor(
                     visibility = gqlVisibility,
                     quotePolicy = Optional.present(gqlQuotePolicy),
                     replyTargetId = Optional.presentIfNotNull(replyTargetId),
-                    quotedPostId = Optional.presentIfNotNull(quotedPostId)
+                    quotedPostId = Optional.presentIfNotNull(quotedPostId),
+                    media = Optional.present(
+                        media.map { attachment ->
+                            CreateNoteMediumInput(
+                                alt = attachment.alt,
+                                mediumId = attachment.mediumId,
+                            )
+                        }
+                    ),
                 )
             ).execute()
 
@@ -974,6 +1007,124 @@ class HackersPubRepository @Inject constructor(
                         Result.failure(Exception("Not authenticated"))
                     }
                     else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun uploadMedium(
+        uri: Uri,
+        onProgress: (Int) -> Unit = {},
+    ): Result<UploadedMedium> {
+        return try {
+            val contentType = context.contentResolver.getType(uri)
+                ?: return Result.failure(Exception("Selected file has no content type"))
+            if (!contentType.startsWith("image/")) {
+                return Result.failure(Exception("Only image files can be attached"))
+            }
+
+            val contentLength = contentLength(uri)
+            if (contentLength <= 0L) {
+                return Result.failure(Exception("Selected image size is unknown"))
+            }
+            if (contentLength > Int.MAX_VALUE) {
+                return Result.failure(Exception("Selected image is too large"))
+            }
+
+            val startResponse = apolloClient.mutation(
+                StartMediumUploadMutation(
+                    contentLength = contentLength.toInt(),
+                    contentType = contentType,
+                )
+            ).execute()
+
+            if (startResponse.hasErrors()) {
+                return Result.failure(Exception(startResponse.errors?.firstOrNull()?.message ?: "Upload failed"))
+            }
+
+            val session = startResponse.data?.startMediumUpload?.onStartMediumUploadPayload
+                ?: return Result.failure(Exception("Upload failed"))
+
+            val request = Request.Builder()
+                .url(session.uploadUrl.toString())
+                .method(
+                    session.method,
+                    ContentUriRequestBody(
+                        context = context,
+                        uri = uri,
+                        contentType = contentType,
+                        contentLength = contentLength,
+                        onProgress = onProgress,
+                    )
+                )
+                .apply {
+                    session.headers.forEach { header ->
+                        addHeader(header.name, header.value)
+                    }
+                }
+                .build()
+
+            executeUploadRequest(request).use { response ->
+                if (!response.isSuccessful) {
+                    val message = when (response.code) {
+                        413 -> "File is too large"
+                        415 -> "File type is not supported"
+                        else -> "Upload failed with status ${response.code}"
+                    }
+                    throw Exception(message)
+                }
+            }
+
+            val finishResponse = apolloClient.mutation(
+                FinishMediumUploadMutation(uploadId = session.uploadId.toString())
+            ).execute()
+
+            if (finishResponse.hasErrors()) {
+                Result.failure(Exception(finishResponse.errors?.firstOrNull()?.message ?: "Upload failed"))
+            } else {
+                val medium = finishResponse.data?.finishMediumUpload?.onFinishMediumUploadPayload?.medium
+                    ?: return Result.failure(Exception("Upload failed"))
+                Result.success(
+                    UploadedMedium(
+                        relayId = medium.id,
+                        uuid = medium.uuid.toString(),
+                        url = medium.url.toString(),
+                        width = medium.width ?: 0,
+                        height = medium.height ?: 0,
+                    )
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun generateMediumAltText(
+        mediumRelayId: String,
+        language: String,
+        context: String,
+    ): Result<String> {
+        return try {
+            val response = apolloClient.query(
+                MediumGeneratedAltTextQuery(
+                    mediumId = mediumRelayId,
+                    language = language,
+                    context = Optional.present(context),
+                )
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Alt text generation failed"))
+            } else {
+                val altText = response.data?.node?.onMedium?.generatedAltText
+                if (altText.isNullOrBlank()) {
+                    Result.failure(Exception("Alt text generation failed"))
+                } else {
+                    Result.success(altText)
                 }
             }
         } catch (e: Exception) {
@@ -1745,6 +1896,79 @@ class HackersPubRepository @Inject constructor(
                 jsonArr
             }
             else -> value
+        }
+    }
+
+    private fun contentLength(uri: Uri): Long {
+        queryOpenableSize(uri)?.let { return it }
+
+        return context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { descriptor ->
+            descriptor.length
+        } ?: -1L
+    }
+
+    private fun queryOpenableSize(uri: Uri): Long? {
+        val projection = arrayOf(OpenableColumns.SIZE)
+        val cursor: Cursor = context.contentResolver.query(uri, projection, null, null, null)
+            ?: return null
+
+        return cursor.use {
+            val sizeColumn = it.getColumnIndex(OpenableColumns.SIZE)
+            if (sizeColumn >= 0 && it.moveToFirst() && !it.isNull(sizeColumn)) {
+                it.getLong(sizeColumn).takeIf { size -> size > 0L }
+            } else {
+                null
+            }
+        }
+    }
+
+    private suspend fun executeUploadRequest(request: Request): Response {
+        return suspendCancellableCoroutine { continuation ->
+            val call = okHttpClient.newCall(request)
+            continuation.invokeOnCancellation { call.cancel() }
+            call.enqueue(
+                object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        if (continuation.isCancelled) return
+                        continuation.resumeWithException(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        continuation.resume(response)
+                    }
+                }
+            )
+        }
+    }
+
+    private class ContentUriRequestBody(
+        private val context: Context,
+        private val uri: Uri,
+        private val contentType: String,
+        private val contentLength: Long,
+        private val onProgress: (Int) -> Unit,
+    ) : RequestBody() {
+        override fun contentType() = contentType.toMediaTypeOrNull()
+
+        override fun contentLength() = contentLength
+
+        override fun writeTo(sink: BufferedSink) {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var uploaded = 0L
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read == -1) break
+                    sink.write(buffer, 0, read)
+                    uploaded += read
+                    val progress = if (contentLength > 0L) {
+                        ((uploaded * 100L) / contentLength).toInt().coerceIn(0, 100)
+                    } else {
+                        0
+                    }
+                    onProgress(progress)
+                }
+            } ?: throw IllegalStateException("Unable to open selected image")
         }
     }
 

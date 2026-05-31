@@ -596,8 +596,8 @@ query ViewerPasskeys {
     }
 }
 
-mutation CreateNote($content: Markdown!, $language: Locale!, $visibility: PostVisibility!, $quotePolicy: QuotePolicy, $replyTargetId: ID, $quotedPostId: ID) {
-    createNote(input: { content: $content, language: $language, visibility: $visibility, quotePolicy: $quotePolicy, replyTargetId: $replyTargetId, quotedPostId: $quotedPostId }) {
+mutation CreateNote($content: Markdown!, $language: Locale!, $visibility: PostVisibility!, $quotePolicy: QuotePolicy, $replyTargetId: ID, $quotedPostId: ID, $media: [CreateNoteMediumInput!] = []) {
+    createNote(input: { content: $content, language: $language, visibility: $visibility, quotePolicy: $quotePolicy, replyTargetId: $replyTargetId, quotedPostId: $quotedPostId, media: $media }) {
         ... on CreateNotePayload {
             note {
                 ...PostFields
@@ -608,6 +608,56 @@ mutation CreateNote($content: Markdown!, $language: Locale!, $visibility: PostVi
         }
         ... on NotAuthenticatedError {
             notAuthenticated
+        }
+    }
+}
+
+mutation StartMediumUpload($contentLength: Int!, $contentType: MediaType!) {
+    startMediumUpload(input: { contentLength: $contentLength, contentType: $contentType }) {
+        __typename
+        ... on StartMediumUploadPayload {
+            uploadId
+            uploadUrl
+            method
+            headers {
+                name
+                value
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
+mutation FinishMediumUpload($uploadId: UUID!) {
+    finishMediumUpload(input: { uploadId: $uploadId }) {
+        __typename
+        ... on FinishMediumUploadPayload {
+            medium {
+                id
+                uuid
+                url
+                width
+                height
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
+query MediumGeneratedAltText($mediumId: ID!, $language: Locale!, $context: String) {
+    node(id: $mediumId) {
+        ... on Medium {
+            generatedAltText(language: $language, context: $context)
         }
     }
 }
