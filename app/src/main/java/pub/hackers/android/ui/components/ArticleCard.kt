@@ -30,6 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +70,7 @@ fun ArticleCard(
     val isRepost = post.lastSharer != null
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+    var contentWarningRevealed by remember(displayPost.id) { mutableStateOf(false) }
 
     Card(
         modifier = modifier
@@ -82,8 +87,8 @@ fun ArticleCard(
                 modifier = Modifier.padding(12.dp)
             ) {
                 // Repost indicator (matching NoteCard style)
-                if (isRepost && post.lastSharer != null) {
-                    val sharer = post.lastSharer!!
+                if (isRepost) {
+                    val sharer = post.lastSharer
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -173,30 +178,43 @@ fun ArticleCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Article title
-                displayPost.name?.let { title ->
-                    Text(
-                        text = title,
-                        style = typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colors.textPrimary,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis
+                val contentWarningText = displayPost.contentWarningText()
+                val contentVisible = !displayPost.hasContentWarning() || contentWarningRevealed
+                if (displayPost.hasContentWarning()) {
+                    ContentWarningNotice(
+                        warningText = contentWarningText,
+                        revealed = contentWarningRevealed,
+                        onToggle = { contentWarningRevealed = !contentWarningRevealed },
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // Summary or excerpt
-                val summaryText = displayPost.summary ?: displayPost.excerpt
-                if (summaryText.isNotBlank()) {
-                    Text(
-                        text = summaryText,
-                        style = typography.bodyMedium,
-                        color = colors.textSecondary,
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                if (contentVisible) {
+                    // Article title
+                    displayPost.name?.let { title ->
+                        Text(
+                            text = title,
+                            style = typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colors.textPrimary,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    // Summary or excerpt
+                    val summaryText = displayPost.summary ?: displayPost.excerpt
+                    if (summaryText.isNotBlank()) {
+                        Text(
+                            text = summaryText,
+                            style = typography.bodyMedium,
+                            color = colors.textSecondary,
+                            maxLines = 4,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
 

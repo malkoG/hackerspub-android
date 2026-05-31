@@ -109,6 +109,7 @@ import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.domain.model.TocItem
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
+import pub.hackers.android.ui.components.ContentWarningNotice
 import pub.hackers.android.ui.components.HtmlContent
 import pub.hackers.android.ui.components.HtmlContentStyle
 import pub.hackers.android.ui.components.LargeTitleHeader
@@ -120,6 +121,8 @@ import pub.hackers.android.ui.components.QuotedPostPreview
 import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.components.TocList
 import pub.hackers.android.ui.components.TocPanel
+import pub.hackers.android.ui.components.contentWarningText
+import pub.hackers.android.ui.components.hasContentWarning
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.FormatListBulleted
@@ -700,18 +703,31 @@ internal fun PostDetailContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 val isArticle = post.typename == "Article"
-
-                post.name?.let { title ->
-                    Text(
-                        text = title,
-                        style = if (isArticle) typography.titleLarge else typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.textPrimary
+                var contentWarningRevealed by remember(post.id) { mutableStateOf(false) }
+                val contentWarningText = post.contentWarningText()
+                val contentVisible = !post.hasContentWarning() || contentWarningRevealed
+                if (post.hasContentWarning()) {
+                    ContentWarningNotice(
+                        warningText = contentWarningText,
+                        revealed = contentWarningRevealed,
+                        onToggle = { contentWarningRevealed = !contentWarningRevealed },
+                        modifier = Modifier.padding(bottom = 12.dp),
                     )
-                    Spacer(modifier = Modifier.height(if (isArticle) 12.dp else 8.dp))
-                    if (isArticle) {
-                        HorizontalDivider(color = colors.divider)
-                        Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                if (contentVisible) {
+                    post.name?.let { title ->
+                        Text(
+                            text = title,
+                            style = if (isArticle) typography.titleLarge else typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textPrimary
+                        )
+                        Spacer(modifier = Modifier.height(if (isArticle) 12.dp else 8.dp))
+                        if (isArticle) {
+                            HorizontalDivider(color = colors.divider)
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
                     }
                 }
 
@@ -720,7 +736,7 @@ internal fun PostDetailContent(
                         { id, coords -> headingCoords[id] = coords }
                     }
 
-                if (isArticle && toc.isNotEmpty() && !showTranslated) {
+                if (contentVisible && isArticle && toc.isNotEmpty() && !showTranslated) {
                     TocPanel(
                         items = toc,
                         onAnchorClick = onAnchorClick,
@@ -730,106 +746,108 @@ internal fun PostDetailContent(
                 }
 
                 val translatedText = translatedContent
-                if (showTranslated && translatedText != null) {
-                    Text(
-                        text = translatedText,
-                        style = typography.bodyLarge,
-                        color = colors.textBody,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    HtmlContent(
-                        html = post.content,
-                        modifier = Modifier.fillMaxWidth(),
-                        contentStyle = HtmlContentStyle.Prose,
-                        onMentionClick = onProfileClick,
-                        onHeadingPositioned = if (isArticle) onHeadingPositioned else null,
-                    )
-                }
+                if (contentVisible) {
+                    if (showTranslated && translatedText != null) {
+                        Text(
+                            text = translatedText,
+                            style = typography.bodyLarge,
+                            color = colors.textBody,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        HtmlContent(
+                            html = post.content,
+                            modifier = Modifier.fillMaxWidth(),
+                            contentStyle = HtmlContentStyle.Prose,
+                            onMentionClick = onProfileClick,
+                            onHeadingPositioned = if (isArticle) onHeadingPositioned else null,
+                        )
+                    }
 
-                if (isTranslating) {
-                    Text(
-                        text = stringResource(R.string.translating),
-                        style = typography.labelMedium,
-                        color = colors.textSecondary,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                    if (isTranslating) {
+                        Text(
+                            text = stringResource(R.string.translating),
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
 
-                val translationErrorText = translationError
-                if (translationErrorText != null) {
-                    Text(
-                        text = translationErrorText,
-                        style = typography.labelMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                    val translationErrorText = translationError
+                    if (translationErrorText != null) {
+                        Text(
+                            text = translationErrorText,
+                            style = typography.labelMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
 
-                if (!isTranslating && translationError == null) {
-                    // Read Configuration from composition state so locale changes
-                    // trigger recomposition instead of serving stale values.
-                    val configuration = LocalConfiguration.current
-                    Text(
-                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
-                            R.string.translate
-                        ),
-                        style = typography.labelMedium,
-                        color = colors.textSecondary,
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .clickable {
-                                if (showTranslated) {
-                                    showTranslated = false
-                                    return@clickable
-                                }
-                                translatedContent?.let {
-                                    showTranslated = true
-                                    return@clickable
-                                }
-                                val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                                    .getLocales(configuration)
-                                    .get(0)?.language ?: Locale.getDefault().language
-                                scope.launch {
-                                    isTranslating = true
-                                    translationError = null
-                                    try {
-                                        val translated = translateDetailContent(
-                                            html = post.content,
-                                            targetLanguageTag = targetLanguageTag
-                                        )
-                                        translatedContent = translated
+                    if (!isTranslating && translationError == null) {
+                        // Read Configuration from composition state so locale changes
+                        // trigger recomposition instead of serving stale values.
+                        val configuration = LocalConfiguration.current
+                        Text(
+                            text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
+                                R.string.translate
+                            ),
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable {
+                                    if (showTranslated) {
+                                        showTranslated = false
+                                        return@clickable
+                                    }
+                                    translatedContent?.let {
                                         showTranslated = true
-                                    } catch (_: Exception) {
-                                        translationError = translationFailedText
-                                    } finally {
-                                        isTranslating = false
+                                        return@clickable
+                                    }
+                                    val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                        .getLocales(configuration)
+                                        .get(0)?.language ?: Locale.getDefault().language
+                                    scope.launch {
+                                        isTranslating = true
+                                        translationError = null
+                                        try {
+                                            val translated = translateDetailContent(
+                                                html = post.content,
+                                                targetLanguageTag = targetLanguageTag
+                                            )
+                                            translatedContent = translated
+                                            showTranslated = true
+                                        } catch (_: Exception) {
+                                            translationError = translationFailedText
+                                        } finally {
+                                            isTranslating = false
+                                        }
                                     }
                                 }
-                            }
-                    )
-                }
+                        )
+                    }
 
-                if (post.media.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    MediaCarousel(media = post.media)
-                }
+                    if (post.media.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        MediaCarousel(media = post.media)
+                    }
 
-                if (post.media.isEmpty() && post.quotedPost == null && post.link != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LinkPreviewCard(
-                        link = post.link,
-                        onProfileClick = onProfileClick
-                    )
-                }
+                    if (post.media.isEmpty() && post.quotedPost == null && post.link != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LinkPreviewCard(
+                            link = post.link,
+                            onProfileClick = onProfileClick
+                        )
+                    }
 
-                if (post.quotedPost != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    QuotedPostPreview(
-                        post = post.quotedPost,
-                        onClick = { onPostClick(post.quotedPost.id) },
-                        onProfileClick = onProfileClick
-                    )
+                    if (post.quotedPost != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        QuotedPostPreview(
+                            post = post.quotedPost,
+                            onClick = { onPostClick(post.quotedPost.id) },
+                            onProfileClick = onProfileClick
+                        )
+                    }
                 }
 
                 if (post.typename == "Article" && post.url != null) {
