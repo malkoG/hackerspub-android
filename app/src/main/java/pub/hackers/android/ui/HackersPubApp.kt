@@ -116,11 +116,12 @@ sealed class DetailScreen(val route: String) {
             return if (params.isEmpty()) "signin" else "signin?${params.joinToString("&")}"
         }
     }
-    data object Compose : DetailScreen("compose?replyTo={replyTo}&quoteOf={quoteOf}") {
-        fun createRoute(replyTo: String? = null, quoteOf: String? = null): String {
+    data object Compose : DetailScreen("compose?replyTo={replyTo}&quoteOf={quoteOf}&prefill={prefill}") {
+        fun createRoute(replyTo: String? = null, quoteOf: String? = null, prefill: String? = null): String {
             val params = mutableListOf<String>()
-            if (replyTo != null) params.add("replyTo=$replyTo")
-            if (quoteOf != null) params.add("quoteOf=$quoteOf")
+            if (replyTo != null) params.add("replyTo=${android.net.Uri.encode(replyTo)}")
+            if (quoteOf != null) params.add("quoteOf=${android.net.Uri.encode(quoteOf)}")
+            if (prefill != null) params.add("prefill=${android.net.Uri.encode(prefill)}")
             return if (params.isEmpty()) "compose" else "compose?${params.joinToString("&")}"
         }
     }
@@ -487,14 +488,21 @@ fun HackersPubApp(
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
+                    },
+                    navArgument("prefill") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
                     }
                 )
             ) { backStackEntry ->
                 val replyTo = backStackEntry.arguments?.getString("replyTo")
                 val quoteOf = backStackEntry.arguments?.getString("quoteOf")
+                val prefill = backStackEntry.arguments?.getString("prefill")
                 ComposeScreen(
                     replyToId = replyTo,
                     quotedPostId = quoteOf,
+                    initialContent = prefill,
                     onPostSuccess = {
                         viewModel.timelineRefreshTrigger.requestRefresh()
                         navController.popBackStack()

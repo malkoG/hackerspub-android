@@ -124,6 +124,28 @@ class ComposeViewModelTest {
     }
 
     @Test
+    fun `setInitialContent preloads blank composer`() = runTest {
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.setInitialContent("Shared title\n\nhttps://example.com")
+
+        assertEquals("Shared title\n\nhttps://example.com", vm.uiState.value.content)
+        assertEquals("Shared title\n\nhttps://example.com".length, vm.uiState.value.cursorPosition)
+    }
+
+    @Test
+    fun `setInitialContent does not overwrite typed content`() = runTest {
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.updateContent("user typed this")
+        vm.setInitialContent("shared content")
+
+        assertEquals("user typed this", vm.uiState.value.content)
+    }
+
+    @Test
     fun `post sends selected quote policy for public notes`() = runTest {
         val createdPost = samplePost(id = "created")
         coEvery {
