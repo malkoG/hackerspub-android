@@ -133,14 +133,12 @@ fun ArticleCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AsyncImage(
-                        model = displayPost.actor.avatarUrl,
+                    ActorAvatar(
+                        actor = displayPost.actor,
+                        overlayActor = post.lastSharer,
+                        size = AppShapes.avatarTimeline,
                         contentDescription = "Avatar",
-                        modifier = Modifier
-                            .size(AppShapes.avatarTimeline)
-                            .clip(CircleShape)
-                            .clickable { onProfileClick(displayPost.actor.handle) },
-                        contentScale = ContentScale.Crop
+                        onClick = { onProfileClick(displayPost.actor.handle) },
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))

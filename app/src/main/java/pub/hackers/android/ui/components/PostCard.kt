@@ -199,14 +199,11 @@ private fun NoteCard(
                     },
                 verticalAlignment = Alignment.Top
             ) {
-                AsyncImage(
-                    model = replyTarget.actor.avatarUrl,
+                ActorAvatar(
+                    actor = replyTarget.actor,
+                    size = AppShapes.avatarRepost,
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(AppShapes.avatarRepost)
-                        .clip(CircleShape)
-                        .clickable { onProfileClick(replyTarget.actor.handle) },
-                    contentScale = ContentScale.Crop
+                    onClick = { onProfileClick(replyTarget.actor.handle) },
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -275,15 +272,12 @@ private fun NoteCard(
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Step 2: Avatar 42dp
-            AsyncImage(
-                model = displayPost.actor.avatarUrl,
+            ActorAvatar(
+                actor = displayPost.actor,
+                overlayActor = post.lastSharer,
+                size = AppShapes.avatarTimeline,
                 contentDescription = "Avatar",
-                modifier = Modifier
-                    .size(AppShapes.avatarTimeline)
-                    .clip(CircleShape)
-                    .clickable { onProfileClick(displayPost.actor.handle) },
-                contentScale = ContentScale.Crop
+                onClick = { onProfileClick(displayPost.actor.handle) },
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -849,14 +843,11 @@ fun QuotedPostPreview(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = post.actor.avatarUrl,
+            ActorAvatar(
+                actor = post.actor,
+                size = AppShapes.avatarQuoted,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(AppShapes.avatarQuoted)
-                    .clip(CircleShape)
-                    .clickable { onProfileClick(post.actor.handle) },
-                contentScale = ContentScale.Crop
+                onClick = { onProfileClick(post.actor.handle) },
             )
 
             Spacer(modifier = Modifier.width(8.dp))
