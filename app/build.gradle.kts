@@ -38,7 +38,7 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".dev"
-            resValue("string", "app_name", "Hackers\\' Pub Dev")
+            resValue("string", "app_name", "Hackers Pub Dev")
         }
         release {
             resValue("string", "app_name", "Hackers\\' Pub")

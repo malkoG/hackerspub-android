@@ -140,6 +140,7 @@ private fun calculateMentionPopupOffset(
 fun ComposeScreen(
     replyToId: String?,
     quotedPostId: String? = null,
+    initialContent: String? = null,
     onPostSuccess: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ComposeViewModel = hiltViewModel()
@@ -233,6 +234,10 @@ fun ComposeScreen(
 
     LaunchedEffect(quotedPostId) {
         quotedPostId?.let { viewModel.setQuotedPost(it) }
+    }
+
+    LaunchedEffect(initialContent) {
+        initialContent?.let { viewModel.setInitialContent(it) }
     }
 
     LaunchedEffect(uiState.isPosted) {

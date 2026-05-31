@@ -299,6 +299,22 @@ class ComposeViewModel @Inject constructor(
         }
     }
 
+    fun setInitialContent(content: String) {
+        if (content.isBlank()) return
+
+        _uiState.update {
+            if (it.content.isBlank()) {
+                it.copy(
+                    content = content,
+                    cursorPosition = content.length,
+                )
+            } else {
+                it
+            }
+        }
+        detectLanguage(content)
+    }
+
     fun updateContent(content: String, cursorPosition: Int = content.length) {
         _uiState.update { it.copy(content = content, cursorPosition = cursorPosition) }
 

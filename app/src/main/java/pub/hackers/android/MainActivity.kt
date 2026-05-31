@@ -32,7 +32,9 @@ import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.local.SessionManager
 import pub.hackers.android.navigation.HackersPubRoute
 import pub.hackers.android.navigation.HackersPubUrlRouter
+import pub.hackers.android.navigation.ShareTargetText
 import pub.hackers.android.navigation.toNavRoute
+import pub.hackers.android.ui.DetailScreen
 import pub.hackers.android.ui.HackersPubApp
 import pub.hackers.android.ui.theme.HackersPubTheme
 import pub.hackers.android.ui.theme.LocalAppColors
@@ -85,6 +87,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
             handleDeepLink(intent)
+            handleShareIntent(intent)
             handleNavigationIntent(intent)
         }
         requestNotificationPermissionIfNeeded()
@@ -117,6 +120,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleDeepLink(intent)
+        handleShareIntent(intent)
         handleNavigationIntent(intent)
     }
 
@@ -166,6 +170,20 @@ class MainActivity : ComponentActivity() {
     private fun handleNavigationIntent(intent: Intent?) {
         val route = intent?.getStringExtra("navigate_to") ?: return
         navigationIntent = NavigationIntent(route = route)
+    }
+
+    private fun handleShareIntent(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_SEND) return
+        if (intent.type != "text/plain") return
+
+        val sharedText = ShareTargetText.format(
+            subject = intent.getCharSequenceExtra(Intent.EXTRA_SUBJECT),
+            text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT),
+        ) ?: return
+
+        navigationIntent = NavigationIntent(
+            route = DetailScreen.Compose.createRoute(prefill = sharedText)
+        )
     }
 
     private fun handleDeepLink(intent: Intent?) {
