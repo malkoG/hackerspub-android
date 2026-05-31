@@ -38,6 +38,8 @@ data class ExploreUiState(
     val reactionPickerPostId: String? = null,
     val error: String? = null,
     val isLoadingNewer: Boolean = false,
+    val suggestedFilterLanguages: List<String> = emptyList(),
+    val selectedLanguage: String? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,6 +50,7 @@ class ExploreViewModel @Inject constructor(
 
     private val _selectedTab = MutableStateFlow(ExploreTab.LOCAL)
     val selectedTab: StateFlow<ExploreTab> = _selectedTab.asStateFlow()
+    private val selectedLanguage = MutableStateFlow<String?>(null)
 
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
@@ -81,12 +84,15 @@ class ExploreViewModel @Inject constructor(
         },
     )
 
-    val posts: Flow<PagingData<Post>> = _selectedTab
-        .flatMapLatest { tab ->
+    val posts: Flow<PagingData<Post>> = combine(_selectedTab, selectedLanguage) { tab, language ->
+        tab to language
+    }
+        .flatMapLatest { (tab, language) ->
+            val languages = listOfNotNull(language)
             cursorPager { after ->
                 val pageResult = when (tab) {
-                    ExploreTab.LOCAL -> repository.localTimelinePage(after)
-                    ExploreTab.GLOBAL -> repository.publicTimelinePage(after)
+                    ExploreTab.LOCAL -> repository.localTimelinePage(after, languages)
+                    ExploreTab.GLOBAL -> repository.publicTimelinePage(after, languages)
                 }
                 pageResult.onSuccess { page ->
                     if (after == null && _newerPosts.value.isEmpty()) {
@@ -100,34 +106,75 @@ class ExploreViewModel @Inject constructor(
         }
         .cachedIn(viewModelScope)
 
+    init {
+        loadSuggestedFilterLanguages()
+    }
+
     fun selectTab(tab: ExploreTab) {
         if (_selectedTab.value != tab) {
-            loadNewerJob?.cancel()
-            topCursor = null
-            _newerPosts.value = emptyList()
-            _uiState.update { it.copy(error = null, isLoadingNewer = false) }
+            clearTimelineWindow()
             _selectedTab.value = tab
         }
+    }
+
+    fun selectLanguage(language: String?) {
+        if (selectedLanguage.value == language) return
+        clearTimelineWindow()
+        _uiState.update {
+            it.copy(
+                selectedLanguage = language,
+                error = null,
+                isLoadingNewer = false,
+            )
+        }
+        selectedLanguage.value = language
     }
 
     fun loadNewerPosts() {
         val before = topCursor ?: return
         if (_uiState.value.isLoadingNewer) return
         val tab = _selectedTab.value
+        val language = selectedLanguage.value
+        val languages = listOfNotNull(language)
         _uiState.update { it.copy(isLoadingNewer = true, error = null) }
         loadNewerJob = viewModelScope.launch {
             val result = when (tab) {
-                ExploreTab.LOCAL -> repository.getLocalTimeline(before = before, refresh = true)
-                ExploreTab.GLOBAL -> repository.getPublicTimeline(before = before, refresh = true)
+                ExploreTab.LOCAL -> repository.getLocalTimeline(
+                    before = before,
+                    refresh = true,
+                    languages = languages,
+                )
+                ExploreTab.GLOBAL -> repository.getPublicTimeline(
+                    before = before,
+                    refresh = true,
+                    languages = languages,
+                )
             }
-            if (_selectedTab.value != tab) return@launch
+            if (_selectedTab.value != tab || selectedLanguage.value != language) return@launch
             result
                 .onSuccess { page -> prependNewerPosts(page.posts, page.startCursor) }
                 .onFailure { error ->
                     _uiState.update { it.copy(error = error.message) }
                 }
-            if (_selectedTab.value == tab) {
+            if (_selectedTab.value == tab && selectedLanguage.value == language) {
                 _uiState.update { it.copy(isLoadingNewer = false) }
+            }
+        }
+    }
+
+    private fun clearTimelineWindow() {
+        loadNewerJob?.cancel()
+        topCursor = null
+        _newerPosts.value = emptyList()
+        _uiState.update { it.copy(error = null, isLoadingNewer = false) }
+    }
+
+    private fun loadSuggestedFilterLanguages() {
+        viewModelScope.launch {
+            runCatching {
+                repository.getSuggestedFilterLanguages().onSuccess { languages ->
+                    _uiState.update { it.copy(suggestedFilterLanguages = languages) }
+                }
             }
         }
     }

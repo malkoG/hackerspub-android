@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,8 +35,11 @@ data class TimelineUiState(
     val reactionPickerPostId: String? = null,
     val draftCount: Int = 0,
     val isLoadingNewer: Boolean = false,
+    val suggestedFilterLanguages: List<String> = emptyList(),
+    val selectedLanguage: String? = null,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TimelineViewModel @Inject constructor(
     private val repository: HackersPubRepository,
@@ -65,6 +70,7 @@ class TimelineViewModel @Inject constructor(
     )
 
     private var topCursor: String? = null
+    private val selectedLanguage = MutableStateFlow<String?>(null)
     private val _newerPosts = MutableStateFlow<List<Post>>(emptyList())
     val newerPosts: StateFlow<List<Post>> = combine(
         _newerPosts,
@@ -74,15 +80,18 @@ class TimelineViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val posts: Flow<PagingData<Post>> = combine(
-        cursorPager { after ->
-            repository.personalTimelinePage(after).onSuccess { page ->
-                if (after == null && _newerPosts.value.isEmpty()) {
-                    topCursor = page.startCursor
+        selectedLanguage.flatMapLatest { language ->
+            val languages = listOfNotNull(language)
+            cursorPager { after ->
+                repository.personalTimelinePage(after, languages).onSuccess { page ->
+                    if (after == null && _newerPosts.value.isEmpty()) {
+                        topCursor = page.startCursor
+                    }
                 }
-            }
-        }.flow
-            .distinctByEffectiveId()
-            .cachedIn(viewModelScope),
+            }.flow
+                .distinctByEffectiveId()
+                .cachedIn(viewModelScope)
+        },
         overlayStore.overlays,
     ) { paging, overlays ->
         paging.map { post -> post.applyOverlays(overlays) }
@@ -90,6 +99,7 @@ class TimelineViewModel @Inject constructor(
 
     init {
         loadDraftCount()
+        loadSuggestedFilterLanguages()
         viewModelScope.launch {
             refreshTrigger.refreshAt.drop(1).collect {
                 loadNewerPosts()
@@ -97,17 +107,48 @@ class TimelineViewModel @Inject constructor(
         }
     }
 
+    fun selectLanguage(language: String?) {
+        if (selectedLanguage.value == language) return
+        topCursor = null
+        _newerPosts.value = emptyList()
+        _uiState.update {
+            it.copy(
+                selectedLanguage = language,
+                error = null,
+                isLoadingNewer = false,
+            )
+        }
+        selectedLanguage.value = language
+    }
+
     fun loadNewerPosts() {
         val before = topCursor ?: return
         if (_uiState.value.isLoadingNewer) return
+        val language = selectedLanguage.value
         _uiState.update { it.copy(isLoadingNewer = true, error = null) }
         viewModelScope.launch {
-            repository.getPersonalTimeline(before = before, refresh = true)
+            val result = repository.getPersonalTimeline(
+                before = before,
+                refresh = true,
+                languages = listOfNotNull(language),
+            )
+            if (selectedLanguage.value != language) return@launch
+            result
                 .onSuccess { page -> prependNewerPosts(page.posts, page.startCursor) }
                 .onFailure { error ->
                     _uiState.update { it.copy(error = error.message) }
                 }
             _uiState.update { it.copy(isLoadingNewer = false) }
+        }
+    }
+
+    private fun loadSuggestedFilterLanguages() {
+        viewModelScope.launch {
+            runCatching {
+                repository.getSuggestedFilterLanguages().onSuccess { languages ->
+                    _uiState.update { it.copy(suggestedFilterLanguages = languages) }
+                }
+            }
         }
     }
 

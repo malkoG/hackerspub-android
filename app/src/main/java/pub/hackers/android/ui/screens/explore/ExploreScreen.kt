@@ -41,6 +41,7 @@ import pub.hackers.android.domain.model.Post
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.LargeTitleHeader
+import pub.hackers.android.ui.components.LanguageFilterRow
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.ReactionPicker
@@ -159,6 +160,14 @@ fun ExploreScreen(
                 thickness = 1.dp,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+
+            LanguageFilterRow(
+                languages = uiState.suggestedFilterLanguages,
+                selectedLanguage = uiState.selectedLanguage,
+                onLanguageSelected = viewModel::selectLanguage,
+            )
+
+            HorizontalDivider(color = colors.divider)
 
             Box(modifier = Modifier.fillMaxSize()) {
                 val refresh = items.loadState.refresh
