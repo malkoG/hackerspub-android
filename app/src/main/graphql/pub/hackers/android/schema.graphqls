@@ -1141,11 +1141,15 @@ enum NotificationType {
 
   QUOTE
 
+  QUOTED_POST_UPDATED
+
   REACT
 
   REPLY
 
   SHARE
+
+  SHARED_POST_UPDATED
 }
 
 type PageInfo {
@@ -1683,6 +1687,20 @@ type QuoteNotification implements Node & Notification {
   uuid: UUID!
 }
 
+type QuotedPostUpdatedNotification implements Node & Notification {
+  account: Account!
+
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+
+  created: DateTime!
+
+  id: ID!
+
+  post: Post
+
+  uuid: UUID!
+}
+
 type ReactNotification implements Node & Notification {
   account: Account!
 
@@ -1939,6 +1957,20 @@ type Session {
 }
 
 type ShareNotification implements Node & Notification {
+  account: Account!
+
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+
+  created: DateTime!
+
+  id: ID!
+
+  post: Post
+
+  uuid: UUID!
+}
+
+type SharedPostUpdatedNotification implements Node & Notification {
   account: Account!
 
   actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!

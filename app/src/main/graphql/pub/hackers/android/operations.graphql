@@ -244,6 +244,12 @@ query Notifications($after: String) {
                             content
                         }
                     }
+                    ... on QuotedPostUpdatedNotification {
+                        post {
+                            id
+                            content
+                        }
+                    }
                     ... on ReactNotification {
                         emoji
                         customEmoji {
@@ -257,6 +263,12 @@ query Notifications($after: String) {
                         }
                     }
                     ... on ShareNotification {
+                        post {
+                            id
+                            content
+                        }
+                    }
+                    ... on SharedPostUpdatedNotification {
                         post {
                             id
                             content

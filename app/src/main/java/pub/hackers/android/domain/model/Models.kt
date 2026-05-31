@@ -166,7 +166,25 @@ sealed class Notification {
     ) : Notification()
 
     @Immutable
+    data class QuotedPostUpdated(
+        override val id: String,
+        override val uuid: String,
+        override val created: Instant,
+        override val actors: List<Actor>,
+        val post: NotificationPost?
+    ) : Notification()
+
+    @Immutable
     data class Share(
+        override val id: String,
+        override val uuid: String,
+        override val created: Instant,
+        override val actors: List<Actor>,
+        val post: NotificationPost?
+    ) : Notification()
+
+    @Immutable
+    data class SharedPostUpdated(
         override val id: String,
         override val uuid: String,
         override val created: Instant,

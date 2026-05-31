@@ -1829,12 +1829,30 @@ class HackersPubRepository @Inject constructor(
                 actors = actors,
                 post = onQuoteNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
+            onQuotedPostUpdatedNotification != null -> Notification.QuotedPostUpdated(
+                id = id,
+                uuid = uuid.toString(),
+                created = created,
+                actors = actors,
+                post = onQuotedPostUpdatedNotification.post?.let {
+                    NotificationPost(id = it.id, content = it.content.toString())
+                }
+            )
             onShareNotification != null -> Notification.Share(
                 id = id,
                 uuid = uuid.toString(),
                 created = created,
                 actors = actors,
                 post = onShareNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
+            )
+            onSharedPostUpdatedNotification != null -> Notification.SharedPostUpdated(
+                id = id,
+                uuid = uuid.toString(),
+                created = created,
+                actors = actors,
+                post = onSharedPostUpdatedNotification.post?.let {
+                    NotificationPost(id = it.id, content = it.content.toString())
+                }
             )
             onReactNotification != null -> Notification.React(
                 id = id,
