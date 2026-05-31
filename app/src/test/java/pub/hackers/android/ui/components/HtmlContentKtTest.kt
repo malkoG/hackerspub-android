@@ -227,6 +227,28 @@ class HtmlContentKtTest {
         assertEquals("tagged-union", heading.anchorId)
     }
 
+    @Test
+    fun `splitIntoBlocks keeps mention avatar image inline`() {
+        val html = """
+            <p><a class="u-url mention" href="https://hackers.pub/@alice">
+            <img src="https://media.example/avatar.jpg" width="18" height="18" class="inline-block mr-1">
+            <span class="at">@</span><span class="user">alice</span></a> hello</p>
+        """.trimIndent()
+        val blocks = splitIntoBlocks(html)
+        assertEquals(1, blocks.size)
+        assertTrue(blocks[0] is ContentBlock.Text)
+    }
+
+    @Test
+    fun `splitIntoBlocks extracts standalone image block`() {
+        val html = """<p>before</p><p><img src="https://media.example/photo.jpg" alt="photo"></p><p>after</p>"""
+        val blocks = splitIntoBlocks(html)
+        assertEquals(3, blocks.size)
+        assertTrue(blocks[0] is ContentBlock.Text)
+        assertTrue(blocks[1] is ContentBlock.Image)
+        assertTrue(blocks[2] is ContentBlock.Text)
+    }
+
     // endregion
 
     // region parseHtmlToAnnotatedString
@@ -234,6 +256,7 @@ class HtmlContentKtTest {
     private val linkColor = Color(0xFF1DA1F2)
     private val hashtagColor = Color(0xFF0891B2)
     private val mentionBg = Color(0x1A1DA1F2)
+    private val mentionNameColor = Color(0xFF777777)
     private val codeBg = Color(0xFFF5F5F5)
 
     @Test
@@ -274,6 +297,35 @@ class HtmlContentKtTest {
         val annotations = result.getStringAnnotations("MENTION", 0, result.length)
         assertEquals(1, annotations.size)
         assertEquals("https://example.com/@alice", annotations[0].item)
+    }
+
+    @Test
+    fun `parseHtmlToContent renders mention avatar placeholder`() {
+        val html = """
+            <a class="u-url mention" href="https://hackers.pub/@alice">
+            <img src="https://media.example/avatar.jpg" width="18" height="18" class="inline-block mr-1">
+            <span class="at">@</span><span class="user">alice</span><span class="name">Jaeyeol Lee</span></a>
+        """.trimIndent()
+        val result = parseHtmlToContent(
+            html = html,
+            linkColor = linkColor,
+            hashtagColor = hashtagColor,
+            mentionBg = mentionBg,
+            codeBg = codeBg,
+            mentionNameColor = mentionNameColor,
+        )
+
+        assertEquals("\uFFFC@alice Jaeyeol Lee", result.text.text)
+        assertEquals(1, result.inlineImages.size)
+        val image = result.inlineImages.values.first()
+        assertEquals("https://media.example/avatar.jpg", image.src)
+        assertEquals(18, image.width)
+        assertEquals(18, image.height)
+        val annotations = result.text.getStringAnnotations("MENTION", 0, result.text.length)
+        assertEquals(1, annotations.size)
+        assertTrue(result.text.spanStyles.any { it.start == 0 && it.item.background == mentionBg })
+        val displayNameStart = result.text.text.indexOf("Jaeyeol")
+        assertTrue(result.text.spanStyles.any { it.start == displayNameStart && it.item.color == mentionNameColor })
     }
 
     @Test
