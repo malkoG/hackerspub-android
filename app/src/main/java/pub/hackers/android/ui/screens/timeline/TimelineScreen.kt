@@ -63,6 +63,7 @@ fun TimelineScreen(
     onProfileClick: (String) -> Unit,
     onComposeClick: (String?) -> Unit,
     onQuoteClick: (String) -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit,
     onRecommendedActorsClick: () -> Unit = {},
     onComposeArticleClick: () -> Unit = {},
@@ -281,6 +282,7 @@ fun TimelineScreen(
                                             }
                                         },
                                         onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                        onEditClick = { onEditClick(it.id) },
                                         onReactionClick = { viewModel.toggleFavourite(post) },
                                         onReactionLongPress = {
                                             viewModel.showReactionPicker(post.sharedPost?.id ?: post.id)
@@ -342,6 +344,7 @@ fun TimelineScreen(
                                             }
                                         },
                                         onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+                                        onEditClick = { onEditClick(it.id) },
                                         onReactionClick = { viewModel.toggleFavourite(post) },
                                         onReactionLongPress = {
                                             viewModel.showReactionPicker(post.sharedPost?.id ?: post.id)

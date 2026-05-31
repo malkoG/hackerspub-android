@@ -8,3 +8,10 @@ fun Post.canPinToViewerProfile(): Boolean {
         sharedPost == null &&
         (visibility == PostVisibility.PUBLIC || visibility == PostVisibility.UNLISTED)
 }
+
+fun Post.canEditNote(): Boolean {
+    return actor.isViewer &&
+        sharedPost == null &&
+        typename == "Note" &&
+        rawContent != null
+}

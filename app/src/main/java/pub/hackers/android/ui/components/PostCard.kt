@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
@@ -114,6 +115,7 @@ fun PostCard(
     onReactionLongPress: (() -> Unit)? = null,
     onBookmarkClick: (() -> Unit)? = null,
     onPinClick: ((Post) -> Unit)? = null,
+    onEditClick: ((Post) -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0
@@ -147,6 +149,7 @@ fun PostCard(
             onReactionLongPress = onReactionLongPress,
             onBookmarkClick = onBookmarkClick,
             onPinClick = onPinClick,
+            onEditClick = onEditClick,
             onExternalShareClick = onExternalShareClick,
             onQuotedPostClick = onQuotedPostClick,
             contentMaxLength = contentMaxLength,
@@ -168,6 +171,7 @@ private fun NoteCard(
     onReactionLongPress: (() -> Unit)? = null,
     onBookmarkClick: (() -> Unit)? = null,
     onPinClick: ((Post) -> Unit)? = null,
+    onEditClick: ((Post) -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
     contentMaxLength: Int = 0
@@ -569,6 +573,9 @@ private fun NoteCard(
                     onPinClick = onPinClick?.takeIf { displayPost.canPinToViewerProfile() }?.let {
                         { it(displayPost) }
                     },
+                    onEditClick = onEditClick?.takeIf { displayPost.canEditNote() }?.let {
+                        { it(displayPost) }
+                    },
                     onExternalShareClick = onExternalShareClick
                 )
             }
@@ -587,6 +594,7 @@ private fun EngagementBar(
     onReactionLongPress: (() -> Unit)? = null,
     onBookmarkClick: (() -> Unit)? = null,
     onPinClick: (() -> Unit)? = null,
+    onEditClick: (() -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null
 ) {
     val colors = LocalAppColors.current
@@ -636,10 +644,11 @@ private fun EngagementBar(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        if (onPinClick != null) {
-            PostPinActionMenu(
+        if (onPinClick != null || onEditClick != null) {
+            PostMoreActionMenu(
                 isPinned = post.viewerHasPinned,
                 onPinClick = onPinClick,
+                onEditClick = onEditClick,
                 modifier = Modifier.offset(x = 14.dp),
             )
         }
@@ -662,9 +671,10 @@ private fun EngagementBar(
 }
 
 @Composable
-private fun PostPinActionMenu(
+private fun PostMoreActionMenu(
     isPinned: Boolean,
-    onPinClick: () -> Unit,
+    onPinClick: (() -> Unit)?,
+    onEditClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -682,22 +692,40 @@ private fun PostPinActionMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text(stringResource(if (isPinned) R.string.unpin_post else R.string.pin_post))
-                },
-                onClick = {
-                    expanded = false
-                    onPinClick()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                    )
-                },
-            )
+            if (onEditClick != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.compose_edit)) },
+                    onClick = {
+                        expanded = false
+                        onEditClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    },
+                )
+            }
+            if (onPinClick != null) {
+                DropdownMenuItem(
+                    text = {
+                        Text(stringResource(if (isPinned) R.string.unpin_post else R.string.pin_post))
+                    },
+                    onClick = {
+                        expanded = false
+                        onPinClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    },
+                )
+            }
         }
     }
 }

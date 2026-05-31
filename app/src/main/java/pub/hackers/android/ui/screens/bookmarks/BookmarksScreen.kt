@@ -61,6 +61,7 @@ fun BookmarksScreen(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit,
+    onEditClick: (String) -> Unit,
     viewModel: BookmarksViewModel = hiltViewModel(),
 ) {
     val items = viewModel.posts.collectAsLazyPagingItems()
@@ -212,6 +213,7 @@ fun BookmarksScreen(
                                         onQuoteClick = {
                                             onQuoteClick(post.sharedPost?.id ?: post.id)
                                         },
+                                        onEditClick = { onEditClick(it.id) },
                                         onReactionClick = {
                                             viewModel.toggleFavourite(post)
                                         },
@@ -275,6 +277,7 @@ fun BookmarksScreen(
                                         onQuoteClick = {
                                             onQuoteClick(post.sharedPost?.id ?: post.id)
                                         },
+                                        onEditClick = { onEditClick(it.id) },
                                         onReactionClick = {
                                             viewModel.toggleFavourite(post)
                                         },

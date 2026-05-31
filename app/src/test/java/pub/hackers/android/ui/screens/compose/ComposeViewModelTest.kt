@@ -61,9 +61,14 @@ class ComposeViewModelTest {
         id: String = "post-1",
         actor: Actor = sampleActor,
         mentions: List<String> = emptyList(),
+        typename: String = "Note",
+        rawContent: String? = null,
+        language: String? = null,
+        visibility: PostVisibility = PostVisibility.PUBLIC,
+        quotePolicy: QuotePolicy = QuotePolicy.EVERYONE,
     ) = Post(
         id = id,
-        typename = "Note",
+        typename = typename,
         name = null,
         published = Instant.parse("2025-01-01T00:00:00Z"),
         summary = null,
@@ -71,10 +76,14 @@ class ComposeViewModelTest {
         excerpt = "hello",
         url = null,
         viewerHasShared = false,
+        rawContent = rawContent,
+        language = language,
         actor = actor,
         media = emptyList(),
         engagementStats = EngagementStats(replies = 0, reactions = 0, shares = 0, quotes = 0),
         mentions = mentions,
+        visibility = visibility,
+        quotePolicy = quotePolicy,
         reactionGroups = emptyList(),
     )
 
@@ -143,6 +152,123 @@ class ComposeViewModelTest {
         vm.setInitialContent("shared content")
 
         assertEquals("user typed this", vm.uiState.value.content)
+    }
+
+    @Test
+    fun `setEditTarget loads raw note content`() = runTest {
+        val post = samplePost(
+            rawContent = "raw **markdown**",
+            language = "ko",
+            visibility = PostVisibility.UNLISTED,
+            quotePolicy = QuotePolicy.FOLLOWERS,
+        )
+        coEvery { repository.getPostDetail("post-1") } returns Result.success(
+            PostDetailResult(
+                post = post,
+                reactionGroups = emptyList(),
+                replies = emptyList(),
+                hasMoreReplies = false,
+                repliesEndCursor = null,
+            )
+        )
+
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.setEditTarget("post-1")
+        advanceUntilIdle()
+
+        assertEquals("post-1", vm.uiState.value.editPostId)
+        assertEquals("raw **markdown**", vm.uiState.value.content)
+        assertEquals("ko", vm.uiState.value.language)
+        assertEquals(PostVisibility.UNLISTED, vm.uiState.value.visibility)
+        assertEquals(QuotePolicy.FOLLOWERS, vm.uiState.value.quotePolicy)
+    }
+
+    @Test
+    fun `setEditTarget rejects notes without raw content`() = runTest {
+        coEvery { repository.getPostDetail("post-1") } returns Result.success(
+            PostDetailResult(
+                post = samplePost(rawContent = null),
+                reactionGroups = emptyList(),
+                replies = emptyList(),
+                hasMoreReplies = false,
+                repliesEndCursor = null,
+            )
+        )
+
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.setEditTarget("post-1")
+        advanceUntilIdle()
+
+        assertEquals(null, vm.uiState.value.editPostId)
+        assertEquals("This note cannot be edited", vm.uiState.value.error)
+    }
+
+    @Test
+    fun `post updates existing note in edit mode`() = runTest {
+        val existingPost = samplePost(
+            rawContent = "old content",
+            language = "en",
+            quotePolicy = QuotePolicy.EVERYONE,
+        )
+        val updatedPost = samplePost(
+            id = "post-1",
+            rawContent = "new content",
+            language = "ja",
+            quotePolicy = QuotePolicy.SELF,
+        )
+        coEvery { repository.getPostDetail("post-1") } returns Result.success(
+            PostDetailResult(
+                post = existingPost,
+                reactionGroups = emptyList(),
+                replies = emptyList(),
+                hasMoreReplies = false,
+                repliesEndCursor = null,
+            )
+        )
+        coEvery {
+            repository.updateNote(
+                noteId = "post-1",
+                content = "new content",
+                language = "ja",
+                quotePolicy = QuotePolicy.SELF,
+            )
+        } returns Result.success(updatedPost)
+
+        val vm = newViewModel()
+        advanceUntilIdle()
+
+        vm.setEditTarget("post-1")
+        advanceUntilIdle()
+        vm.updateContent("new content")
+        vm.updateLanguage("ja")
+        vm.updateQuotePolicy(QuotePolicy.SELF)
+        vm.post()
+        advanceUntilIdle()
+
+        coVerify {
+            repository.updateNote(
+                noteId = "post-1",
+                content = "new content",
+                language = "ja",
+                quotePolicy = QuotePolicy.SELF,
+            )
+        }
+        coVerify(exactly = 0) {
+            repository.createNote(
+                content = any(),
+                language = any(),
+                visibility = any(),
+                quotePolicy = any(),
+                replyTargetId = any(),
+                quotedPostId = any(),
+                media = any(),
+            )
+        }
+        assertEquals(true, vm.uiState.value.isPosted)
     }
 
     @Test

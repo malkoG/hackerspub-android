@@ -98,6 +98,8 @@ data class Post(
     val viewerHasBookmarked: Boolean = false,
     val viewerHasPinned: Boolean = false,
     val viewerCanQuote: Boolean = true,
+    val rawContent: String? = null,
+    val language: String? = null,
     val actor: Actor,
     val media: List<Media>,
     val link: PostLink? = null,

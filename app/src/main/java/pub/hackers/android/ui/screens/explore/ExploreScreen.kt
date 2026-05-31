@@ -56,6 +56,7 @@ fun ExploreScreen(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     onSignInClick: () -> Unit,
     isLoggedIn: Boolean,
     viewModel: ExploreViewModel = hiltViewModel()
@@ -219,6 +220,7 @@ fun ExploreScreen(
                                         onProfileClick = onProfileClick,
                                         onReplyClick = onReplyClick,
                                         onQuoteClick = onQuoteClick,
+                                        onEditClick = onEditClick,
                                         viewModel = viewModel,
                                     )
                                 }
@@ -239,6 +241,7 @@ fun ExploreScreen(
                                         onProfileClick = onProfileClick,
                                         onReplyClick = onReplyClick,
                                         onQuoteClick = onQuoteClick,
+                                        onEditClick = onEditClick,
                                         viewModel = viewModel,
                                     )
                                 }
@@ -267,6 +270,7 @@ private fun ExplorePostItem(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit,
+    onEditClick: (String) -> Unit,
     viewModel: ExploreViewModel,
 ) {
     PostCard(
@@ -287,6 +291,9 @@ private fun ExplorePostItem(
         } else null,
         onQuoteClick = if (isLoggedIn) {
             { onQuoteClick(post.sharedPost?.id ?: post.id) }
+        } else null,
+        onEditClick = if (isLoggedIn) {
+            { onEditClick(it.id) }
         } else null,
         onReactionClick = if (isLoggedIn) {
             { viewModel.toggleFavourite(post) }

@@ -59,6 +59,8 @@ data class ComposeUiState(
     val quotedPost: Post? = null,
     val isLoadingQuotedPost: Boolean = false,
     val quotedPostLoadFailed: Boolean = false,
+    val editPostId: String? = null,
+    val isLoadingEditTarget: Boolean = false,
     val mediaAttachments: List<ComposeMediaAttachment> = emptyList(),
     val isPosting: Boolean = false,
     val isPosted: Boolean = false,
@@ -254,6 +256,62 @@ class ComposeViewModel @Inject constructor(
                 }
                 .onFailure {
                     _uiState.update { it.copy(isLoadingQuotedPost = false, quotedPostLoadFailed = true) }
+                }
+        }
+    }
+
+    fun setEditTarget(postId: String) {
+        val currentState = _uiState.value
+        if (currentState.editPostId == postId && !currentState.isLoadingEditTarget) return
+
+        _uiState.update {
+            it.copy(
+                editPostId = postId,
+                isLoadingEditTarget = true,
+                error = null,
+            )
+        }
+        viewModelScope.launch {
+            repository.getPostDetail(postId)
+                .onSuccess { result ->
+                    val post = result.post
+                    val rawContent = post.rawContent
+                    if (post.typename != "Note" || rawContent.isNullOrBlank()) {
+                        _uiState.update {
+                            it.copy(
+                                editPostId = null,
+                                isLoadingEditTarget = false,
+                                error = "This note cannot be edited"
+                            )
+                        }
+                        return@onSuccess
+                    }
+
+                    _uiState.update {
+                        it.copy(
+                            content = rawContent,
+                            cursorPosition = rawContent.length,
+                            language = post.language ?: it.language,
+                            visibility = post.visibility,
+                            quotePolicy = post.quotePolicy,
+                            editPostId = post.id,
+                            isLoadingEditTarget = false,
+                            mediaAttachments = emptyList(),
+                            mentionQuery = null,
+                            mentionStartIndex = -1,
+                            mentionSuggestions = emptyList(),
+                            isLoadingMentions = false,
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            editPostId = null,
+                            isLoadingEditTarget = false,
+                            error = error.message ?: "Unable to load note"
+                        )
+                    }
                 }
         }
     }
@@ -487,6 +545,12 @@ class ComposeViewModel @Inject constructor(
     fun post() {
         val state = _uiState.value
         if (state.content.isBlank() || state.isPosting) return
+        val editPostId = state.editPostId
+        if (editPostId != null) {
+            updateExistingNote(state, editPostId)
+            return
+        }
+
         val media = state.mediaAttachments.map { attachment ->
             val mediumId = attachment.uploadedMediumId
             when {
@@ -525,6 +589,30 @@ class ComposeViewModel @Inject constructor(
                     state.replyToId?.let { replyTargetId ->
                         replyPostedSignal.emit(ReplyPostedEvent(replyTargetId, newPost))
                     }
+                    _uiState.update { it.copy(isPosting = false, isPosted = true) }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            error = error.message,
+                            isPosting = false
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun updateExistingNote(state: ComposeUiState, editPostId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPosting = true, error = null) }
+
+            repository.updateNote(
+                noteId = editPostId,
+                content = state.content,
+                language = state.language,
+                quotePolicy = state.effectiveQuotePolicy(),
+            )
+                .onSuccess {
                     _uiState.update { it.copy(isPosting = false, isPosted = true) }
                 }
                 .onFailure { error ->

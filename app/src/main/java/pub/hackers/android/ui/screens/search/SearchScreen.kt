@@ -62,6 +62,7 @@ fun SearchScreen(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit = {},
     onQuoteClick: (String) -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     initialQuery: String? = null,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
@@ -213,6 +214,7 @@ fun SearchScreen(
                                                 onProfileClick = onProfileClick,
                                                 onReplyClick = onReplyClick,
                                                 onQuoteClick = onQuoteClick,
+                                                onEditClick = onEditClick,
                                                 onExternalShare = { shareUrl ->
                                                     val sendIntent = Intent().apply {
                                                         action = Intent.ACTION_SEND
@@ -282,6 +284,7 @@ fun SearchScreen(
                                             onProfileClick = onProfileClick,
                                             onReplyClick = onReplyClick,
                                             onQuoteClick = onQuoteClick,
+                                            onEditClick = onEditClick,
                                             onExternalShare = { shareUrl ->
                                                 val sendIntent = Intent().apply {
                                                     action = Intent.ACTION_SEND
@@ -449,6 +452,7 @@ private fun SearchPostItem(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit,
+    onEditClick: (String) -> Unit,
     onExternalShare: (String) -> Unit
 ) {
     PostCard(
@@ -457,6 +461,7 @@ private fun SearchPostItem(
         onProfileClick = onProfileClick,
         onReplyClick = { onReplyClick(post.sharedPost?.id ?: post.id) },
         onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
+        onEditClick = { onEditClick(it.id) },
         onReactionClick = null,
         onExternalShareClick = {
             val displayPost = post.sharedPost ?: post

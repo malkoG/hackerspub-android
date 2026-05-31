@@ -77,6 +77,7 @@ import pub.hackers.android.graphql.UnbookmarkPostMutation
 import pub.hackers.android.graphql.UnpinPostMutation
 import pub.hackers.android.graphql.UnsharePostMutation
 import pub.hackers.android.graphql.UpdateAccountMutation
+import pub.hackers.android.graphql.UpdateNoteMutation
 import pub.hackers.android.graphql.ViewerQuery
 import pub.hackers.android.graphql.type.AccountLinkInput
 import pub.hackers.android.graphql.type.CreateNoteMediumInput
@@ -1061,6 +1062,50 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
+    suspend fun updateNote(
+        noteId: String,
+        content: String,
+        language: String,
+        quotePolicy: QuotePolicy,
+    ): Result<Post> {
+        return try {
+            val gqlQuotePolicy = when (quotePolicy) {
+                QuotePolicy.EVERYONE -> GqlQuotePolicy.EVERYONE
+                QuotePolicy.FOLLOWERS -> GqlQuotePolicy.FOLLOWERS
+                QuotePolicy.SELF -> GqlQuotePolicy.SELF
+            }
+
+            val response = apolloClient.mutation(
+                UpdateNoteMutation(
+                    noteId = noteId,
+                    content = content,
+                    language = language,
+                    quotePolicy = Optional.present(gqlQuotePolicy),
+                )
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.updateNote
+                when {
+                    result?.onUpdateNotePayload != null -> {
+                        Result.success(result.onUpdateNotePayload.note.postFields.toPost())
+                    }
+                    result?.onInvalidInputError != null -> {
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    }
+                    result?.onNotAuthenticatedError != null -> {
+                        Result.failure(Exception("Not authenticated"))
+                    }
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun uploadMedium(
         uri: Uri,
         onProgress: (Int) -> Unit = {},
@@ -1773,6 +1818,8 @@ class HackersPubRepository @Inject constructor(
             viewerHasBookmarked = viewerHasBookmarked,
             viewerHasPinned = viewerHasPinned,
             viewerCanQuote = viewerCanQuote,
+            rawContent = onNote?.rawContent?.toString(),
+            language = language,
             actor = actor.actorFields.toActor(),
             media = media.map { it.mediaFields.toMedia() },
             link = link?.let { l ->
@@ -1844,6 +1891,8 @@ class HackersPubRepository @Inject constructor(
             viewerHasBookmarked = viewerHasBookmarked,
             viewerHasPinned = viewerHasPinned,
             viewerCanQuote = viewerCanQuote,
+            rawContent = onNote?.rawContent?.toString(),
+            language = language,
             actor = actor.actorFields.toActor(),
             media = media.map { it.mediaFields.toMedia() },
             engagementStats = engagementStats.engagementStatsFields.toEngagementStats(),

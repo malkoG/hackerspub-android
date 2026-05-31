@@ -38,8 +38,12 @@ fragment PostFields on Post {
     viewerHasBookmarked
     viewerHasPinned
     viewerCanQuote
+    language
     visibility
     quotePolicy
+    ... on Note {
+        rawContent
+    }
     actor {
         ...ActorFields
     }
@@ -113,8 +117,12 @@ fragment SharedPostFields on Post {
     viewerHasBookmarked
     viewerHasPinned
     viewerCanQuote
+    language
     visibility
     quotePolicy
+    ... on Note {
+        rawContent
+    }
     actor {
         ...ActorFields
     }
@@ -643,6 +651,22 @@ query ViewerPasskeys {
 mutation CreateNote($content: Markdown!, $language: Locale!, $visibility: PostVisibility!, $quotePolicy: QuotePolicy, $replyTargetId: ID, $quotedPostId: ID, $media: [CreateNoteMediumInput!] = []) {
     createNote(input: { content: $content, language: $language, visibility: $visibility, quotePolicy: $quotePolicy, replyTargetId: $replyTargetId, quotedPostId: $quotedPostId, media: $media }) {
         ... on CreateNotePayload {
+            note {
+                ...PostFields
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
+mutation UpdateNote($noteId: ID!, $content: Markdown!, $language: Locale!, $quotePolicy: QuotePolicy) {
+    updateNote(input: { noteId: $noteId, content: $content, language: $language, quotePolicy: $quotePolicy }) {
+        ... on UpdateNotePayload {
             note {
                 ...PostFields
             }

@@ -94,6 +94,7 @@ fun ProfileScreen(
     onProfileClick: (String) -> Unit = {},
     onReplyClick: (String) -> Unit = {},
     onQuoteClick: (String) -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     refreshSignal: Boolean = false,
     onRefreshConsumed: () -> Unit = {},
@@ -262,6 +263,7 @@ fun ProfileScreen(
                                     onProfileClick = onProfileClick,
                                     onReplyClick = onReplyClick,
                                     onQuoteClick = onQuoteClick,
+                                    onEditClick = onEditClick,
                                     onPinClick = { viewModel.togglePin(it) },
                                     onExternalShareClick = { post ->
                                         val shareUrl = post.url ?: post.iri
@@ -336,6 +338,7 @@ fun ProfileScreen(
                                                 post.sharedPost?.id ?: post.id
                                             )
                                         },
+                                        onEditClick = { onEditClick(it.id) },
                                         onPinClick = { viewModel.togglePin(it) },
                                         onReactionClick = null,
                                         onExternalShareClick = {
@@ -383,6 +386,7 @@ private fun PinnedPostsSection(
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit,
+    onEditClick: (String) -> Unit,
     onPinClick: (Post) -> Unit,
     onExternalShareClick: (Post) -> Unit,
 ) {
@@ -419,6 +423,7 @@ private fun PinnedPostsSection(
                 onShareClick = null,
                 onQuoteClick = { onQuoteClick(post.sharedPost?.id ?: post.id) },
                 onReactionClick = null,
+                onEditClick = { onEditClick(it.id) },
                 onPinClick = onPinClick,
                 onExternalShareClick = { onExternalShareClick(post.sharedPost ?: post) },
                 onQuotedPostClick = onPostClick,

@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.AddReaction
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Lock
@@ -124,6 +125,7 @@ import pub.hackers.android.ui.components.QuotedPostPreview
 import pub.hackers.android.ui.components.ReactionPicker
 import pub.hackers.android.ui.components.TocList
 import pub.hackers.android.ui.components.TocPanel
+import pub.hackers.android.ui.components.canEditNote
 import pub.hackers.android.ui.components.canPinToViewerProfile
 import pub.hackers.android.ui.components.contentWarningText
 import pub.hackers.android.ui.components.hasContentWarning
@@ -145,10 +147,13 @@ import java.util.Locale
 @Composable
 fun PostDetailScreen(
     postId: String,
+    refreshSignal: Boolean = false,
+    onRefreshConsumed: () -> Unit = {},
     onNavigateBack: () -> Unit,
     onProfileClick: (String) -> Unit,
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     onPostClick: (String) -> Unit,
     isLoggedIn: Boolean = true,
     viewModel: PostDetailViewModel = hiltViewModel()
@@ -166,6 +171,13 @@ fun PostDetailScreen(
     var showShareConfirmation by remember { mutableStateOf(false) }
     var webViewUrl by remember { mutableStateOf<String?>(null) }
     var showTocSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(refreshSignal) {
+        if (refreshSignal) {
+            viewModel.refresh()
+            onRefreshConsumed()
+        }
+    }
 
     val screenScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
@@ -422,12 +434,18 @@ fun PostDetailScreen(
                                 )
                             }
                         }
-                        if (uiState.canDelete || uiState.post?.canPinToViewerProfile() == true) {
+                        if (uiState.canDelete ||
+                            uiState.post?.canPinToViewerProfile() == true ||
+                            uiState.post?.canEditNote() == true
+                        ) {
                             PostDetailActionMenu(
                                 canDelete = uiState.canDelete,
                                 isDeleting = uiState.isDeleting,
                                 post = uiState.post,
                                 onPinClick = { viewModel.togglePin() },
+                                onEditClick = {
+                                    uiState.post?.id?.let(onEditClick)
+                                },
                                 onDelete = {
                                     if (confirmBeforeDelete) {
                                         showDeleteConfirmation = true
@@ -550,6 +568,7 @@ private fun PostDetailActionMenu(
     isDeleting: Boolean,
     post: Post?,
     onPinClick: () -> Unit,
+    onEditClick: () -> Unit,
     onDelete: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -581,6 +600,21 @@ private fun PostDetailActionMenu(
                     onClick = {
                         expanded = false
                         onPinClick()
+                    },
+                )
+            }
+            if (post?.canEditNote() == true) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.compose_edit)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onEditClick()
                     },
                 )
             }

@@ -57,6 +57,7 @@ import pub.hackers.android.ui.screens.timeline.TimelineScreen
 import pub.hackers.android.ui.screens.webview.WebViewScreen
 
 private const val PROFILE_REFRESH_KEY = "profile_refresh"
+private const val POST_DETAIL_REFRESH_KEY = "post_detail_refresh"
 
 sealed class Screen(
     val route: String,
@@ -116,12 +117,18 @@ sealed class DetailScreen(val route: String) {
             return if (params.isEmpty()) "signin" else "signin?${params.joinToString("&")}"
         }
     }
-    data object Compose : DetailScreen("compose?replyTo={replyTo}&quoteOf={quoteOf}&prefill={prefill}") {
-        fun createRoute(replyTo: String? = null, quoteOf: String? = null, prefill: String? = null): String {
+    data object Compose : DetailScreen("compose?replyTo={replyTo}&quoteOf={quoteOf}&prefill={prefill}&editPost={editPost}") {
+        fun createRoute(
+            replyTo: String? = null,
+            quoteOf: String? = null,
+            prefill: String? = null,
+            editPost: String? = null,
+        ): String {
             val params = mutableListOf<String>()
             if (replyTo != null) params.add("replyTo=${android.net.Uri.encode(replyTo)}")
             if (quoteOf != null) params.add("quoteOf=${android.net.Uri.encode(quoteOf)}")
             if (prefill != null) params.add("prefill=${android.net.Uri.encode(prefill)}")
+            if (editPost != null) params.add("editPost=${android.net.Uri.encode(editPost)}")
             return if (params.isEmpty()) "compose" else "compose?${params.joinToString("&")}"
         }
     }
@@ -337,6 +344,9 @@ fun HackersPubApp(
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
                     },
+                    onEditClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(editPost = postId))
+                    },
                     onSettingsClick = {
                         navController.navigate(Screen.Settings.route)
                     },
@@ -377,6 +387,9 @@ fun HackersPubApp(
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
                     },
+                    onEditClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(editPost = postId))
+                    },
                     onSignInClick = {
                         navController.navigate(DetailScreen.SignIn.createRoute())
                     },
@@ -408,6 +421,9 @@ fun HackersPubApp(
                     },
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
+                    },
+                    onEditClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(editPost = postId))
                     }
                 )
             }
@@ -493,18 +509,28 @@ fun HackersPubApp(
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
+                    },
+                    navArgument("editPost") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
                     }
                 )
             ) { backStackEntry ->
                 val replyTo = backStackEntry.arguments?.getString("replyTo")
                 val quoteOf = backStackEntry.arguments?.getString("quoteOf")
                 val prefill = backStackEntry.arguments?.getString("prefill")
+                val editPost = backStackEntry.arguments?.getString("editPost")
                 ComposeScreen(
                     replyToId = replyTo,
                     quotedPostId = quoteOf,
                     initialContent = prefill,
+                    editPostId = editPost,
                     onPostSuccess = {
                         viewModel.timelineRefreshTrigger.requestRefresh()
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(POST_DETAIL_REFRESH_KEY, true)
                         navController.popBackStack()
                     },
                     onNavigateBack = {
@@ -518,8 +544,15 @@ fun HackersPubApp(
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
+                val postDetailRefreshFlag = backStackEntry.savedStateHandle
+                    .getStateFlow(POST_DETAIL_REFRESH_KEY, false)
+                    .collectAsState()
                 PostDetailScreen(
                     postId = postId,
+                    refreshSignal = postDetailRefreshFlag.value,
+                    onRefreshConsumed = {
+                        backStackEntry.savedStateHandle[POST_DETAIL_REFRESH_KEY] = false
+                    },
                     onNavigateBack = {
                         navController.popBackStack()
                     },
@@ -531,6 +564,9 @@ fun HackersPubApp(
                     },
                     onQuoteClick = { id ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = id))
+                    },
+                    onEditClick = { id ->
+                        navController.navigate(DetailScreen.Compose.createRoute(editPost = id))
                     },
                     onPostClick = { id ->
                         navController.navigate(DetailScreen.PostDetail.createRoute(id))
@@ -587,6 +623,9 @@ fun HackersPubApp(
                     },
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
+                    },
+                    onEditClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(editPost = postId))
                     },
                     onEditProfileClick = {
                         navController.navigate(DetailScreen.EditProfile.route)
@@ -661,6 +700,9 @@ fun HackersPubApp(
                     },
                     onQuoteClick = { postId ->
                         navController.navigate(DetailScreen.Compose.createRoute(quoteOf = postId))
+                    },
+                    onEditClick = { postId ->
+                        navController.navigate(DetailScreen.Compose.createRoute(editPost = postId))
                     },
                 )
             }

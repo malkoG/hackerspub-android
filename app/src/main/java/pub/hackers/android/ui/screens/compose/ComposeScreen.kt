@@ -141,6 +141,7 @@ fun ComposeScreen(
     replyToId: String?,
     quotedPostId: String? = null,
     initialContent: String? = null,
+    editPostId: String? = null,
     onPostSuccess: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ComposeViewModel = hiltViewModel()
@@ -153,6 +154,7 @@ fun ComposeScreen(
     val quotePolicyLocked = uiState.visibility != PostVisibility.PUBLIC &&
         uiState.visibility != PostVisibility.UNLISTED
     val effectiveQuotePolicy = if (quotePolicyLocked) QuotePolicy.SELF else uiState.quotePolicy
+    val isEditing = editPostId != null || uiState.editPostId != null
 
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -233,11 +235,19 @@ fun ComposeScreen(
     }
 
     LaunchedEffect(quotedPostId) {
-        quotedPostId?.let { viewModel.setQuotedPost(it) }
+        if (!isEditing) {
+            quotedPostId?.let { viewModel.setQuotedPost(it) }
+        }
     }
 
     LaunchedEffect(initialContent) {
-        initialContent?.let { viewModel.setInitialContent(it) }
+        if (!isEditing) {
+            initialContent?.let { viewModel.setInitialContent(it) }
+        }
+    }
+
+    LaunchedEffect(editPostId) {
+        editPostId?.let { viewModel.setEditTarget(it) }
     }
 
     LaunchedEffect(uiState.isPosted) {
@@ -266,6 +276,7 @@ fun ComposeScreen(
     val postEnabled = uiState.content.isNotBlank() &&
         uiState.language.isNotBlank() &&
         !uiState.isPosting &&
+        !uiState.isLoadingEditTarget &&
         mediaReady
 
     Scaffold(
@@ -287,9 +298,11 @@ fun ComposeScreen(
                     )
                 }
                 Text(
-                    text = if (replyToId != null) stringResource(R.string.reply) else stringResource(
-                        R.string.compose
-                    ),
+                    text = when {
+                        isEditing -> stringResource(R.string.compose_edit)
+                        replyToId != null -> stringResource(R.string.reply)
+                        else -> stringResource(R.string.compose)
+                    },
                     style = typography.titleLarge,
                     color = colors.textPrimary,
                     modifier = Modifier.align(Alignment.Center)
@@ -444,7 +457,7 @@ fun ComposeScreen(
                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                             )
                         },
-                        enabled = !uiState.isPosting && uiState.mediaAttachments.size < 20,
+                        enabled = !isEditing && !uiState.isPosting && uiState.mediaAttachments.size < 20,
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Image,
@@ -457,6 +470,7 @@ fun ComposeScreen(
 
                     TextButton(
                         onClick = { showVisibilityMenu = true },
+                        enabled = !isEditing && !uiState.isPosting,
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(
                             horizontal = 8.dp,
                             vertical = 4.dp
@@ -481,7 +495,7 @@ fun ComposeScreen(
                         )
 
                         DropdownMenu(
-                            expanded = showVisibilityMenu,
+                            expanded = showVisibilityMenu && !isEditing,
                             onDismissRequest = { showVisibilityMenu = false }
                         ) {
                             visibilityMenuItem(
@@ -655,7 +669,7 @@ fun ComposeScreen(
                         modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
                     ) {
                         Text(
-                            text = stringResource(R.string.post),
+                            text = stringResource(if (isEditing) R.string.save else R.string.post),
                             color = colors.composeOnAccent
                         )
                     }

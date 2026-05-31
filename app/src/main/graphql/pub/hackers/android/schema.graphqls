@@ -1053,6 +1053,8 @@ type Mutation {
 
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 
+  updateNote(input: UpdateNoteInput!): UpdateNoteResult!
+
   uploadMedia(input: UploadMediaInput!): UploadMediaResult!
 
   verifyPasskeyRegistration(accountId: ID!, name: String!, platform: String = "web", registrationResponse: JSON!): PasskeyRegistrationResult!
@@ -1096,6 +1098,8 @@ type Note implements Node & Post & Reactable {
   quotePolicy: QuotePolicy!
 
   quotedPost: Post
+
+  rawContent: Markdown
 
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
 
@@ -2274,6 +2278,26 @@ type UpdateAccountPayload {
 
   clientMutationId: ID
 }
+
+input UpdateNoteInput {
+  clientMutationId: ID
+
+  content: Markdown
+
+  language: Locale
+
+  noteId: ID!
+
+  quotePolicy: QuotePolicy
+}
+
+type UpdateNotePayload {
+  clientMutationId: ID
+
+  note: Note!
+}
+
+union UpdateNoteResult = InvalidInputError|NotAuthenticatedError|UpdateNotePayload
 
 input UploadMediaInput {
   clientMutationId: ID
