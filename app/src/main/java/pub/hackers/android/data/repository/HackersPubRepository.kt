@@ -68,6 +68,7 @@ import pub.hackers.android.graphql.SearchObjectQuery
 import pub.hackers.android.graphql.SearchPostQuery
 import pub.hackers.android.graphql.SharePostMutation
 import pub.hackers.android.graphql.StartMediumUploadMutation
+import pub.hackers.android.graphql.SuggestedFilterLanguagesQuery
 import pub.hackers.android.graphql.UnblockActorMutation
 import pub.hackers.android.graphql.UnfollowActorMutation
 import pub.hackers.android.graphql.UnbookmarkPostMutation
@@ -101,6 +102,7 @@ class HackersPubRepository @Inject constructor(
         after: String? = null,
         before: String? = null,
         refresh: Boolean = false,
+        languages: List<String> = emptyList(),
     ): Result<TimelineResult> {
         return try {
             val backwards = before != null
@@ -110,6 +112,7 @@ class HackersPubRepository @Inject constructor(
                     after = Optional.presentIfNotNull(if (backwards) null else after),
                     before = Optional.presentIfNotNull(before),
                     last = Optional.presentIfNotNull(if (backwards) 20 else null),
+                    languages = Optional.present(languages),
                 )
             )
                 .apply { if (refresh || backwards) fetchPolicy(FetchPolicy.NetworkOnly) }
@@ -142,6 +145,7 @@ class HackersPubRepository @Inject constructor(
         after: String? = null,
         before: String? = null,
         refresh: Boolean = false,
+        languages: List<String> = emptyList(),
     ): Result<TimelineResult> {
         return try {
             val backwards = before != null
@@ -151,6 +155,7 @@ class HackersPubRepository @Inject constructor(
                     after = Optional.presentIfNotNull(if (backwards) null else after),
                     before = Optional.presentIfNotNull(before),
                     last = Optional.presentIfNotNull(if (backwards) 20 else null),
+                    languages = Optional.present(languages),
                 )
             )
                 .apply { if (refresh || backwards) fetchPolicy(FetchPolicy.NetworkOnly) }
@@ -183,6 +188,7 @@ class HackersPubRepository @Inject constructor(
         after: String? = null,
         before: String? = null,
         refresh: Boolean = false,
+        languages: List<String> = emptyList(),
     ): Result<TimelineResult> {
         return try {
             val backwards = before != null
@@ -192,6 +198,7 @@ class HackersPubRepository @Inject constructor(
                     after = Optional.presentIfNotNull(if (backwards) null else after),
                     before = Optional.presentIfNotNull(before),
                     last = Optional.presentIfNotNull(if (backwards) 20 else null),
+                    languages = Optional.present(languages),
                 )
             )
                 .apply { if (refresh || backwards) fetchPolicy(FetchPolicy.NetworkOnly) }
@@ -220,6 +227,19 @@ class HackersPubRepository @Inject constructor(
                         )
                     )
                 }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getSuggestedFilterLanguages(): Result<List<String>> {
+        return try {
+            val response = apolloClient.query(SuggestedFilterLanguagesQuery()).execute()
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                Result.success(response.data?.suggestedFilterLanguages.orEmpty().map { it.toString() })
             }
         } catch (e: Exception) {
             Result.failure(e)

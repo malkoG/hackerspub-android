@@ -89,16 +89,22 @@ suspend fun HackersPubRepository.notificationsPage(after: String?) =
     getNotifications(after = after, refresh = (after == null))
         .map { CursorPage(it.notifications, it.endCursor, it.hasNextPage) }
 
-suspend fun HackersPubRepository.personalTimelinePage(after: String?) =
-    getPersonalTimeline(after = after, refresh = (after == null))
+suspend fun HackersPubRepository.personalTimelinePage(
+    after: String?,
+    languages: List<String> = emptyList(),
+) = getPersonalTimeline(after = after, refresh = (after == null), languages = languages)
         .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
-suspend fun HackersPubRepository.publicTimelinePage(after: String?) =
-    getPublicTimeline(after = after, refresh = (after == null))
+suspend fun HackersPubRepository.publicTimelinePage(
+    after: String?,
+    languages: List<String> = emptyList(),
+) = getPublicTimeline(after = after, refresh = (after == null), languages = languages)
         .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
-suspend fun HackersPubRepository.localTimelinePage(after: String?) =
-    getLocalTimeline(after = after, refresh = (after == null))
+suspend fun HackersPubRepository.localTimelinePage(
+    after: String?,
+    languages: List<String> = emptyList(),
+) = getLocalTimeline(after = after, refresh = (after == null), languages = languages)
         .map { CursorPage(it.posts, it.endCursor, it.hasNextPage, it.startCursor, it.hasPreviousPage) }
 
 suspend fun HackersPubRepository.postRepliesPage(postId: String, after: String?) =

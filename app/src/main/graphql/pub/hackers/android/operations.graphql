@@ -126,8 +126,8 @@ fragment SharedPostFields on Post {
     }
 }
 
-query PublicTimeline($first: Int, $after: String, $before: String, $last: Int) {
-    publicTimeline(first: $first, after: $after, before: $before, last: $last) {
+query PublicTimeline($first: Int, $after: String, $before: String, $last: Int, $languages: [Locale!]) {
+    publicTimeline(first: $first, after: $after, before: $before, last: $last, languages: $languages) {
         edges {
             cursor
             node {
@@ -146,8 +146,8 @@ query PublicTimeline($first: Int, $after: String, $before: String, $last: Int) {
     }
 }
 
-query LocalTimeline($first: Int, $after: String, $before: String, $last: Int) {
-    publicTimeline(local: true, first: $first, after: $after, before: $before, last: $last) {
+query LocalTimeline($first: Int, $after: String, $before: String, $last: Int, $languages: [Locale!]) {
+    publicTimeline(local: true, first: $first, after: $after, before: $before, last: $last, languages: $languages) {
         edges {
             cursor
             node {
@@ -166,8 +166,8 @@ query LocalTimeline($first: Int, $after: String, $before: String, $last: Int) {
     }
 }
 
-query PersonalTimeline($first: Int, $after: String, $before: String, $last: Int) {
-    personalTimeline(first: $first, after: $after, before: $before, last: $last) {
+query PersonalTimeline($first: Int, $after: String, $before: String, $last: Int, $languages: [Locale!]) {
+    personalTimeline(first: $first, after: $after, before: $before, last: $last, languages: $languages) {
         edges {
             cursor
             lastSharer {
@@ -203,6 +203,10 @@ query Viewer {
         avatarUrl
         handle
     }
+}
+
+query SuggestedFilterLanguages {
+    suggestedFilterLanguages
 }
 
 query Notifications($after: String) {
