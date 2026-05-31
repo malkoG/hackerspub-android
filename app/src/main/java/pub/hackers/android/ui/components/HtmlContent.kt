@@ -2,19 +2,27 @@ package pub.hackers.android.ui.components
 
 import android.util.LruCache
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.Text
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.Composable
@@ -27,7 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -39,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pub.hackers.android.ui.theme.AppShapes
@@ -51,6 +63,10 @@ val LocalFontScale = compositionLocalOf { 1f }
 
 private enum class LinkType {
     MENTION, HASHTAG, REGULAR
+}
+
+private enum class SpanKind {
+    INVISIBLE, MENTION_NAME, OTHER
 }
 
 private data class ListContext(val ordered: Boolean, var itemIndex: Int = 0)
@@ -79,6 +95,22 @@ internal data class ParsedListItem(
     val contentHtml: String,
     val children: List<ParsedListBlock>,
 )
+
+@VisibleForTesting
+internal data class ParsedInlineImage(
+    val src: String,
+    val alt: String?,
+    val width: Int,
+    val height: Int,
+)
+
+@VisibleForTesting
+internal data class ParsedHtmlContent(
+    val text: AnnotatedString,
+    val inlineImages: Map<String, ParsedInlineImage>,
+) {
+    fun isNotEmpty(): Boolean = text.isNotEmpty()
+}
 
 private val TAG_REGEX = Regex("""<(/?)(\w+)([^>]*)>""")
 private val ATTR_REGEX = Regex("""([\w-]+)=["']([^"']*)["']""")
@@ -123,17 +155,25 @@ private const val HTML_CACHE_MAX_ENTRIES = 256
 // frame callback can keep rendering smoothly. Tune if placeholder flash is
 // visible for intermediate-length posts.
 private const val HTML_SYNC_PARSE_THRESHOLD = 500
+private const val INLINE_IMAGE_DEFAULT_SIZE = 18
+private const val INLINE_IMAGE_MIN_SIZE = 12
+private const val INLINE_IMAGE_MAX_SIZE = 48
+private const val INLINE_IMAGE_TRAILING_SPACE = 4
+private const val INLINE_IMAGE_ALTERNATE_TEXT = "\uFFFC"
 
 private data class HtmlCacheKey(
     val html: String,
     val linkColor: ULong,
     val hashtagColor: ULong,
     val mentionBg: ULong,
+    val mentionNameColor: ULong,
     val codeBg: ULong,
     val contentStyle: HtmlContentStyle,
 )
 
-private val htmlCache = LruCache<HtmlCacheKey, AnnotatedString>(HTML_CACHE_MAX_ENTRIES)
+private val emptyParsedHtmlContent = ParsedHtmlContent(AnnotatedString(""), emptyMap())
+
+private val htmlCache = LruCache<HtmlCacheKey, ParsedHtmlContent>(HTML_CACHE_MAX_ENTRIES)
 
 private fun parseAndCacheHtml(
     key: HtmlCacheKey,
@@ -141,14 +181,16 @@ private fun parseAndCacheHtml(
     linkColor: Color,
     hashtagColor: Color,
     mentionBg: Color,
+    mentionNameColor: Color,
     codeBg: Color,
     contentStyle: HtmlContentStyle,
-): AnnotatedString {
-    val parsed = parseHtmlToAnnotatedString(
+): ParsedHtmlContent {
+    val parsed = parseHtmlToContent(
         html = html,
         linkColor = linkColor,
         hashtagColor = hashtagColor,
         mentionBg = mentionBg,
+        mentionNameColor = mentionNameColor,
         codeBg = codeBg,
         contentStyle = contentStyle,
     )
@@ -157,7 +199,7 @@ private fun parseAndCacheHtml(
 }
 
 /**
- * Returns an [AnnotatedString] for [html], using a process-level LRU cache.
+ * Returns parsed content for [html], using a process-level LRU cache.
  *
  * - Cache hit or short HTML: parsed synchronously, returned immediately.
  *   No placeholder flash; matches the original behavior.
@@ -165,7 +207,7 @@ private fun parseAndCacheHtml(
  *   [produceState]. Composition completes immediately with an empty
  *   placeholder; the Text updates on the next frame once parsing finishes.
  *   This prevents the scroll-induced Main-thread stalls previously caused
- *   by [parseHtmlToAnnotatedString] running inline for every newly-composed
+ *   by [parseHtmlToContent] running inline for every newly-composed
  *   LazyColumn item.
  */
 @Composable
@@ -174,24 +216,26 @@ private fun rememberParsedHtml(
     linkColor: Color,
     hashtagColor: Color,
     mentionBg: Color,
+    mentionNameColor: Color,
     codeBg: Color,
     contentStyle: HtmlContentStyle,
-): AnnotatedString {
-    val cacheKey = remember(html, linkColor, hashtagColor, mentionBg, codeBg, contentStyle) {
+): ParsedHtmlContent {
+    val cacheKey = remember(html, linkColor, hashtagColor, mentionBg, mentionNameColor, codeBg, contentStyle) {
         HtmlCacheKey(
             html = html,
             linkColor = linkColor.value,
             hashtagColor = hashtagColor.value,
             mentionBg = mentionBg.value,
+            mentionNameColor = mentionNameColor.value,
             codeBg = codeBg.value,
             contentStyle = contentStyle,
         )
     }
 
     // Fast path: cache hit or short enough to parse inline.
-    val syncValue: AnnotatedString? = remember(cacheKey) {
+    val syncValue: ParsedHtmlContent? = remember(cacheKey) {
         htmlCache.get(cacheKey) ?: if (html.length < HTML_SYNC_PARSE_THRESHOLD) {
-            parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, codeBg, contentStyle)
+            parseAndCacheHtml(cacheKey, html, linkColor, hashtagColor, mentionBg, mentionNameColor, codeBg, contentStyle)
         } else {
             null
         }
@@ -200,7 +244,7 @@ private fun rememberParsedHtml(
     if (syncValue != null) return syncValue
 
     // Slow path: long HTML, cache miss. Parse off-Main.
-    val asyncValue by produceState(initialValue = AnnotatedString(""), cacheKey) {
+    val asyncValue by produceState(initialValue = emptyParsedHtmlContent, cacheKey) {
         value = withContext(Dispatchers.Default) {
             htmlCache.get(cacheKey) ?: parseAndCacheHtml(
                 cacheKey,
@@ -208,6 +252,7 @@ private fun rememberParsedHtml(
                 linkColor,
                 hashtagColor,
                 mentionBg,
+                mentionNameColor,
                 codeBg,
                 contentStyle,
             )
@@ -233,6 +278,7 @@ fun HtmlContent(
     val linkColor = colors.accent
     val hashtagColor = colors.hashtag
     val mentionBg = colors.accent.copy(alpha = 0.10f)
+    val mentionNameColor = colors.textSecondary
     val codeBg = colors.surface
     val textColor = colors.textBody
 
@@ -247,24 +293,26 @@ fun HtmlContent(
 
     if (maxLines < Int.MAX_VALUE) {
         // Preview mode: flat AnnotatedString (no block code highlighting)
-        val annotatedString = rememberParsedHtml(
+        val parsedContent = rememberParsedHtml(
             normalizedHtml,
             linkColor,
             hashtagColor,
             mentionBg,
+            mentionNameColor,
             codeBg,
             contentStyle,
         )
 
-        ClickableText(
-            text = annotatedString,
+        HtmlClickableText(
+            parsedContent = parsedContent,
             style = bodyStyle,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
             modifier = modifier,
-            onClick = { offset ->
-                handleClick(annotatedString, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
-            }
+            uriHandler = uriHandler,
+            onMentionClick = onMentionClick,
+            onLinkClick = onLinkClick,
+            onTextClick = onTextClick,
         )
     } else {
         // Full mode: block-based rendering with syntax-highlighted code blocks
@@ -281,21 +329,23 @@ fun HtmlContent(
                 when (block) {
                     is ContentBlock.Text -> {
                         if (block.html.isNotBlank()) {
-                            val annotatedString = rememberParsedHtml(
+                            val parsedContent = rememberParsedHtml(
                                 block.html,
                                 linkColor,
                                 hashtagColor,
                                 mentionBg,
+                                mentionNameColor,
                                 codeBg,
                                 contentStyle,
                             )
-                            if (annotatedString.isNotEmpty()) {
-                                ClickableText(
-                                    text = annotatedString,
+                            if (parsedContent.isNotEmpty()) {
+                                HtmlClickableText(
+                                    parsedContent = parsedContent,
                                     style = bodyStyle,
-                                    onClick = { offset ->
-                                        handleClick(annotatedString, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
-                                    }
+                                    uriHandler = uriHandler,
+                                    onMentionClick = onMentionClick,
+                                    onLinkClick = onLinkClick,
+                                    onTextClick = onTextClick,
                                 )
                             }
                         }
@@ -310,6 +360,7 @@ fun HtmlContent(
                                 linkColor = linkColor,
                                 hashtagColor = hashtagColor,
                                 mentionBg = mentionBg,
+                                mentionNameColor = mentionNameColor,
                                 codeBg = codeBg,
                                 contentStyle = contentStyle,
                                 uriHandler = uriHandler,
@@ -337,11 +388,12 @@ fun HtmlContent(
                         )
                     }
                     is ContentBlock.Heading -> {
-                        val headingAnnotated = rememberParsedHtml(
+                        val headingContent = rememberParsedHtml(
                             block.innerHtml,
                             linkColor,
                             hashtagColor,
                             mentionBg,
+                            mentionNameColor,
                             codeBg,
                             contentStyle,
                         )
@@ -367,13 +419,14 @@ fun HtmlContent(
                                 } else base
                             }
                         Box(modifier = wrapperModifier) {
-                            if (headingAnnotated.isNotEmpty()) {
-                                ClickableText(
-                                    text = headingAnnotated,
+                            if (headingContent.isNotEmpty()) {
+                                HtmlClickableText(
+                                    parsedContent = headingContent,
                                     style = headingStyle,
-                                    onClick = { offset ->
-                                        handleClick(headingAnnotated, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
-                                    }
+                                    uriHandler = uriHandler,
+                                    onMentionClick = onMentionClick,
+                                    onLinkClick = onLinkClick,
+                                    onTextClick = onTextClick,
                                 )
                             }
                         }
@@ -392,6 +445,7 @@ private fun RenderListBlock(
     linkColor: Color,
     hashtagColor: Color,
     mentionBg: Color,
+    mentionNameColor: Color,
     codeBg: Color,
     contentStyle: HtmlContentStyle,
     uriHandler: androidx.compose.ui.platform.UriHandler,
@@ -415,22 +469,24 @@ private fun RenderListBlock(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val normalizedItemHtml = remember(item.contentHtml) { normalizeListItemHtml(item.contentHtml) }
                     if (normalizedItemHtml.isNotBlank()) {
-                        val annotatedString = rememberParsedHtml(
+                        val parsedContent = rememberParsedHtml(
                             normalizedItemHtml,
                             linkColor,
                             hashtagColor,
                             mentionBg,
+                            mentionNameColor,
                             codeBg,
                             contentStyle,
                         )
-                        if (annotatedString.isNotEmpty()) {
-                            ClickableText(
-                                text = annotatedString,
+                        if (parsedContent.isNotEmpty()) {
+                            HtmlClickableText(
+                                parsedContent = parsedContent,
                                 style = textStyle,
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = { offset ->
-                                    handleClick(annotatedString, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
-                                }
+                                uriHandler = uriHandler,
+                                onMentionClick = onMentionClick,
+                                onLinkClick = onLinkClick,
+                                onTextClick = onTextClick,
                             )
                         }
                     }
@@ -444,6 +500,7 @@ private fun RenderListBlock(
                             linkColor = linkColor,
                             hashtagColor = hashtagColor,
                             mentionBg = mentionBg,
+                            mentionNameColor = mentionNameColor,
                             codeBg = codeBg,
                             contentStyle = contentStyle,
                             uriHandler = uriHandler,
@@ -456,6 +513,56 @@ private fun RenderListBlock(
             }
         }
     }
+}
+
+@Composable
+private fun HtmlClickableText(
+    parsedContent: ParsedHtmlContent,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    uriHandler: androidx.compose.ui.platform.UriHandler,
+    onMentionClick: ((String) -> Unit)?,
+    onLinkClick: ((String) -> Unit)?,
+    onTextClick: (() -> Unit)?,
+) {
+    var textLayoutResult by remember(parsedContent.text) { mutableStateOf<TextLayoutResult?>(null) }
+    val inlineContent = remember(parsedContent.inlineImages) {
+        parsedContent.inlineImages.mapValues { (_, image) ->
+            InlineTextContent(
+                Placeholder(
+                    width = (image.width + INLINE_IMAGE_TRAILING_SPACE).sp,
+                    height = image.height.sp,
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
+                )
+            ) {
+                AsyncImage(
+                    model = image.src,
+                    contentDescription = image.alt,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(image.width.dp, image.height.dp)
+                        .clip(CircleShape)
+                )
+            }
+        }
+    }
+
+    BasicText(
+        text = parsedContent.text,
+        modifier = modifier.pointerInput(parsedContent.text, uriHandler, onMentionClick, onLinkClick, onTextClick) {
+            detectTapGestures { position ->
+                val offset = textLayoutResult?.getOffsetForPosition(position) ?: return@detectTapGestures
+                handleClick(parsedContent.text, offset, uriHandler, onMentionClick, onLinkClick, onTextClick)
+            }
+        },
+        style = style,
+        maxLines = maxLines,
+        overflow = overflow,
+        inlineContent = inlineContent,
+        onTextLayout = { textLayoutResult = it },
+    )
 }
 
 private fun handleClick(
@@ -534,6 +641,9 @@ private fun extractImageBlocks(html: String): List<ContentBlock> {
     val out = mutableListOf<ContentBlock>()
     var cursor = 0
     for (match in IMG_BLOCK_REGEX.findAll(html)) {
+        if (isInsideTag(html, match.range.first, "a")) {
+            continue
+        }
         if (match.range.first > cursor) {
             val before = html.substring(cursor, match.range.first)
             if (before.isNotBlank()) out.add(ContentBlock.Text(before))
@@ -551,6 +661,23 @@ private fun extractImageBlocks(html: String): List<ContentBlock> {
     }
     if (out.isEmpty()) out.add(ContentBlock.Text(html))
     return out
+}
+
+private fun isInsideTag(html: String, index: Int, tagName: String): Boolean {
+    val beforeIndex = html.substring(0, index)
+    val openTag = Regex("""<${Regex.escape(tagName)}\b[^>]*>""", RegexOption.IGNORE_CASE)
+        .findAll(beforeIndex)
+        .lastOrNull()
+        ?.range
+        ?.first
+        ?: return false
+    val closeTag = Regex("""</${Regex.escape(tagName)}\s*>""", RegexOption.IGNORE_CASE)
+        .findAll(beforeIndex)
+        .lastOrNull()
+        ?.range
+        ?.first
+        ?: -1
+    return openTag > closeTag
 }
 
 private fun extractHeadingBlocks(html: String): List<ContentBlock> {
@@ -600,16 +727,36 @@ internal fun parseHtmlToAnnotatedString(
     codeBg: Color,
     contentStyle: HtmlContentStyle = HtmlContentStyle.Compact,
 ): AnnotatedString {
-    return buildAnnotatedString {
+    return parseHtmlToContent(
+        html = html,
+        linkColor = linkColor,
+        hashtagColor = hashtagColor,
+        mentionBg = mentionBg,
+        codeBg = codeBg,
+        mentionNameColor = linkColor,
+        contentStyle = contentStyle,
+    ).text
+}
+
+@VisibleForTesting
+internal fun parseHtmlToContent(
+    html: String,
+    linkColor: Color,
+    hashtagColor: Color,
+    mentionBg: Color,
+    codeBg: Color,
+    mentionNameColor: Color = linkColor,
+    contentStyle: HtmlContentStyle = HtmlContentStyle.Compact,
+): ParsedHtmlContent {
+    val inlineImages = mutableMapOf<String, ParsedInlineImage>()
+    val text = buildAnnotatedString {
         val isProse = contentStyle == HtmlContentStyle.Prose
 
         // Link state
         var currentLinkType: LinkType? = null
         var hasAnnotation = false
 
-        // Invisible span state
-        var insideInvisibleSpan = false
-        var invisibleSpanDepth = 0
+        val spanStack = mutableListOf<SpanKind>()
 
         // Inline style depths (for push/pop tracking)
         var boldDepth = 0
@@ -633,6 +780,7 @@ internal fun parseHtmlToAnnotatedString(
         var insideRp = false
 
         var hasContent = false
+        var justAppendedInlineImage = false
         var pos = 0
         val source = html.trim()
 
@@ -645,11 +793,23 @@ internal fun parseHtmlToAnnotatedString(
                 val rawText = source.substring(pos, textEnd)
                 val decoded = decodeHtmlEntities(rawText)
 
-                if (!insideInvisibleSpan && !insideRp && decoded.isNotEmpty()) {
+                if (justAppendedInlineImage && decoded.isBlank()) {
+                    justAppendedInlineImage = false
+                } else if (!spanStack.contains(SpanKind.INVISIBLE) && !insideRp && decoded.isNotEmpty()) {
                     if (preDepth > 0) {
                         // Preserve all whitespace in preformatted blocks
-                        appendStyledText(this, decoded, currentLinkType, linkColor, hashtagColor, mentionBg)
+                        appendStyledText(
+                            builder = this,
+                            text = decoded,
+                            linkType = currentLinkType,
+                            linkColor = linkColor,
+                            hashtagColor = hashtagColor,
+                            mentionBg = mentionBg,
+                            mentionNameColor = mentionNameColor,
+                            isMentionName = spanStack.contains(SpanKind.MENTION_NAME),
+                        )
                         hasContent = true
+                        justAppendedInlineImage = false
                     } else {
                         val normalizedText = normalizeInlineWhitespace(
                             text = decoded,
@@ -658,11 +818,21 @@ internal fun parseHtmlToAnnotatedString(
                             nextTagName = tagMatch?.groupValues?.getOrNull(2)?.lowercase()
                         )
                         if (normalizedText.isNotEmpty()) {
-                            appendStyledText(this, normalizedText, currentLinkType, linkColor, hashtagColor, mentionBg)
+                            appendStyledText(
+                                builder = this,
+                                text = normalizedText,
+                                linkType = currentLinkType,
+                                linkColor = linkColor,
+                                hashtagColor = hashtagColor,
+                                mentionBg = mentionBg,
+                                mentionNameColor = mentionNameColor,
+                                isMentionName = spanStack.contains(SpanKind.MENTION_NAME),
+                            )
                             if (!normalizedText.isBlank()) {
                                 listItemJustOpened = false
                             }
                             hasContent = true
+                            justAppendedInlineImage = false
                         }
                     }
                 }
@@ -687,6 +857,23 @@ internal fun parseHtmlToAnnotatedString(
                         }
                         "br" -> {
                             append("\n")
+                        }
+                        "img" -> {
+                            val inlineImage = parseInlineImage(attrs, currentLinkType)
+                            if (!spanStack.contains(SpanKind.INVISIBLE) && !insideRp && inlineImage != null) {
+                                val inlineId = "inline-image-${inlineImages.size}"
+                                if (currentLinkType == LinkType.MENTION) {
+                                    withStyle(SpanStyle(background = mentionBg)) {
+                                        appendInlineContent(inlineId, INLINE_IMAGE_ALTERNATE_TEXT)
+                                    }
+                                } else {
+                                    appendInlineContent(inlineId, INLINE_IMAGE_ALTERNATE_TEXT)
+                                }
+                                inlineImages[inlineId] = inlineImage
+                                listItemJustOpened = false
+                                hasContent = true
+                                justAppendedInlineImage = true
+                            }
                         }
 
                         // Headings
@@ -860,10 +1047,15 @@ internal fun parseHtmlToAnnotatedString(
                         // Invisible spans
                         "span" -> {
                             val classes = attrs["class"] ?: ""
-                            if ("invisible" in classes) {
-                                insideInvisibleSpan = true
-                                invisibleSpanDepth++
+                            val spanKind = when {
+                                "invisible" in classes -> SpanKind.INVISIBLE
+                                currentLinkType == LinkType.MENTION && "name" in classes -> SpanKind.MENTION_NAME
+                                else -> SpanKind.OTHER
                             }
+                            if (spanKind == SpanKind.MENTION_NAME) {
+                                ensureInlineSpace(this)
+                            }
+                            spanStack.add(spanKind)
                         }
                     }
                 } else {
@@ -967,12 +1159,8 @@ internal fun parseHtmlToAnnotatedString(
                         }
 
                         "span" -> {
-                            if (insideInvisibleSpan) {
-                                invisibleSpanDepth--
-                                if (invisibleSpanDepth <= 0) {
-                                    insideInvisibleSpan = false
-                                    invisibleSpanDepth = 0
-                                }
+                            if (spanStack.isNotEmpty()) {
+                                spanStack.removeAt(spanStack.lastIndex)
                             }
                         }
                     }
@@ -982,6 +1170,7 @@ internal fun parseHtmlToAnnotatedString(
             }
         }
     }.trimTrailingLineBreaks()
+    return ParsedHtmlContent(text = text, inlineImages = inlineImages)
 }
 
 private fun AnnotatedString.trimTrailingLineBreaks(): AnnotatedString {
@@ -998,15 +1187,18 @@ private fun appendStyledText(
     linkType: LinkType?,
     linkColor: Color,
     hashtagColor: Color,
-    mentionBg: Color
+    mentionBg: Color,
+    mentionNameColor: Color,
+    isMentionName: Boolean,
 ) {
     when (linkType) {
         LinkType.MENTION -> {
             builder.withStyle(
                 SpanStyle(
-                    color = linkColor,
-                    fontWeight = FontWeight.SemiBold,
-                    background = mentionBg
+                    color = if (isMentionName) mentionNameColor else linkColor,
+                    fontWeight = if (isMentionName) FontWeight.Normal else FontWeight.SemiBold,
+                    background = mentionBg,
+                    fontSize = if (isMentionName) 0.95.em else 1.0.em,
                 )
             ) {
                 append(text)
@@ -1031,6 +1223,38 @@ private fun appendStyledText(
             builder.append(text)
         }
     }
+}
+
+private fun ensureInlineSpace(builder: AnnotatedString.Builder) {
+    val previousChar = builder.toAnnotatedString().text.lastOrNull()
+    if (previousChar != null && previousChar != '\n' && previousChar != ' ') {
+        builder.append(" ")
+    }
+}
+
+private fun parseInlineImage(
+    attrs: Map<String, String>,
+    linkType: LinkType?,
+): ParsedInlineImage? {
+    val src = attrs["src"]?.takeIf { it.isNotBlank() } ?: return null
+    val classes = attrs["class"].orEmpty()
+    if (linkType == null && "inline-block" !in classes) return null
+
+    val width = attrs["width"]
+        ?.toIntOrNull()
+        ?.coerceIn(INLINE_IMAGE_MIN_SIZE, INLINE_IMAGE_MAX_SIZE)
+        ?: INLINE_IMAGE_DEFAULT_SIZE
+    val height = attrs["height"]
+        ?.toIntOrNull()
+        ?.coerceIn(INLINE_IMAGE_MIN_SIZE, INLINE_IMAGE_MAX_SIZE)
+        ?: width
+
+    return ParsedInlineImage(
+        src = src,
+        alt = attrs["alt"]?.takeIf { it.isNotBlank() },
+        width = width,
+        height = height,
+    )
 }
 
 private fun TextStyle.withContentStyle(contentStyle: HtmlContentStyle): TextStyle {
