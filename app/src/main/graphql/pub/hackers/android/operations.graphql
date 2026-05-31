@@ -28,6 +28,7 @@ fragment PostFields on Post {
     name
     published
     summary
+    sensitive
     content
     excerpt
     url
@@ -100,6 +101,7 @@ fragment SharedPostFields on Post {
     name
     published
     summary
+    sensitive
     content
     excerpt
     url

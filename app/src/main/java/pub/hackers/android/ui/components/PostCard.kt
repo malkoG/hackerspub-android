@@ -177,6 +177,7 @@ private fun NoteCard(
     var translationError by remember(displayPost.id) { mutableStateOf<String?>(null) }
     var isTranslating by remember(displayPost.id) { mutableStateOf(false) }
     var showTranslated by remember(displayPost.id) { mutableStateOf(false) }
+    var contentWarningRevealed by remember(displayPost.id) { mutableStateOf(false) }
 
     // Step 1: Replace Card with plain Column
     Column(
@@ -354,13 +355,26 @@ private fun NoteCard(
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                displayPost.name?.let { title ->
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                val contentWarningText = displayPost.contentWarningText()
+                val contentVisible = !displayPost.hasContentWarning() || contentWarningRevealed
+                if (displayPost.hasContentWarning()) {
+                    ContentWarningNotice(
+                        warningText = contentWarningText,
+                        revealed = contentWarningRevealed,
+                        onToggle = { contentWarningRevealed = !contentWarningRevealed },
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
+                }
+
+                if (contentVisible) {
+                    displayPost.name?.let { title ->
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
                 }
 
                 // Step 3: Body text color
@@ -374,121 +388,123 @@ private fun NoteCard(
                     contentMaxLength > 0 && displayPost.content.length > contentMaxLength
 
                 val translatedText = translatedContent
-                if (showTranslated && translatedText != null) {
-                    Text(
-                        text = translatedText,
-                        style = typography.bodyLarge,
-                        color = colors.textBody,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    HtmlContent(
-                        html = truncatedContent,
-                        maxLines = if (contentMaxLength > 0) Int.MAX_VALUE else 10,
-                        modifier = Modifier.fillMaxWidth(),
-                        onMentionClick = onProfileClick,
-                        onTextClick = onClick
-                    )
-                }
+                if (contentVisible) {
+                    if (showTranslated && translatedText != null) {
+                        Text(
+                            text = translatedText,
+                            style = typography.bodyLarge,
+                            color = colors.textBody,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        HtmlContent(
+                            html = truncatedContent,
+                            maxLines = if (contentMaxLength > 0) Int.MAX_VALUE else 10,
+                            modifier = Modifier.fillMaxWidth(),
+                            onMentionClick = onProfileClick,
+                            onTextClick = onClick
+                        )
+                    }
 
-                if (isTranslating) {
-                    Text(
-                        text = stringResource(R.string.translating),
-                        style = typography.labelMedium,
-                        color = colors.textSecondary,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                    if (isTranslating) {
+                        Text(
+                            text = stringResource(R.string.translating),
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
 
-                val translationErrorText = translationError
-                if (translationErrorText != null) {
-                    Text(
-                        text = translationErrorText,
-                        style = typography.labelMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                    val translationErrorText = translationError
+                    if (translationErrorText != null) {
+                        Text(
+                            text = translationErrorText,
+                            style = typography.labelMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
 
-                // Inline translate link
-                if (!isTranslating && translationError == null) {
-                    // Read Configuration from composition state so locale changes
-                    // trigger recomposition instead of serving stale values.
-                    val configuration = LocalConfiguration.current
-                    Text(
-                        text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
-                            R.string.translate
-                        ),
-                        style = typography.labelMedium,
-                        color = colors.textSecondary,
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .clickable {
-                                if (showTranslated) {
-                                    showTranslated = false
-                                    return@clickable
-                                }
+                    // Inline translate link
+                    if (!isTranslating && translationError == null) {
+                        // Read Configuration from composition state so locale changes
+                        // trigger recomposition instead of serving stale values.
+                        val configuration = LocalConfiguration.current
+                        Text(
+                            text = if (showTranslated) stringResource(R.string.show_original) else stringResource(
+                                R.string.translate
+                            ),
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable {
+                                    if (showTranslated) {
+                                        showTranslated = false
+                                        return@clickable
+                                    }
 
-                                translatedContent?.let {
-                                    showTranslated = true
-                                    return@clickable
-                                }
-
-                                val targetLanguageTag = androidx.core.os.ConfigurationCompat
-                                    .getLocales(configuration)
-                                    .get(0)?.language ?: Locale.getDefault().language
-                                scope.launch {
-                                    isTranslating = true
-                                    translationError = null
-                                    try {
-                                        val translated = translateHtmlContent(
-                                            html = displayPost.content,
-                                            targetLanguageTag = targetLanguageTag
-                                        )
-                                        translatedContent = translated
+                                    translatedContent?.let {
                                         showTranslated = true
-                                    } catch (_: Exception) {
-                                        translationError = translationFailedText
-                                    } finally {
-                                        isTranslating = false
+                                        return@clickable
+                                    }
+
+                                    val targetLanguageTag = androidx.core.os.ConfigurationCompat
+                                        .getLocales(configuration)
+                                        .get(0)?.language ?: Locale.getDefault().language
+                                    scope.launch {
+                                        isTranslating = true
+                                        translationError = null
+                                        try {
+                                            val translated = translateHtmlContent(
+                                                html = displayPost.content,
+                                                targetLanguageTag = targetLanguageTag
+                                            )
+                                            translatedContent = translated
+                                            showTranslated = true
+                                        } catch (_: Exception) {
+                                            translationError = translationFailedText
+                                        } finally {
+                                            isTranslating = false
+                                        }
                                     }
                                 }
-                            }
-                    )
-                }
+                        )
+                    }
 
-                if (isTruncated || (contentMaxLength == 0 && displayPost.content.length > 500)) {
-                    Text(
-                        text = stringResource(R.string.read_more),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                    if (isTruncated || (contentMaxLength == 0 && displayPost.content.length > 500)) {
+                        Text(
+                            text = stringResource(R.string.read_more),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
 
-                // Step 6: Media grid
-                if (displayPost.media.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    MediaGrid(media = displayPost.media)
-                }
+                    // Step 6: Media grid
+                    if (displayPost.media.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        MediaGrid(media = displayPost.media)
+                    }
 
-                // Link preview (only when no media and no quoted post)
-                if (displayPost.media.isEmpty() && displayPost.quotedPost == null && displayPost.link != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinkPreviewCard(
-                        link = displayPost.link,
-                        onProfileClick = onProfileClick
-                    )
-                }
+                    // Link preview (only when no media and no quoted post)
+                    if (displayPost.media.isEmpty() && displayPost.quotedPost == null && displayPost.link != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinkPreviewCard(
+                            link = displayPost.link,
+                            onProfileClick = onProfileClick
+                        )
+                    }
 
-                // Quoted post
-                if (displayPost.quotedPost != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    QuotedPostPreview(
-                        post = displayPost.quotedPost,
-                        onClick = { onQuotedPostClick?.invoke(displayPost.quotedPost.id) },
-                        onProfileClick = onProfileClick
-                    )
+                    // Quoted post
+                    if (displayPost.quotedPost != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        QuotedPostPreview(
+                            post = displayPost.quotedPost,
+                            onClick = { onQuotedPostClick?.invoke(displayPost.quotedPost.id) },
+                            onProfileClick = onProfileClick
+                        )
+                    }
                 }
 
                 // Reaction groups
@@ -816,6 +832,7 @@ fun QuotedPostPreview(
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
+    var contentWarningRevealed by remember(post.id) { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -879,26 +896,39 @@ fun QuotedPostPreview(
             )
         }
 
-        HtmlContent(
-            html = post.content,
-            maxLines = 3,
-            modifier = Modifier.fillMaxWidth(),
-            onMentionClick = onProfileClick,
-            onTextClick = onClick
-        )
-
-        if (post.media.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            val firstMedium = post.media.first()
-            AsyncImage(
-                model = firstMedium.thumbnailUrl ?: firstMedium.url,
-                contentDescription = firstMedium.alt,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(AppShapes.mediaRadius)),
-                contentScale = ContentScale.Crop
+        val contentWarningText = post.contentWarningText()
+        val contentVisible = !post.hasContentWarning() || contentWarningRevealed
+        if (post.hasContentWarning()) {
+            ContentWarningNotice(
+                warningText = contentWarningText,
+                revealed = contentWarningRevealed,
+                onToggle = { contentWarningRevealed = !contentWarningRevealed },
+                modifier = Modifier.padding(bottom = 8.dp),
             )
+        }
+
+        if (contentVisible) {
+            HtmlContent(
+                html = post.content,
+                maxLines = 3,
+                modifier = Modifier.fillMaxWidth(),
+                onMentionClick = onProfileClick,
+                onTextClick = onClick
+            )
+
+            if (post.media.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val firstMedium = post.media.first()
+                AsyncImage(
+                    model = firstMedium.thumbnailUrl ?: firstMedium.url,
+                    contentDescription = firstMedium.alt,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(AppShapes.mediaRadius)),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
     }
 }

@@ -88,6 +88,7 @@ data class Post(
     val name: String?,
     val published: Instant,
     val summary: String?,
+    val sensitive: Boolean = false,
     val content: String,
     val excerpt: String,
     val url: String?,

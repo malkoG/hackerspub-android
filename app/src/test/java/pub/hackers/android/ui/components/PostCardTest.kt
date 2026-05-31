@@ -3,9 +3,12 @@ package pub.hackers.android.ui.components
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -131,6 +134,26 @@ class PostCardTest {
         composeRule.onNodeWithText("just the main content").assertIsDisplayed()
     }
 
+    @Test
+    fun `hides note content behind content warning until revealed`() {
+        val post = makePost(
+            id = "spoiler",
+            actorHandle = "author@hackers.pub",
+            content = "the spoiler body",
+            summary = "movie spoilers",
+        )
+
+        setPostCard(post)
+
+        composeRule.onNodeWithText("Content warning").assertIsDisplayed()
+        composeRule.onNodeWithText("movie spoilers").assertIsDisplayed()
+        composeRule.onAllNodesWithText("the spoiler body").assertCountEquals(0)
+
+        composeRule.onNodeWithText("Show").performClick()
+
+        composeRule.onNodeWithText("the spoiler body").assertIsDisplayed()
+    }
+
     private fun setPostCard(post: Post) {
         composeRule.setContent {
             TestTheme {
@@ -150,12 +173,15 @@ class PostCardTest {
         replyTarget: Post? = null,
         quotedPost: Post? = null,
         link: PostLink? = null,
+        summary: String? = null,
+        sensitive: Boolean = false,
     ) = Post(
         id = id,
         typename = "Note",
         name = null,
         published = Instant.parse("2025-01-01T00:00:00Z"),
-        summary = null,
+        summary = summary,
+        sensitive = sensitive,
         content = "<p>$content</p>",
         excerpt = content,
         url = null,
