@@ -160,6 +160,10 @@ input AccountLinkInput {
   url: URL!
 }
 
+type AccountBannedError {
+  since: DateTime!
+}
+
 type AccountNotFoundError {
   query: String!
 }
@@ -905,6 +909,10 @@ type LoginChallenge {
   token: UUID!
 }
 
+union CompleteLoginChallengeResult = AccountBannedError|Session
+
+union LoginByPasskeyResult = AccountBannedError|Session
+
 union LoginResult = AccountNotFoundError|LoginChallenge
 
 """
@@ -977,7 +985,7 @@ type Mutation {
 
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
 
-  completeLoginChallenge("The code of the login challenge." code: String!, "The token of the login challenge." token: UUID!): Session
+  completeLoginChallenge("The code of the login challenge." code: String!, "The token of the login challenge." token: UUID!): CompleteLoginChallengeResult
 
   """
   Complete the signup process by creating a new account and session.
@@ -1004,7 +1012,7 @@ type Mutation {
 
   loginByEmail("The email of the account to sign in." email: String!, "The locale for the sign-in email." locale: Locale!, "The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`." verifyUrl: URITemplate!): LoginResult!
 
-  loginByPasskey("WebAuthn authentication response from the client." authenticationResponse: JSON!, platform: String = "web", "Temporary session ID used for authentication options." sessionId: UUID!): Session
+  loginByPasskey("WebAuthn authentication response from the client." authenticationResponse: JSON!, platform: String = "web", "Temporary session ID used for authentication options." sessionId: UUID!): LoginByPasskeyResult
 
   loginByUsername("The locale for the sign-in email." locale: Locale!, "The username of the account to sign in." username: String!, "The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`." verifyUrl: URITemplate!): LoginResult!
 

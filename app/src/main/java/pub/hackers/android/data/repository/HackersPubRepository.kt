@@ -858,21 +858,17 @@ class HackersPubRepository @Inject constructor(
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
-                val session = response.data?.completeLoginChallenge
+                val result = response.data?.completeLoginChallenge
                     ?: return Result.failure(Exception("Invalid verification code"))
+                val session = result.onSession
 
-                Result.success(
-                    Session(
-                        id = session.id.toString(),
-                        account = Account(
-                            id = session.account.id,
-                            username = session.account.username,
-                            name = session.account.name,
-                            avatarUrl = session.account.avatarUrl.toString(),
-                            handle = session.account.handle
-                        )
+                when {
+                    session != null -> Result.success(session.toDomainSession())
+                    result.onAccountBannedError != null -> Result.failure(
+                        Exception(accountBannedMessage(result.onAccountBannedError.since))
                     )
-                )
+                    else -> Result.failure(Exception("Unknown login result: ${result.__typename}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -910,25 +906,51 @@ class HackersPubRepository @Inject constructor(
             if (response.hasErrors()) {
                 Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
             } else {
-                val session = response.data?.loginByPasskey
+                val result = response.data?.loginByPasskey
                     ?: return Result.failure(Exception("Passkey authentication failed"))
+                val session = result.onSession
 
-                Result.success(
-                    Session(
-                        id = session.id.toString(),
-                        account = Account(
-                            id = session.account.id,
-                            username = session.account.username,
-                            name = session.account.name,
-                            avatarUrl = session.account.avatarUrl.toString(),
-                            handle = session.account.handle
-                        )
+                when {
+                    session != null -> Result.success(session.toDomainSession())
+                    result.onAccountBannedError != null -> Result.failure(
+                        Exception(accountBannedMessage(result.onAccountBannedError.since))
                     )
-                )
+                    else -> Result.failure(Exception("Unknown passkey login result: ${result.__typename}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    private fun CompleteLoginChallengeMutation.OnSession.toDomainSession(): Session {
+        return Session(
+            id = id.toString(),
+            account = Account(
+                id = account.id,
+                username = account.username,
+                name = account.name,
+                avatarUrl = account.avatarUrl.toString(),
+                handle = account.handle
+            )
+        )
+    }
+
+    private fun LoginByPasskeyMutation.OnSession.toDomainSession(): Session {
+        return Session(
+            id = id.toString(),
+            account = Account(
+                id = account.id,
+                username = account.username,
+                name = account.name,
+                avatarUrl = account.avatarUrl.toString(),
+                handle = account.handle
+            )
+        )
+    }
+
+    private fun accountBannedMessage(since: Any): String {
+        return "Account is banned since $since"
     }
 
     suspend fun getPasskeyRegistrationOptions(accountId: String): Result<String> {

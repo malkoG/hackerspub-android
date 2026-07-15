@@ -605,13 +605,19 @@ mutation LoginByUsername($username: String!, $locale: Locale!, $verifyUrl: URITe
 
 mutation CompleteLoginChallenge($token: UUID!, $code: String!) {
     completeLoginChallenge(token: $token, code: $code) {
-        id
-        account {
+        __typename
+        ... on Session {
             id
-            username
-            name
-            avatarUrl
-            handle
+            account {
+                id
+                username
+                name
+                avatarUrl
+                handle
+            }
+        }
+        ... on AccountBannedError {
+            since
         }
     }
 }
@@ -622,13 +628,19 @@ mutation GetPasskeyAuthenticationOptions($sessionId: UUID!) {
 
 mutation LoginByPasskey($sessionId: UUID!, $authenticationResponse: JSON!, $platform: String = "android") {
     loginByPasskey(sessionId: $sessionId, authenticationResponse: $authenticationResponse, platform: $platform) {
-        id
-        account {
+        __typename
+        ... on Session {
             id
-            username
-            name
-            avatarUrl
-            handle
+            account {
+                id
+                username
+                name
+                avatarUrl
+                handle
+            }
+        }
+        ... on AccountBannedError {
+            since
         }
     }
 }
