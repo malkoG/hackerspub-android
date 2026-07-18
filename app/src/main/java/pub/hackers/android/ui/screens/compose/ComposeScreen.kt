@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -427,35 +428,42 @@ fun ComposeScreen(
                         }
                     }
 
-                    MediaAttachmentSection(
-                        attachments = uiState.mediaAttachments,
-                        onRemove = viewModel::removeMediaAttachment,
-                        onAttachmentClick = { selectedAttachmentId = it },
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 320.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        MediaAttachmentSection(
+                            attachments = uiState.mediaAttachments,
+                            onRemove = viewModel::removeMediaAttachment,
+                            onAttachmentClick = { selectedAttachmentId = it },
+                        )
 
-                    if (uiState.pollEnabled) {
-                        PollComposerSection(
-                            title = uiState.pollTitle,
-                            options = uiState.pollOptions,
-                            multiple = uiState.pollMultiple,
-                            durationMinutes = uiState.pollDurationMinutes,
-                            enabled = !uiState.isPosting,
-                            onTitleChange = viewModel::updatePollTitle,
-                            onOptionChange = viewModel::updatePollOption,
-                            onAddOption = viewModel::addPollOption,
-                            onRemoveOption = viewModel::removePollOption,
-                            onMultipleChange = viewModel::setPollMultiple,
-                            onDurationChange = viewModel::updatePollDurationMinutes,
-                            onRemovePoll = viewModel::togglePoll,
+                        if (uiState.pollEnabled) {
+                            PollComposerSection(
+                                title = uiState.pollTitle,
+                                options = uiState.pollOptions,
+                                multiple = uiState.pollMultiple,
+                                durationMinutes = uiState.pollDurationMinutes,
+                                enabled = !uiState.isPosting,
+                                onTitleChange = viewModel::updatePollTitle,
+                                onOptionChange = viewModel::updatePollOption,
+                                onAddOption = viewModel::addPollOption,
+                                onRemoveOption = viewModel::removePollOption,
+                                onMultipleChange = viewModel::setPollMultiple,
+                                onDurationChange = viewModel::updatePollDurationMinutes,
+                                onRemovePoll = viewModel::togglePoll,
+                            )
+                        }
+
+                        // Quoted post preview
+                        QuotedPostSection(
+                            isLoading = uiState.isLoadingQuotedPost,
+                            quotedPost = uiState.quotedPost,
+                            compact = useCompactContextPreviews,
                         )
                     }
-
-                    // Quoted post preview
-                    QuotedPostSection(
-                        isLoading = uiState.isLoadingQuotedPost,
-                        quotedPost = uiState.quotedPost,
-                        compact = useCompactContextPreviews,
-                    )
                 }
             }
             // Close inner content Column
@@ -899,10 +907,12 @@ private fun PollComposerSection(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
         ) {
             Switch(checked = multiple, onCheckedChange = onMultipleChange, enabled = enabled)
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.poll_multiple_label),
                 color = colors.textPrimary,
