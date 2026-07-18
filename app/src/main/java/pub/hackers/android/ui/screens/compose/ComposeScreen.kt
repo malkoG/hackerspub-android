@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.FormatQuote
 import androidx.compose.material.icons.outlined.Group
@@ -59,6 +61,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Scaffold
@@ -155,8 +158,6 @@ fun ComposeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showVisibilityMenu by remember { mutableStateOf(false) }
-    var showQuotePolicyMenu by remember { mutableStateOf(false) }
     var showLanguageMenu by remember { mutableStateOf(false) }
     val quotePolicyLocked = uiState.visibility != PostVisibility.PUBLIC &&
         uiState.visibility != PostVisibility.UNLISTED
@@ -493,248 +494,124 @@ fun ComposeScreen(
 
             // Composer controls pinned above keyboard
             HorizontalDivider(color = colors.divider)
-            Column(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 4.dp, top = 10.dp, end = 4.dp, bottom = 4.dp),
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
+                IconButton(
+                    onClick = {
+                        imagePickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    enabled = !isEditing && !uiState.isPosting && uiState.mediaAttachments.size < 20,
                 ) {
-                    IconButton(
-                        onClick = {
-                            imagePickerLauncher.launch(
-                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            )
+                    Icon(
+                        imageVector = Icons.Filled.Image,
+                        contentDescription = stringResource(R.string.attach_images),
+                        tint = colors.textSecondary,
+                    )
+                }
+
+                IconButton(
+                    onClick = { showPollEditor = true },
+                    enabled = !isEditing && !uiState.isPosting,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Poll,
+                        contentDescription = stringResource(R.string.poll_add),
+                        tint = if (uiState.pollEnabled) colors.accent else colors.textSecondary,
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                PostSettingsButton(
+                    visibility = uiState.visibility,
+                    onVisibilityChange = viewModel::updateVisibility,
+                    visibilityEnabled = !isEditing,
+                    quotePolicy = effectiveQuotePolicy,
+                    onQuotePolicyChange = viewModel::updateQuotePolicy,
+                    quotePolicyLocked = quotePolicyLocked,
+                    enabled = !uiState.isPosting,
+                )
+
+                val languageOptions = remember(uiState.language, uiState.suggestedLanguages) {
+                    (listOf(uiState.language) + uiState.suggestedLanguages)
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .distinct()
+                }
+                TextButton(
+                    onClick = { showLanguageMenu = true },
+                    enabled = !uiState.isPosting && languageOptions.isNotEmpty(),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Language,
+                        contentDescription = stringResource(R.string.compose_language_label),
+                        tint = colors.textSecondary,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = uiState.language.ifBlank {
+                            stringResource(R.string.compose_language_label)
                         },
-                        enabled = !isEditing && !uiState.isPosting && uiState.mediaAttachments.size < 20,
+                        color = colors.textSecondary,
+                        style = typography.labelMedium,
+                        maxLines = 1,
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                        modifier = Modifier.size(18.dp),
+                    )
+
+                    DropdownMenu(
+                        expanded = showLanguageMenu,
+                        onDismissRequest = { showLanguageMenu = false },
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Image,
-                            contentDescription = stringResource(R.string.attach_images),
-                            tint = colors.textSecondary,
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { showPollEditor = true },
-                        enabled = !isEditing && !uiState.isPosting,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Poll,
-                            contentDescription = stringResource(R.string.poll_add),
-                            tint = if (uiState.pollEnabled) colors.accent else colors.textSecondary,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    TextButton(
-                        onClick = { showVisibilityMenu = true },
-                        enabled = !isEditing && !uiState.isPosting,
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 8.dp,
-                            vertical = 4.dp
-                        )
-                    ) {
-                        Icon(
-                            imageVector = visibilityIcon(uiState.visibility),
-                            contentDescription = visibilityLabel(uiState.visibility),
-                            tint = colors.textSecondary
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = visibilityLabel(uiState.visibility),
-                            color = colors.textSecondary,
-                            style = typography.labelMedium
-                        )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(18.dp)
-                        )
-
-                        DropdownMenu(
-                            expanded = showVisibilityMenu && !isEditing,
-                            onDismissRequest = { showVisibilityMenu = false }
-                        ) {
-                            visibilityMenuItem(
-                                visibility = PostVisibility.PUBLIC,
-                                selectedVisibility = uiState.visibility,
+                        languageOptions.forEach { language ->
+                            DropdownMenuItem(
+                                text = { Text(languageOptionLabel(language)) },
+                                leadingIcon = {
+                                    if (language == uiState.language) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                        )
+                                    }
+                                },
                                 onClick = {
-                                    viewModel.updateVisibility(PostVisibility.PUBLIC)
-                                    showVisibilityMenu = false
-                                }
-                            )
-                            visibilityMenuItem(
-                                visibility = PostVisibility.UNLISTED,
-                                selectedVisibility = uiState.visibility,
-                                onClick = {
-                                    viewModel.updateVisibility(PostVisibility.UNLISTED)
-                                    showVisibilityMenu = false
-                                }
-                            )
-                            visibilityMenuItem(
-                                visibility = PostVisibility.FOLLOWERS,
-                                selectedVisibility = uiState.visibility,
-                                onClick = {
-                                    viewModel.updateVisibility(PostVisibility.FOLLOWERS)
-                                    showVisibilityMenu = false
-                                }
-                            )
-                            visibilityMenuItem(
-                                visibility = PostVisibility.DIRECT,
-                                selectedVisibility = uiState.visibility,
-                                onClick = {
-                                    viewModel.updateVisibility(PostVisibility.DIRECT)
-                                    showVisibilityMenu = false
-                                }
-                            )
-                        }
-                    }
-
-                    TextButton(
-                        onClick = { showQuotePolicyMenu = true },
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 8.dp,
-                            vertical = 4.dp
-                        )
-                    ) {
-                        Icon(
-                            imageVector = quotePolicyIcon(effectiveQuotePolicy),
-                            contentDescription = quotePolicyLabel(effectiveQuotePolicy),
-                            tint = colors.textSecondary
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = quotePolicyShortLabel(effectiveQuotePolicy),
-                            color = colors.textSecondary,
-                            style = typography.labelMedium
-                        )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(18.dp)
-                        )
-
-                        DropdownMenu(
-                            expanded = showQuotePolicyMenu,
-                            onDismissRequest = { showQuotePolicyMenu = false }
-                        ) {
-                            quotePolicyMenuItem(
-                                policy = QuotePolicy.EVERYONE,
-                                selectedPolicy = effectiveQuotePolicy,
-                                enabled = !quotePolicyLocked,
-                                onClick = {
-                                    viewModel.updateQuotePolicy(QuotePolicy.EVERYONE)
-                                    showQuotePolicyMenu = false
-                                }
-                            )
-                            quotePolicyMenuItem(
-                                policy = QuotePolicy.FOLLOWERS,
-                                selectedPolicy = effectiveQuotePolicy,
-                                enabled = !quotePolicyLocked,
-                                onClick = {
-                                    viewModel.updateQuotePolicy(QuotePolicy.FOLLOWERS)
-                                    showQuotePolicyMenu = false
-                                }
-                            )
-                            quotePolicyMenuItem(
-                                policy = QuotePolicy.SELF,
-                                selectedPolicy = effectiveQuotePolicy,
-                                enabled = true,
-                                onClick = {
-                                    viewModel.updateQuotePolicy(QuotePolicy.SELF)
-                                    showQuotePolicyMenu = false
-                                }
+                                    viewModel.updateLanguage(language)
+                                    showLanguageMenu = false
+                                },
                             )
                         }
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = { viewModel.post() },
+                    enabled = postEnabled,
+                    shape = RoundedCornerShape(AppShapes.pillRadius),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.composeAccent,
+                        contentColor = colors.composeOnAccent,
+                        disabledContainerColor = colors.composeAccent,
+                        disabledContentColor = colors.composeOnAccent,
+                    ),
+                    modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
                 ) {
-                    val languageOptions = remember(uiState.language, uiState.suggestedLanguages) {
-                        (listOf(uiState.language) + uiState.suggestedLanguages)
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                            .distinct()
-                    }
-                    TextButton(
-                        onClick = { showLanguageMenu = true },
-                        enabled = !uiState.isPosting && languageOptions.isNotEmpty(),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Language,
-                            contentDescription = stringResource(R.string.compose_language_label),
-                            tint = colors.textSecondary,
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = uiState.language.ifBlank {
-                                stringResource(R.string.compose_language_label)
-                            },
-                            color = colors.textSecondary,
-                            style = typography.labelMedium,
-                            maxLines = 1,
-                        )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(18.dp),
-                        )
-
-                        DropdownMenu(
-                            expanded = showLanguageMenu,
-                            onDismissRequest = { showLanguageMenu = false },
-                        ) {
-                            languageOptions.forEach { language ->
-                                DropdownMenuItem(
-                                    text = { Text(languageOptionLabel(language)) },
-                                    leadingIcon = {
-                                        if (language == uiState.language) {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        viewModel.updateLanguage(language)
-                                        showLanguageMenu = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = { viewModel.post() },
-                        enabled = postEnabled,
-                        shape = RoundedCornerShape(AppShapes.pillRadius),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colors.composeAccent,
-                            contentColor = colors.composeOnAccent,
-                            disabledContainerColor = colors.composeAccent,
-                            disabledContentColor = colors.composeOnAccent,
-                        ),
-                        modifier = Modifier.alpha(if (postEnabled) 1f else 0.4f)
-                    ) {
-                        Text(
-                            text = stringResource(if (isEditing) R.string.save else R.string.post),
-                            color = colors.composeOnAccent
-                        )
-                    }
+                    Text(
+                        text = stringResource(if (isEditing) R.string.save else R.string.post),
+                        color = colors.composeOnAccent
+                    )
                 }
             }
         }
@@ -743,6 +620,7 @@ fun ComposeScreen(
     selectedAttachment?.let { attachment ->
         ModalBottomSheet(
             onDismissRequest = { selectedAttachmentId = null },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             MediaAttachmentEditorSheet(
                 attachment = attachment,
@@ -752,6 +630,7 @@ fun ComposeScreen(
                     viewModel.removeMediaAttachment(attachment.localId)
                     selectedAttachmentId = null
                 },
+                onSave = { selectedAttachmentId = null },
             )
         }
     }
@@ -840,6 +719,140 @@ private fun PollSummaryChip(
                     tint = colors.textSecondary,
                     modifier = Modifier.size(16.dp),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PostSettingsButton(
+    visibility: PostVisibility,
+    onVisibilityChange: (PostVisibility) -> Unit,
+    visibilityEnabled: Boolean,
+    quotePolicy: QuotePolicy,
+    onQuotePolicyChange: (QuotePolicy) -> Unit,
+    quotePolicyLocked: Boolean,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+    val density = LocalDensity.current
+    var expanded by remember { mutableStateOf(false) }
+    var anchorHeightPx by remember { mutableStateOf(0) }
+    val customized = visibility != PostVisibility.PUBLIC || quotePolicy != QuotePolicy.EVERYONE
+
+    Box(modifier = modifier) {
+        IconButton(
+            onClick = { expanded = true },
+            enabled = enabled,
+            modifier = Modifier.onGloballyPositioned { anchorHeightPx = it.size.height },
+        ) {
+            Icon(
+                imageVector = Icons.Default.Tune,
+                contentDescription = stringResource(R.string.compose_post_settings),
+                tint = if (customized) colors.accent else colors.textSecondary,
+            )
+        }
+
+        if (expanded) {
+            Popup(
+                alignment = Alignment.BottomEnd,
+                offset = IntOffset(
+                    x = 0,
+                    y = -(anchorHeightPx + with(density) { 6.dp.roundToPx() }),
+                ),
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(AppShapes.pillRadius),
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.divider),
+                    shadowElevation = 8.dp,
+                    modifier = Modifier.width(220.dp),
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                        Text(
+                            text = stringResource(R.string.visibility),
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                        visibilityMenuItem(
+                            visibility = PostVisibility.PUBLIC,
+                            selectedVisibility = visibility,
+                            enabled = visibilityEnabled,
+                            onClick = {
+                                onVisibilityChange(PostVisibility.PUBLIC)
+                                expanded = false
+                            }
+                        )
+                        visibilityMenuItem(
+                            visibility = PostVisibility.UNLISTED,
+                            selectedVisibility = visibility,
+                            enabled = visibilityEnabled,
+                            onClick = {
+                                onVisibilityChange(PostVisibility.UNLISTED)
+                                expanded = false
+                            }
+                        )
+                        visibilityMenuItem(
+                            visibility = PostVisibility.FOLLOWERS,
+                            selectedVisibility = visibility,
+                            enabled = visibilityEnabled,
+                            onClick = {
+                                onVisibilityChange(PostVisibility.FOLLOWERS)
+                                expanded = false
+                            }
+                        )
+                        visibilityMenuItem(
+                            visibility = PostVisibility.DIRECT,
+                            selectedVisibility = visibility,
+                            enabled = visibilityEnabled,
+                            onClick = {
+                                onVisibilityChange(PostVisibility.DIRECT)
+                                expanded = false
+                            }
+                        )
+
+                        HorizontalDivider(color = colors.divider)
+
+                        Text(
+                            text = stringResource(R.string.quote_permission),
+                            style = typography.labelMedium,
+                            color = colors.textSecondary,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                        quotePolicyMenuItem(
+                            policy = QuotePolicy.EVERYONE,
+                            selectedPolicy = quotePolicy,
+                            enabled = !quotePolicyLocked,
+                            onClick = {
+                                onQuotePolicyChange(QuotePolicy.EVERYONE)
+                                expanded = false
+                            }
+                        )
+                        quotePolicyMenuItem(
+                            policy = QuotePolicy.FOLLOWERS,
+                            selectedPolicy = quotePolicy,
+                            enabled = !quotePolicyLocked,
+                            onClick = {
+                                onQuotePolicyChange(QuotePolicy.FOLLOWERS)
+                                expanded = false
+                            }
+                        )
+                        quotePolicyMenuItem(
+                            policy = QuotePolicy.SELF,
+                            selectedPolicy = quotePolicy,
+                            enabled = true,
+                            onClick = {
+                                onQuotePolicyChange(QuotePolicy.SELF)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -1186,6 +1199,7 @@ private fun MediaAttachmentEditorSheet(
     onAltTextChange: (String, String) -> Unit,
     onGenerateAltText: (String) -> Unit,
     onRemove: () -> Unit,
+    onSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalAppColors.current
@@ -1195,7 +1209,8 @@ private fun MediaAttachmentEditorSheet(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .navigationBarsPadding(),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -1278,28 +1293,62 @@ private fun MediaAttachmentEditorSheet(
             },
         )
 
-        TextButton(
-            onClick = { onGenerateAltText(attachment.localId) },
-            enabled = !attachment.isUploading &&
-                attachment.uploadedMediumRelayId != null &&
-                !attachment.isGeneratingAltText,
-            modifier = Modifier.align(Alignment.End),
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            if (attachment.isGeneratingAltText) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-            } else {
-                Icon(
-                    imageVector = Icons.Outlined.AutoFixHigh,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
+            TextButton(
+                onClick = { onGenerateAltText(attachment.localId) },
+                enabled = !attachment.isUploading &&
+                    attachment.uploadedMediumRelayId != null &&
+                    !attachment.isGeneratingAltText,
+            ) {
+                if (attachment.isGeneratingAltText) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.AutoFixHigh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+                Text(stringResource(R.string.auto_fill_alt_text))
             }
-            Text(stringResource(R.string.auto_fill_alt_text))
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            if (attachment.altText.isNotBlank()) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = colors.accent,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.alt_text_saved),
+                    style = typography.labelSmall,
+                    color = colors.accent,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+
+            Button(
+                onClick = onSave,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.composeAccent,
+                    contentColor = colors.composeOnAccent,
+                ),
+            ) {
+                Text(stringResource(R.string.save))
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -1310,6 +1359,7 @@ private fun MediaAttachmentEditorSheet(
 private fun visibilityMenuItem(
     visibility: PostVisibility,
     selectedVisibility: PostVisibility,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     val colors = LocalAppColors.current
@@ -1317,10 +1367,11 @@ private fun visibilityMenuItem(
         text = {
             Text(
                 text = visibilityLabel(visibility),
-                color = colors.textPrimary
+                color = if (enabled) colors.textPrimary else colors.textSecondary
             )
         },
         onClick = onClick,
+        enabled = enabled,
         leadingIcon = {
             Icon(
                 visibilityIcon(visibility),
