@@ -71,6 +71,7 @@
     <string name="quote_policy_short_everyone">Quote: Anyone</string>
     <string name="quote_policy_short_followers">Quote: Followers</string>
     <string name="quote_policy_short_self">Quote: Only you</string>
+    <string name="compose_post_settings">Post settings</string>
     <string name="attach_images">Attach images</string>
     <string name="attached_image_number">Image %1$d</string>
     <string name="remove_image">Remove image</string>
