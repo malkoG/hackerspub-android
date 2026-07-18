@@ -257,6 +257,15 @@ sealed class Notification {
         val customEmoji: CustomEmoji?,
         val post: NotificationPost?
     ) : Notification()
+
+    @Immutable
+    data class PollEnded(
+        override val id: String,
+        override val uuid: String,
+        override val created: Instant,
+        override val actors: List<Actor>,
+        val post: NotificationPost?
+    ) : Notification()
 }
 
 @Immutable

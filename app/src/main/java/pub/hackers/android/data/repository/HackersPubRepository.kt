@@ -2239,6 +2239,13 @@ class HackersPubRepository @Inject constructor(
                 },
                 post = onReactNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
+            onPollEndedNotification != null -> Notification.PollEnded(
+                id = id,
+                uuid = uuid.toString(),
+                created = created,
+                actors = actors,
+                post = onPollEndedNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
+            )
             else -> null
         }
     }

@@ -114,6 +114,11 @@
     <string name="notification_shared_post_updated">updated a post you shared</string>
     <string name="notification_react">reacted to your post</string>
     <string name="notification_react_with_emoji">reacted to your post with %1$s</string>
+    <string name="notification_poll_ended">\'s poll ended</string>
+    <plurals name="notification_poll_ended_others">
+        <item quantity="one">and %1$d other\'s poll ended</item>
+        <item quantity="other">and %1$d others\' polls ended</item>
+    </plurals>
     <plurals name="notification_and_others">
         <item quantity="one">and %1$d other</item>
         <item quantity="other">and %1$d others</item>
