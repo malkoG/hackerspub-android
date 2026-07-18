@@ -832,14 +832,15 @@ private fun PollComposerSection(
                     label = { Text(stringResource(R.string.poll_option_hint, index + 1)) },
                     modifier = Modifier.weight(1f),
                 )
-                if (options.size > 2) {
-                    IconButton(onClick = { onRemoveOption(index) }, enabled = enabled) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.poll_remove_option),
-                            tint = colors.textSecondary,
-                        )
-                    }
+                IconButton(
+                    onClick = { onRemoveOption(index) },
+                    enabled = enabled && options.size > 2,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.poll_remove_option),
+                        tint = colors.textSecondary,
+                    )
                 }
             }
         }
@@ -854,19 +855,6 @@ private fun PollComposerSection(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(stringResource(R.string.poll_add_option))
             }
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.poll_multiple_label),
-                color = colors.textPrimary,
-                style = typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-            )
-            Switch(checked = multiple, onCheckedChange = onMultipleChange, enabled = enabled)
         }
 
         Row(
@@ -907,6 +895,19 @@ private fun PollComposerSection(
                     }
                 }
             }
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            Switch(checked = multiple, onCheckedChange = onMultipleChange, enabled = enabled)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.poll_multiple_label),
+                color = colors.textPrimary,
+                style = typography.bodyMedium,
+            )
         }
     }
 }
