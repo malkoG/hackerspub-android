@@ -263,6 +263,9 @@
     <string name="poll_multiple_choice">Multiple choice</string>
     <string name="poll_closed">Poll closed</string>
     <string name="poll_time_left">%1$s left</string>
+    <string name="poll_vote">Vote</string>
+    <string name="poll_voting">Voting…</string>
+    <string name="poll_voted">Voted</string>
     <plurals name="poll_voters">
         <item quantity="one">%d voter</item>
         <item quantity="other">%d voters</item>

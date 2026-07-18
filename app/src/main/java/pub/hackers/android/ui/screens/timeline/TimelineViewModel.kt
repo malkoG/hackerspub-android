@@ -25,6 +25,7 @@ import pub.hackers.android.data.paging.cursorPager
 import pub.hackers.android.data.paging.distinctByEffectiveId
 import pub.hackers.android.data.paging.personalTimelinePage
 import pub.hackers.android.data.repository.HackersPubRepository
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.ui.bookmark.BookmarkMutationCoordinator
@@ -169,6 +170,11 @@ class TimelineViewModel @Inject constructor(
                     _uiState.update { it.copy(draftCount = drafts.size) }
                 }
         }
+    }
+
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Poll> {
+        return repository.voteOnPoll(questionId, optionIndices)
+            .mapCatching { it.poll ?: error("Vote result did not include poll state") }
     }
 
     fun sharePost(postId: String) {

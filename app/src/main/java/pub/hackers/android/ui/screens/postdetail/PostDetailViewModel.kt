@@ -20,6 +20,7 @@ import pub.hackers.android.data.paging.distinctByEffectiveId
 import pub.hackers.android.data.paging.postRepliesPage
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.domain.model.TocItem
@@ -111,6 +112,18 @@ class PostDetailViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Poll> {
+        val result = repository.voteOnPoll(questionId, optionIndices)
+        val votedPost = result.getOrNull()
+        if (votedPost != null) {
+            _uiState.update { state ->
+                val current = state.post ?: return@update state
+                if (current.id == votedPost.id) state.copy(post = votedPost) else state
+            }
+        }
+        return result.mapCatching { it.poll ?: error("Vote result did not include poll state") }
     }
 
     private fun appendLocalReply(reply: Post) {

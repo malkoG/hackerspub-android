@@ -93,6 +93,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import pub.hackers.android.R
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.PostVisibility
 import pub.hackers.android.ui.theme.AppShapes
@@ -118,6 +119,7 @@ fun PostCard(
     onEditClick: ((Post) -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
+    onVotePoll: (suspend (questionId: String, optionIndices: List<Int>) -> Result<Poll>)? = null,
     contentMaxLength: Int = 0
 ) {
     val displayPost = post.sharedPost ?: post
@@ -152,6 +154,7 @@ fun PostCard(
             onEditClick = onEditClick,
             onExternalShareClick = onExternalShareClick,
             onQuotedPostClick = onQuotedPostClick,
+            onVotePoll = onVotePoll,
             contentMaxLength = contentMaxLength,
             modifier = modifier
         )
@@ -174,6 +177,7 @@ private fun NoteCard(
     onEditClick: ((Post) -> Unit)? = null,
     onExternalShareClick: (() -> Unit)? = null,
     onQuotedPostClick: ((String) -> Unit)? = null,
+    onVotePoll: (suspend (questionId: String, optionIndices: List<Int>) -> Result<Poll>)? = null,
     contentMaxLength: Int = 0
 ) {
     val displayPost = post.sharedPost ?: post
@@ -515,7 +519,12 @@ private fun NoteCard(
                     // Poll
                     if (displayPost.poll != null) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        PollView(poll = displayPost.poll)
+                        PollView(
+                            poll = displayPost.poll,
+                            onVote = onVotePoll?.let { vote ->
+                                { indices -> vote(displayPost.id, indices) }
+                            }
+                        )
                     }
                 }
 
