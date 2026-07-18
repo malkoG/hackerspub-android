@@ -26,13 +26,13 @@ class NotificationsViewModel @Inject constructor(
             .flow
             .cachedIn(viewModelScope)
 
-    init {
+    fun markAsSeen() {
+        viewModelScope.launch { notificationStateManager.markAsSeen() }
+    }
+
+    fun markAsRead() {
         if (FeatureFlags.MARK_NOTIFICATIONS_AS_READ_ENABLED) {
             viewModelScope.launch { repository.markNotificationsAsRead() }
         }
-    }
-
-    fun markAsSeen() {
-        viewModelScope.launch { notificationStateManager.markAsSeen() }
     }
 }
