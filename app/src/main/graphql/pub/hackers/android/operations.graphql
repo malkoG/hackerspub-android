@@ -23,6 +23,27 @@ fragment EngagementStatsFields on PostEngagementStats {
     quotes
 }
 
+fragment PollFields on Poll {
+    multiple
+    closed
+    ends
+    viewerHasVoted
+    voters(first: 0) {
+        totalCount
+    }
+    votes(first: 0) {
+        totalCount
+    }
+    options {
+        index
+        title
+        viewerHasVoted
+        votes(first: 0) {
+            totalCount
+        }
+    }
+}
+
 fragment PostFields on Post {
     __typename
     id
@@ -43,6 +64,11 @@ fragment PostFields on Post {
     quotePolicy
     ... on Note {
         rawContent
+    }
+    ... on Question {
+        poll {
+            ...PollFields
+        }
     }
     actor {
         ...ActorFields
@@ -122,6 +148,11 @@ fragment SharedPostFields on Post {
     quotePolicy
     ... on Note {
         rawContent
+    }
+    ... on Question {
+        poll {
+            ...PollFields
+        }
     }
     actor {
         ...ActorFields
