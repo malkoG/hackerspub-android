@@ -433,8 +433,20 @@ class ComposeViewModel @Inject constructor(
         _uiState.update { it.copy(quotePolicy = quotePolicy) }
     }
 
-    fun togglePoll() {
-        _uiState.update { it.copy(pollEnabled = !it.pollEnabled) }
+    fun attachPoll() {
+        _uiState.update { it.copy(pollEnabled = true) }
+    }
+
+    fun removePoll() {
+        _uiState.update {
+            it.copy(
+                pollEnabled = false,
+                pollTitle = "",
+                pollOptions = listOf("", ""),
+                pollMultiple = false,
+                pollDurationMinutes = 24 * 60,
+            )
+        }
     }
 
     fun updatePollTitle(title: String) {

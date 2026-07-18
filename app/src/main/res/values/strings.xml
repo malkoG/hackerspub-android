@@ -272,10 +272,13 @@
     <string name="poll_voting">Voting…</string>
     <string name="poll_voted">Voted</string>
     <string name="poll_add">Add poll</string>
-    <string name="poll_label">Poll</string>
-    <string name="poll_expand">Expand poll</string>
-    <string name="poll_collapse">Collapse poll</string>
+    <string name="poll_new">New poll</string>
+    <string name="poll_edit">Edit poll</string>
     <string name="poll_remove">Remove poll</string>
+    <plurals name="poll_options_count">
+        <item quantity="one">%1$d option</item>
+        <item quantity="other">%1$d options</item>
+    </plurals>
     <string name="poll_title_hint">Poll title</string>
     <string name="poll_option_hint">Option %1$d</string>
     <string name="poll_add_option">Add option</string>

@@ -1,9 +1,9 @@
 package pub.hackers.android.ui.screens.compose
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Add
@@ -59,7 +60,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -89,6 +89,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
@@ -169,7 +170,7 @@ fun ComposeScreen(
         onResult = { uris -> viewModel.addMediaUris(uris) }
     )
     var selectedAttachmentId by remember { mutableStateOf<String?>(null) }
-    var pollExpanded by remember { mutableStateOf(true) }
+    var showPollEditor by remember { mutableStateOf(false) }
     val selectedAttachment = uiState.mediaAttachments.firstOrNull { it.localId == selectedAttachmentId }
 
     // Track TextFieldValue for cursor position
@@ -285,6 +286,29 @@ fun ComposeScreen(
         !uiState.isPosting &&
         !uiState.isLoadingEditTarget &&
         mediaReady
+
+    if (showPollEditor) {
+        PollEditorScreen(
+            title = uiState.pollTitle,
+            options = uiState.pollOptions,
+            multiple = uiState.pollMultiple,
+            durationMinutes = uiState.pollDurationMinutes,
+            editing = uiState.pollEnabled,
+            enabled = !uiState.isPosting,
+            onTitleChange = viewModel::updatePollTitle,
+            onOptionChange = viewModel::updatePollOption,
+            onAddOption = viewModel::addPollOption,
+            onRemoveOption = viewModel::removePollOption,
+            onMultipleChange = viewModel::setPollMultiple,
+            onDurationChange = viewModel::updatePollDurationMinutes,
+            onDismiss = { showPollEditor = false },
+            onSave = {
+                viewModel.attachPoll()
+                showPollEditor = false
+            },
+        )
+        return
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -443,21 +467,12 @@ fun ComposeScreen(
                             onAttachmentClick = { selectedAttachmentId = it },
                         )
 
-                        if (uiState.pollEnabled && pollExpanded) {
-                            PollComposerSection(
-                                title = uiState.pollTitle,
-                                options = uiState.pollOptions,
-                                multiple = uiState.pollMultiple,
+                        if (uiState.pollEnabled) {
+                            PollSummaryChip(
+                                optionCount = uiState.pollOptions.count { it.isNotBlank() },
                                 durationMinutes = uiState.pollDurationMinutes,
-                                enabled = !uiState.isPosting,
-                                onTitleChange = viewModel::updatePollTitle,
-                                onOptionChange = viewModel::updatePollOption,
-                                onAddOption = viewModel::addPollOption,
-                                onRemoveOption = viewModel::removePollOption,
-                                onMultipleChange = viewModel::setPollMultiple,
-                                onDurationChange = viewModel::updatePollDurationMinutes,
-                                onRemovePoll = viewModel::togglePoll,
-                                onCollapse = { pollExpanded = false },
+                                onEdit = { showPollEditor = true },
+                                onRemove = viewModel::removePoll,
                             )
                         }
 
@@ -466,20 +481,6 @@ fun ComposeScreen(
                             isLoading = uiState.isLoadingQuotedPost,
                             quotedPost = uiState.quotedPost,
                             compact = useCompactContextPreviews,
-                        )
-                    }
-                }
-
-                if (uiState.pollEnabled && !pollExpanded) {
-                    SmallFloatingActionButton(
-                        onClick = { pollExpanded = true },
-                        containerColor = colors.accent,
-                        contentColor = colors.background,
-                        modifier = Modifier.align(Alignment.BottomEnd),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Poll,
-                            contentDescription = stringResource(R.string.poll_expand),
                         )
                     }
                 }
@@ -513,10 +514,7 @@ fun ComposeScreen(
                     }
 
                     IconButton(
-                        onClick = {
-                            if (!uiState.pollEnabled) pollExpanded = true
-                            viewModel.togglePoll()
-                        },
+                        onClick = { showPollEditor = true },
                         enabled = !isEditing && !uiState.isPosting,
                     ) {
                         Icon(
@@ -778,12 +776,74 @@ private fun languageOptionLabel(language: String): String {
     }
 }
 
+private fun pollDurationLabelRes(minutes: Long): Int = when (minutes) {
+    5L -> R.string.poll_duration_5_minutes
+    30L -> R.string.poll_duration_30_minutes
+    60L -> R.string.poll_duration_1_hour
+    360L -> R.string.poll_duration_6_hours
+    1440L -> R.string.poll_duration_1_day
+    4320L -> R.string.poll_duration_3_days
+    10080L -> R.string.poll_duration_7_days
+    else -> R.string.poll_duration_1_day
+}
+
 @Composable
-private fun PollComposerSection(
+private fun PollSummaryChip(
+    optionCount: Int,
+    durationMinutes: Long,
+    onEdit: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val colors = LocalAppColors.current
+    val typography = LocalAppTypography.current
+
+    Surface(
+        onClick = onEdit,
+        shape = RoundedCornerShape(8.dp),
+        color = colors.surface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 4.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Poll,
+                contentDescription = null,
+                tint = colors.accent,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = pluralStringResource(
+                    R.plurals.poll_options_count,
+                    optionCount,
+                    optionCount,
+                ) + " · " + stringResource(pollDurationLabelRes(durationMinutes)),
+                color = colors.textPrimary,
+                style = typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.poll_remove),
+                    tint = colors.textSecondary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PollEditorScreen(
     title: String,
     options: List<String>,
     multiple: Boolean,
     durationMinutes: Long,
+    editing: Boolean,
     enabled: Boolean,
     onTitleChange: (String) -> Unit,
     onOptionChange: (Int, String) -> Unit,
@@ -791,8 +851,8 @@ private fun PollComposerSection(
     onRemoveOption: (Int) -> Unit,
     onMultipleChange: (Boolean) -> Unit,
     onDurationChange: (Long) -> Unit,
-    onRemovePoll: () -> Unit,
-    onCollapse: () -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -807,151 +867,164 @@ private fun PollComposerSection(
         R.string.poll_duration_3_days to 4320L,
         R.string.poll_duration_7_days to 10080L,
     )
-    val currentDurationLabel = durationOptions
-        .firstOrNull { it.second == durationMinutes }?.first
-        ?: R.string.poll_duration_1_day
+    val currentDurationLabel = pollDurationLabelRes(durationMinutes)
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .animateContentSize(),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Poll,
-                contentDescription = null,
-                tint = colors.accent,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = stringResource(R.string.poll_label),
-                color = colors.textPrimary,
-                style = typography.labelMedium,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = onCollapse, enabled = enabled) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.poll_collapse),
-                    tint = colors.textSecondary,
-                )
-            }
-            IconButton(onClick = onRemovePoll, enabled = enabled) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = stringResource(R.string.poll_remove),
-                    tint = colors.textSecondary,
-                )
-            }
-        }
+    val trimmedOptions = options.map { it.trim() }.filter { it.isNotEmpty() }
+    val canSave = enabled &&
+        title.trim().isNotEmpty() &&
+        trimmedOptions.size >= 2 &&
+        trimmedOptions.size == trimmedOptions.distinct().size
 
-        OutlinedTextField(
-            value = title,
-            onValueChange = onTitleChange,
-            enabled = enabled,
-            singleLine = true,
-            label = { Text(stringResource(R.string.poll_title_hint)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+    BackHandler(onBack = onDismiss)
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        options.forEachIndexed { index, option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+    Scaffold(
+        contentWindowInsets = WindowInsets(0),
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 8.dp)
             ) {
-                OutlinedTextField(
-                    value = option,
-                    onValueChange = { onOptionChange(index, it) },
-                    enabled = enabled,
-                    singleLine = true,
-                    label = { Text(stringResource(R.string.poll_option_hint, index + 1)) },
-                    modifier = Modifier.weight(1f),
-                )
                 IconButton(
-                    onClick = { onRemoveOption(index) },
-                    enabled = enabled && options.size > 2,
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.CenterStart),
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = stringResource(R.string.poll_remove_option),
-                        tint = colors.textSecondary,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.cancel),
+                        tint = colors.textPrimary,
                     )
                 }
-            }
-        }
-
-        if (options.size < 20) {
-            TextButton(onClick = onAddOption, enabled = enabled) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                Text(
+                    text = stringResource(if (editing) R.string.poll_edit else R.string.poll_new),
+                    style = typography.titleLarge,
+                    color = colors.textPrimary,
+                    modifier = Modifier.align(Alignment.Center),
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(stringResource(R.string.poll_add_option))
-            }
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                text = stringResource(R.string.poll_duration_label),
-                color = colors.textPrimary,
-                style = typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-            )
-            Box {
-                TextButton(onClick = { durationMenuOpen = true }, enabled = enabled) {
+                TextButton(
+                    onClick = onSave,
+                    enabled = canSave,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                ) {
                     Text(
-                        text = stringResource(currentDurationLabel),
-                        color = colors.textSecondary,
-                    )
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = colors.textSecondary,
-                        modifier = Modifier.size(18.dp),
+                        text = stringResource(R.string.save),
+                        color = if (canSave) colors.accent else colors.textSecondary,
                     )
                 }
-                DropdownMenu(
-                    expanded = durationMenuOpen,
-                    onDismissRequest = { durationMenuOpen = false },
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                enabled = enabled,
+                singleLine = true,
+                label = { Text(stringResource(R.string.poll_title_hint)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            options.forEachIndexed { index, option ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 ) {
-                    durationOptions.forEach { (labelRes, minutes) ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(labelRes)) },
-                            onClick = {
-                                onDurationChange(minutes)
-                                durationMenuOpen = false
-                            },
+                    OutlinedTextField(
+                        value = option,
+                        onValueChange = { onOptionChange(index, it) },
+                        enabled = enabled,
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.poll_option_hint, index + 1)) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(
+                        onClick = { onRemoveOption(index) },
+                        enabled = enabled && options.size > 2,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.poll_remove_option),
+                            tint = colors.textSecondary,
                         )
                     }
                 }
             }
-        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-        ) {
-            Switch(checked = multiple, onCheckedChange = onMultipleChange, enabled = enabled)
-            Text(
-                text = stringResource(R.string.poll_multiple_label),
-                color = colors.textPrimary,
-                style = typography.bodyMedium,
-            )
+            if (options.size < 20) {
+                TextButton(onClick = onAddOption, enabled = enabled) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.poll_add_option))
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.poll_duration_label),
+                    color = colors.textPrimary,
+                    style = typography.bodyMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                Box {
+                    TextButton(onClick = { durationMenuOpen = true }, enabled = enabled) {
+                        Text(
+                            text = stringResource(currentDurationLabel),
+                            color = colors.textSecondary,
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = colors.textSecondary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = durationMenuOpen,
+                        onDismissRequest = { durationMenuOpen = false },
+                    ) {
+                        durationOptions.forEach { (labelRes, minutes) ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(labelRes)) },
+                                onClick = {
+                                    onDurationChange(minutes)
+                                    durationMenuOpen = false
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+            ) {
+                Switch(checked = multiple, onCheckedChange = onMultipleChange, enabled = enabled)
+                Text(
+                    text = stringResource(R.string.poll_multiple_label),
+                    color = colors.textPrimary,
+                    style = typography.bodyMedium,
+                )
+            }
         }
     }
 }
