@@ -511,6 +511,12 @@ private fun NoteCard(
                             onProfileClick = onProfileClick
                         )
                     }
+
+                    // Poll
+                    if (displayPost.poll != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        PollView(poll = displayPost.poll)
+                    }
                 }
 
                 // Reaction groups

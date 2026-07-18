@@ -120,6 +120,7 @@ import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LinkPreviewCard
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.MediaImage
+import pub.hackers.android.ui.components.PollView
 import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.QuotedPostPreview
 import pub.hackers.android.ui.components.ReactionPicker
@@ -912,6 +913,11 @@ internal fun PostDetailContent(
                             onClick = { onPostClick(post.quotedPost.id) },
                             onProfileClick = onProfileClick
                         )
+                    }
+
+                    if (post.poll != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PollView(poll = post.poll)
                     }
                 }
 

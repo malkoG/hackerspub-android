@@ -257,4 +257,14 @@
     <string name="edit_profile_change_avatar">Change avatar</string>
     <string name="edit_profile_avatar_too_large">Image is too large</string>
     <string name="edit_profile_avatar_unsupported">Unsupported image format</string>
+
+    <!-- Poll -->
+    <string name="poll_single_choice">Single choice</string>
+    <string name="poll_multiple_choice">Multiple choice</string>
+    <string name="poll_closed">Poll closed</string>
+    <string name="poll_time_left">%1$s left</string>
+    <plurals name="poll_voters">
+        <item quantity="one">%d voter</item>
+        <item quantity="other">%d voters</item>
+    </plurals>
 </resources>
