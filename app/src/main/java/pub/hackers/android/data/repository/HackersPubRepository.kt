@@ -30,6 +30,7 @@ import pub.hackers.android.graphql.ActorNotesQuery
 import pub.hackers.android.graphql.ActorPinsQuery
 import pub.hackers.android.graphql.ActorPostsQuery
 import pub.hackers.android.graphql.AddReactionToPostMutation
+import pub.hackers.android.graphql.VoteOnPollMutation
 import pub.hackers.android.graphql.BookmarkPostMutation
 import pub.hackers.android.graphql.BookmarksQuery
 import pub.hackers.android.graphql.BlockActorMutation
@@ -1607,6 +1608,30 @@ class HackersPubRepository @Inject constructor(
                 val result = response.data?.removeReactionFromPost
                 when {
                     result?.onRemoveReactionFromPostPayload != null -> Result.success(Unit)
+                    result?.onInvalidInputError != null ->
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    result?.onNotAuthenticatedError != null ->
+                        Result.failure(Exception("Not authenticated"))
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Post> {
+        return try {
+            val response = apolloClient.mutation(
+                VoteOnPollMutation(questionId = questionId, optionIndices = optionIndices)
+            ).execute()
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.voteOnPoll
+                when {
+                    result?.onVoteOnPollPayload != null ->
+                        Result.success(result.onVoteOnPollPayload.question.postFields.toPost())
                     result?.onInvalidInputError != null ->
                         Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
                     result?.onNotAuthenticatedError != null ->

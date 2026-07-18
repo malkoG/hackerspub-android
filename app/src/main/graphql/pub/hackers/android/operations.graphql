@@ -1098,6 +1098,23 @@ mutation RemoveReactionFromPost($postId: ID!, $emoji: String!) {
     }
 }
 
+mutation VoteOnPoll($questionId: ID!, $optionIndices: [Int!]!) {
+    voteOnPoll(input: { questionId: $questionId, optionIndices: $optionIndices }) {
+        __typename
+        ... on VoteOnPollPayload {
+            question {
+                ...PostFields
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
 query RecommendedActors($limit: Int = 10) {
     recommendedActors(limit: $limit) {
         id
