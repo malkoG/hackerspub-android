@@ -334,7 +334,8 @@ private fun ExplorePostItem(
                 )
             }
         },
-        onQuotedPostClick = onPostClick
+        onQuotedPostClick = onPostClick,
+        onVotePoll = if (isLoggedIn) viewModel::voteOnPoll else null
     )
     HorizontalDivider(
         color = colors.divider,

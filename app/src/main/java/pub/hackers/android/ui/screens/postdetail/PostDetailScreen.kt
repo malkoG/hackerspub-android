@@ -107,6 +107,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import pub.hackers.android.R
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.domain.model.TocItem
@@ -120,6 +121,7 @@ import pub.hackers.android.ui.components.LargeTitleHeader
 import pub.hackers.android.ui.components.LinkPreviewCard
 import pub.hackers.android.ui.components.LoadingItem
 import pub.hackers.android.ui.components.MediaImage
+import pub.hackers.android.ui.components.PollView
 import pub.hackers.android.ui.components.PostCard
 import pub.hackers.android.ui.components.QuotedPostPreview
 import pub.hackers.android.ui.components.ReactionPicker
@@ -554,7 +556,12 @@ fun PostDetailScreen(
                                 context.startActivity(Intent.createChooser(sendIntent, null))
                             }
                         },
-                        onWebViewClick = { url -> webViewUrl = url }
+                        onWebViewClick = { url -> webViewUrl = url },
+                        onVotePoll = if (isLoggedIn) {
+                            { questionId, indices -> viewModel.voteOnPoll(questionId, indices) }
+                        } else {
+                            null
+                        }
                     )
                 }
             }
@@ -670,6 +677,7 @@ internal fun PostDetailContent(
     onExternalShareClick: () -> Unit,
     onWebViewClick: (String) -> Unit = {},
     localReplies: List<Post> = emptyList(),
+    onVotePoll: (suspend (questionId: String, optionIndices: List<Int>) -> Result<Poll>)? = null,
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -911,6 +919,16 @@ internal fun PostDetailContent(
                             post = post.quotedPost,
                             onClick = { onPostClick(post.quotedPost.id) },
                             onProfileClick = onProfileClick
+                        )
+                    }
+
+                    if (post.poll != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PollView(
+                            poll = post.poll,
+                            onVote = onVotePoll?.let { vote ->
+                                { indices -> vote(post.id, indices) }
+                            }
                         )
                     }
                 }

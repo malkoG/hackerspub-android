@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Repeat
@@ -203,6 +204,20 @@ private fun NotificationItem(
             }
             Pair(Icons.Default.Favorite, actionStr)
         }
+
+        is Notification.PollEnded -> {
+            val othersCount = notification.actors.size - 1
+            val actionStr = if (othersCount > 0) {
+                pluralStringResource(
+                    R.plurals.notification_poll_ended_others,
+                    othersCount,
+                    othersCount
+                )
+            } else {
+                stringResource(R.string.notification_poll_ended)
+            }
+            Pair(Icons.Default.Poll, actionStr)
+        }
     }
 
     val post = when (notification) {
@@ -213,6 +228,7 @@ private fun NotificationItem(
         is Notification.Share -> notification.post
         is Notification.SharedPostUpdated -> notification.post
         is Notification.React -> notification.post
+        is Notification.PollEnded -> notification.post
         else -> null
     }
 

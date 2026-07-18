@@ -27,9 +27,13 @@ import pub.hackers.android.domain.model.QuotePolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
 import java.util.UUID
+import java.time.Instant
 import javax.inject.Inject
 
 private const val MAX_NOTE_MEDIA = 20
+private const val MIN_POLL_OPTIONS = 2
+private const val MAX_POLL_OPTIONS = 20
+private const val MAX_POLL_TITLE_LENGTH = 200
 
 @Immutable
 data class ComposeMediaAttachment(
@@ -62,6 +66,12 @@ data class ComposeUiState(
     val editPostId: String? = null,
     val isLoadingEditTarget: Boolean = false,
     val mediaAttachments: List<ComposeMediaAttachment> = emptyList(),
+    // Poll draft state
+    val pollEnabled: Boolean = false,
+    val pollTitle: String = "",
+    val pollOptions: List<String> = listOf("", ""),
+    val pollMultiple: Boolean = false,
+    val pollDurationMinutes: Long = 24 * 60,
     val isPosting: Boolean = false,
     val isPosted: Boolean = false,
     val error: String? = null,
@@ -423,6 +433,60 @@ class ComposeViewModel @Inject constructor(
         _uiState.update { it.copy(quotePolicy = quotePolicy) }
     }
 
+    fun attachPoll() {
+        _uiState.update { it.copy(pollEnabled = true) }
+    }
+
+    fun removePoll() {
+        _uiState.update {
+            it.copy(
+                pollEnabled = false,
+                pollTitle = "",
+                pollOptions = listOf("", ""),
+                pollMultiple = false,
+                pollDurationMinutes = 24 * 60,
+            )
+        }
+    }
+
+    fun updatePollTitle(title: String) {
+        _uiState.update { it.copy(pollTitle = title.take(MAX_POLL_TITLE_LENGTH)) }
+    }
+
+    fun updatePollOption(index: Int, value: String) {
+        _uiState.update { state ->
+            if (index !in state.pollOptions.indices) return@update state
+            state.copy(
+                pollOptions = state.pollOptions.toMutableList().also { it[index] = value }
+            )
+        }
+    }
+
+    fun addPollOption() {
+        _uiState.update { state ->
+            if (state.pollOptions.size >= MAX_POLL_OPTIONS) state
+            else state.copy(pollOptions = state.pollOptions + "")
+        }
+    }
+
+    fun removePollOption(index: Int) {
+        _uiState.update { state ->
+            if (state.pollOptions.size <= MIN_POLL_OPTIONS || index !in state.pollOptions.indices) {
+                state
+            } else {
+                state.copy(pollOptions = state.pollOptions.filterIndexed { i, _ -> i != index })
+            }
+        }
+    }
+
+    fun setPollMultiple(multiple: Boolean) {
+        _uiState.update { it.copy(pollMultiple = multiple) }
+    }
+
+    fun updatePollDurationMinutes(minutes: Long) {
+        _uiState.update { it.copy(pollDurationMinutes = minutes) }
+    }
+
     fun addMediaUris(uris: List<Uri>) {
         if (uris.isEmpty()) return
 
@@ -573,11 +637,72 @@ class ComposeViewModel @Inject constructor(
             }
         }
 
+        if (state.pollEnabled) {
+            val trimmedTitle = state.pollTitle.trim()
+            val trimmedOptions = state.pollOptions.map { it.trim() }.filter { it.isNotEmpty() }
+            when {
+                trimmedTitle.isEmpty() -> {
+                    _uiState.update { it.copy(error = "Poll title is required") }
+                    return
+                }
+                trimmedOptions.size < MIN_POLL_OPTIONS -> {
+                    _uiState.update { it.copy(error = "Add at least $MIN_POLL_OPTIONS poll options") }
+                    return
+                }
+                trimmedOptions.size != trimmedOptions.distinct().size -> {
+                    _uiState.update { it.copy(error = "Poll options must be unique") }
+                    return
+                }
+            }
+            postQuestion(state, trimmedTitle, trimmedOptions, media)
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isPosting = true, error = null) }
 
             repository.createNote(
                 content = state.content,
+                language = state.language,
+                visibility = state.visibility,
+                quotePolicy = state.effectiveQuotePolicy(),
+                replyTargetId = state.replyToId,
+                quotedPostId = state.quotedPostId,
+                media = media,
+            )
+                .onSuccess { newPost ->
+                    state.replyToId?.let { replyTargetId ->
+                        replyPostedSignal.emit(ReplyPostedEvent(replyTargetId, newPost))
+                    }
+                    _uiState.update { it.copy(isPosting = false, isPosted = true) }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            error = error.message,
+                            isPosting = false
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun postQuestion(
+        state: ComposeUiState,
+        title: String,
+        options: List<String>,
+        media: List<NoteMediumAttachment>,
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPosting = true, error = null) }
+
+            val ends = Instant.now().plusSeconds(state.pollDurationMinutes * 60)
+            repository.createQuestion(
+                content = state.content,
+                pollTitle = title,
+                pollOptions = options,
+                pollMultiple = state.pollMultiple,
+                pollEnds = ends,
                 language = state.language,
                 visibility = state.visibility,
                 quotePolicy = state.effectiveQuotePolicy(),

@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import pub.hackers.android.data.local.PreferencesManager
 import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.Actor
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import javax.inject.Inject
 
@@ -36,6 +37,11 @@ class SearchViewModel @Inject constructor(
     private val repository: HackersPubRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
+
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Poll> {
+        return repository.voteOnPoll(questionId, optionIndices)
+            .mapCatching { it.poll ?: error("Vote result did not include poll state") }
+    }
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()

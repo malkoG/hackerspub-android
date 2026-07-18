@@ -47,6 +47,7 @@ import android.content.Intent
 import coil3.compose.AsyncImage
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.Actor
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
 import pub.hackers.android.ui.components.LargeTitleHeader
@@ -222,7 +223,8 @@ fun SearchScreen(
                                                         type = "text/plain"
                                                     }
                                                     context.startActivity(Intent.createChooser(sendIntent, null))
-                                                }
+                                                },
+                                                onVotePoll = viewModel::voteOnPoll
                                             )
                                             HorizontalDivider(
                                                 color = colors.divider,
@@ -292,7 +294,8 @@ fun SearchScreen(
                                                     type = "text/plain"
                                                 }
                                                 context.startActivity(Intent.createChooser(sendIntent, null))
-                                            }
+                                            },
+                                            onVotePoll = viewModel::voteOnPoll
                                         )
                                         HorizontalDivider(
                                             color = colors.divider,
@@ -453,7 +456,8 @@ private fun SearchPostItem(
     onReplyClick: (String) -> Unit,
     onQuoteClick: (String) -> Unit,
     onEditClick: (String) -> Unit,
-    onExternalShare: (String) -> Unit
+    onExternalShare: (String) -> Unit,
+    onVotePoll: (suspend (questionId: String, optionIndices: List<Int>) -> Result<Poll>)? = null
 ) {
     PostCard(
         post = post,
@@ -470,6 +474,7 @@ private fun SearchPostItem(
                 onExternalShare(shareUrl)
             }
         },
-        onQuotedPostClick = onPostClick
+        onQuotedPostClick = onPostClick,
+        onVotePoll = onVotePoll
     )
 }

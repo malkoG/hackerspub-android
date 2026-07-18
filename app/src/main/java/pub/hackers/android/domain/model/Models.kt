@@ -142,7 +142,27 @@ data class Post(
     val quotedPost: Post? = null,
     val visibility: PostVisibility = PostVisibility.PUBLIC,
     val quotePolicy: QuotePolicy = QuotePolicy.EVERYONE,
-    val reactionGroups: List<ReactionGroup> = emptyList()
+    val reactionGroups: List<ReactionGroup> = emptyList(),
+    val poll: Poll? = null
+)
+
+@Immutable
+data class Poll(
+    val multiple: Boolean,
+    val closed: Boolean,
+    val ends: Instant,
+    val viewerHasVoted: Boolean,
+    val votersCount: Int,
+    val votesCount: Int,
+    val options: List<PollOption>
+)
+
+@Immutable
+data class PollOption(
+    val index: Int,
+    val title: String,
+    val viewerHasVoted: Boolean,
+    val votesCount: Int
 )
 
 enum class PostVisibility {
@@ -235,6 +255,15 @@ sealed class Notification {
         override val actors: List<Actor>,
         val emoji: String?,
         val customEmoji: CustomEmoji?,
+        val post: NotificationPost?
+    ) : Notification()
+
+    @Immutable
+    data class PollEnded(
+        override val id: String,
+        override val uuid: String,
+        override val created: Instant,
+        override val actors: List<Actor>,
         val post: NotificationPost?
     ) : Notification()
 }

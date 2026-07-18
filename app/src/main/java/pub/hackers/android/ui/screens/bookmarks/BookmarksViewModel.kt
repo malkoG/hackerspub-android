@@ -25,6 +25,7 @@ import pub.hackers.android.data.paging.bookmarksPage
 import pub.hackers.android.data.paging.cursorPager
 import pub.hackers.android.data.paging.distinctByEffectiveId
 import pub.hackers.android.data.repository.HackersPubRepository
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.graphql.type.PostType as GqlPostType
@@ -45,6 +46,11 @@ data class BookmarksUiState(
 class BookmarksViewModel @Inject constructor(
     private val repository: HackersPubRepository,
 ) : ViewModel() {
+
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Poll> {
+        return repository.voteOnPoll(questionId, optionIndices)
+            .mapCatching { it.poll ?: error("Vote result did not include poll state") }
+    }
 
     private val _selectedTab = MutableStateFlow(BookmarkTab.ALL)
     val selectedTab: StateFlow<BookmarkTab> = _selectedTab.asStateFlow()

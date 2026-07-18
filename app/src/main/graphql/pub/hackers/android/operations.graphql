@@ -23,6 +23,27 @@ fragment EngagementStatsFields on PostEngagementStats {
     quotes
 }
 
+fragment PollFields on Poll {
+    multiple
+    closed
+    ends
+    viewerHasVoted
+    voters(first: 0) {
+        totalCount
+    }
+    votes(first: 0) {
+        totalCount
+    }
+    options {
+        index
+        title
+        viewerHasVoted
+        votes(first: 0) {
+            totalCount
+        }
+    }
+}
+
 fragment PostFields on Post {
     __typename
     id
@@ -43,6 +64,11 @@ fragment PostFields on Post {
     quotePolicy
     ... on Note {
         rawContent
+    }
+    ... on Question {
+        poll {
+            ...PollFields
+        }
     }
     actor {
         ...ActorFields
@@ -122,6 +148,11 @@ fragment SharedPostFields on Post {
     quotePolicy
     ... on Note {
         rawContent
+    }
+    ... on Question {
+        poll {
+            ...PollFields
+        }
     }
     actor {
         ...ActorFields
@@ -334,6 +365,12 @@ query Notifications($after: String) {
                         }
                     }
                     ... on SharedPostUpdatedNotification {
+                        post {
+                            id
+                            content
+                        }
+                    }
+                    ... on PollEndedNotification {
                         post {
                             id
                             content
@@ -722,6 +759,22 @@ mutation CreateNote($content: Markdown!, $language: Locale!, $visibility: PostVi
     }
 }
 
+mutation CreateQuestion($content: Markdown!, $language: Locale!, $visibility: PostVisibility!, $poll: CreateQuestionPollInput!, $quotePolicy: QuotePolicy, $replyTargetId: ID, $quotedPostId: ID, $media: [CreateNoteMediumInput!] = []) {
+    createQuestion(input: { content: $content, language: $language, visibility: $visibility, poll: $poll, quotePolicy: $quotePolicy, replyTargetId: $replyTargetId, quotedPostId: $quotedPostId, media: $media }) {
+        ... on CreateQuestionPayload {
+            question {
+                ...PostFields
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
 mutation UpdateNote($noteId: ID!, $content: Markdown!, $language: Locale!, $quotePolicy: QuotePolicy) {
     updateNote(input: { noteId: $noteId, content: $content, language: $language, quotePolicy: $quotePolicy }) {
         ... on UpdateNotePayload {
@@ -1057,6 +1110,23 @@ mutation RemoveReactionFromPost($postId: ID!, $emoji: String!) {
     removeReactionFromPost(input: { postId: $postId, emoji: $emoji }) {
         ... on RemoveReactionFromPostPayload {
             success
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
+mutation VoteOnPoll($questionId: ID!, $optionIndices: [Int!]!) {
+    voteOnPoll(input: { questionId: $questionId, optionIndices: $optionIndices }) {
+        __typename
+        ... on VoteOnPollPayload {
+            question {
+                ...PostFields
+            }
         }
         ... on InvalidInputError {
             inputPath

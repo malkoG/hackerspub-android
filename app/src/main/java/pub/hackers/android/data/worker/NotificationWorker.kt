@@ -146,6 +146,15 @@ class NotificationWorker @AssistedInject constructor(
                 val emojiText = notification.emoji?.let { " with $it" } ?: ""
                 "$actorName$othersText reacted to your post$emojiText"
             }
+            is Notification.PollEnded -> {
+                val othersCount = notification.actors.size - 1
+                if (othersCount > 0) {
+                    val othersText = if (othersCount == 1) "other" else "others"
+                    "$actorName and $othersCount $othersText' poll ended"
+                } else {
+                    "$actorName's poll ended"
+                }
+            }
         }
     }
 }

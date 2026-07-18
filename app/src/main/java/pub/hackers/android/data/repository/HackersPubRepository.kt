@@ -30,11 +30,13 @@ import pub.hackers.android.graphql.ActorNotesQuery
 import pub.hackers.android.graphql.ActorPinsQuery
 import pub.hackers.android.graphql.ActorPostsQuery
 import pub.hackers.android.graphql.AddReactionToPostMutation
+import pub.hackers.android.graphql.VoteOnPollMutation
 import pub.hackers.android.graphql.BookmarkPostMutation
 import pub.hackers.android.graphql.BookmarksQuery
 import pub.hackers.android.graphql.BlockActorMutation
 import pub.hackers.android.graphql.CompleteLoginChallengeMutation
 import pub.hackers.android.graphql.CreateNoteMutation
+import pub.hackers.android.graphql.CreateQuestionMutation
 import pub.hackers.android.graphql.DeleteArticleDraftMutation
 import pub.hackers.android.graphql.DeletePostMutation
 import pub.hackers.android.graphql.EditAccountQuery
@@ -82,12 +84,14 @@ import pub.hackers.android.graphql.UpdateNoteMutation
 import pub.hackers.android.graphql.ViewerQuery
 import pub.hackers.android.graphql.type.AccountLinkInput
 import pub.hackers.android.graphql.type.CreateNoteMediumInput
+import pub.hackers.android.graphql.type.CreateQuestionPollInput
 import pub.hackers.android.graphql.type.NewsOrder as GqlNewsOrder
 import pub.hackers.android.graphql.type.UpdateAccountInput
 import pub.hackers.android.graphql.fragment.ActorFields
 import pub.hackers.android.graphql.fragment.EngagementStatsFields
 import pub.hackers.android.graphql.fragment.MediaFields
 import pub.hackers.android.graphql.fragment.NewsStoryFields
+import pub.hackers.android.graphql.fragment.PollFields
 import pub.hackers.android.graphql.fragment.PostFields
 import pub.hackers.android.graphql.fragment.SharedPostFields
 import pub.hackers.android.graphql.type.PostVisibility as GqlPostVisibility
@@ -1126,6 +1130,80 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
+    suspend fun createQuestion(
+        content: String,
+        pollTitle: String,
+        pollOptions: List<String>,
+        pollMultiple: Boolean,
+        pollEnds: Instant,
+        language: String = "en",
+        visibility: PostVisibility = PostVisibility.PUBLIC,
+        quotePolicy: QuotePolicy = QuotePolicy.EVERYONE,
+        replyTargetId: String? = null,
+        quotedPostId: String? = null,
+        media: List<NoteMediumAttachment> = emptyList(),
+    ): Result<Post> {
+        return try {
+            val gqlVisibility = when (visibility) {
+                PostVisibility.PUBLIC -> GqlPostVisibility.PUBLIC
+                PostVisibility.UNLISTED -> GqlPostVisibility.UNLISTED
+                PostVisibility.FOLLOWERS -> GqlPostVisibility.FOLLOWERS
+                PostVisibility.DIRECT -> GqlPostVisibility.DIRECT
+                PostVisibility.NONE -> GqlPostVisibility.NONE
+            }
+            val gqlQuotePolicy = when (quotePolicy) {
+                QuotePolicy.EVERYONE -> GqlQuotePolicy.EVERYONE
+                QuotePolicy.FOLLOWERS -> GqlQuotePolicy.FOLLOWERS
+                QuotePolicy.SELF -> GqlQuotePolicy.SELF
+            }
+
+            val response = apolloClient.mutation(
+                CreateQuestionMutation(
+                    content = content,
+                    language = language,
+                    visibility = gqlVisibility,
+                    poll = CreateQuestionPollInput(
+                        ends = pollEnds.toString(),
+                        multiple = pollMultiple,
+                        options = pollOptions,
+                        title = pollTitle,
+                    ),
+                    quotePolicy = Optional.present(gqlQuotePolicy),
+                    replyTargetId = Optional.presentIfNotNull(replyTargetId),
+                    quotedPostId = Optional.presentIfNotNull(quotedPostId),
+                    media = Optional.present(
+                        media.map { attachment ->
+                            CreateNoteMediumInput(
+                                alt = attachment.alt,
+                                mediumId = attachment.mediumId,
+                            )
+                        }
+                    ),
+                )
+            ).execute()
+
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.createQuestion
+                when {
+                    result?.onCreateQuestionPayload != null -> {
+                        Result.success(result.onCreateQuestionPayload.question.postFields.toPost())
+                    }
+                    result?.onInvalidInputError != null -> {
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    }
+                    result?.onNotAuthenticatedError != null -> {
+                        Result.failure(Exception("Not authenticated"))
+                    }
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun updateNote(
         noteId: String,
         content: String,
@@ -1618,6 +1696,30 @@ class HackersPubRepository @Inject constructor(
         }
     }
 
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Post> {
+        return try {
+            val response = apolloClient.mutation(
+                VoteOnPollMutation(questionId = questionId, optionIndices = optionIndices)
+            ).execute()
+            if (response.hasErrors()) {
+                Result.failure(Exception(response.errors?.firstOrNull()?.message ?: "Unknown error"))
+            } else {
+                val result = response.data?.voteOnPoll
+                when {
+                    result?.onVoteOnPollPayload != null ->
+                        Result.success(result.onVoteOnPollPayload.question.postFields.toPost())
+                    result?.onInvalidInputError != null ->
+                        Result.failure(Exception("Invalid input: ${result.onInvalidInputError.inputPath}"))
+                    result?.onNotAuthenticatedError != null ->
+                        Result.failure(Exception("Not authenticated"))
+                    else -> Result.failure(Exception("Unknown error"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun deletePost(postId: String): Result<Unit> {
         return try {
             val response = apolloClient.mutation(DeletePostMutation(postId)).execute()
@@ -1966,6 +2068,26 @@ class HackersPubRepository @Inject constructor(
                     )
                     else -> null
                 }
+            },
+            poll = onQuestion?.poll?.pollFields?.toPoll()
+        )
+    }
+
+    private fun PollFields.toPoll(): Poll {
+        return Poll(
+            multiple = multiple,
+            closed = closed,
+            ends = Instant.parse(ends.toString()),
+            viewerHasVoted = viewerHasVoted,
+            votersCount = voters.totalCount,
+            votesCount = votes.totalCount,
+            options = options.map { option ->
+                PollOption(
+                    index = option.index,
+                    title = option.title,
+                    viewerHasVoted = option.viewerHasVoted,
+                    votesCount = option.votes.totalCount
+                )
             }
         )
     }
@@ -1993,7 +2115,8 @@ class HackersPubRepository @Inject constructor(
             engagementStats = engagementStats.engagementStatsFields.toEngagementStats(),
             mentions = mentions.edges.map { it.node.handle },
             visibility = visibility.toPostVisibility(),
-            quotePolicy = quotePolicy.toQuotePolicy()
+            quotePolicy = quotePolicy.toQuotePolicy(),
+            poll = onQuestion?.poll?.pollFields?.toPoll()
         )
     }
 
@@ -2115,6 +2238,13 @@ class HackersPubRepository @Inject constructor(
                     )
                 },
                 post = onReactNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
+            )
+            onPollEndedNotification != null -> Notification.PollEnded(
+                id = id,
+                uuid = uuid.toString(),
+                created = created,
+                actors = actors,
+                post = onPollEndedNotification.post?.let { NotificationPost(id = it.id, content = it.content.toString()) }
             )
             else -> null
         }

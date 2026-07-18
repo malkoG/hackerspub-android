@@ -327,7 +327,8 @@ fun TimelineScreen(
                                                 )
                                             }
                                         },
-                                        onQuotedPostClick = onPostClick
+                                        onQuotedPostClick = onPostClick,
+                                        onVotePoll = viewModel::voteOnPoll
                                     )
                                     HorizontalDivider(
                                         color = colors.divider,
@@ -389,7 +390,8 @@ fun TimelineScreen(
                                                 )
                                             }
                                         },
-                                        onQuotedPostClick = onPostClick
+                                        onQuotedPostClick = onPostClick,
+                                        onVotePoll = viewModel::voteOnPoll
                                     )
                                     HorizontalDivider(
                                         color = colors.divider,
