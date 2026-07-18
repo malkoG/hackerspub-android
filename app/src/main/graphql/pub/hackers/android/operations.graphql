@@ -753,6 +753,22 @@ mutation CreateNote($content: Markdown!, $language: Locale!, $visibility: PostVi
     }
 }
 
+mutation CreateQuestion($content: Markdown!, $language: Locale!, $visibility: PostVisibility!, $poll: CreateQuestionPollInput!, $quotePolicy: QuotePolicy, $replyTargetId: ID, $quotedPostId: ID, $media: [CreateNoteMediumInput!] = []) {
+    createQuestion(input: { content: $content, language: $language, visibility: $visibility, poll: $poll, quotePolicy: $quotePolicy, replyTargetId: $replyTargetId, quotedPostId: $quotedPostId, media: $media }) {
+        ... on CreateQuestionPayload {
+            question {
+                ...PostFields
+            }
+        }
+        ... on InvalidInputError {
+            inputPath
+        }
+        ... on NotAuthenticatedError {
+            notAuthenticated
+        }
+    }
+}
+
 mutation UpdateNote($noteId: ID!, $content: Markdown!, $language: Locale!, $quotePolicy: QuotePolicy) {
     updateNote(input: { noteId: $noteId, content: $content, language: $language, quotePolicy: $quotePolicy }) {
         ... on UpdateNotePayload {
