@@ -432,6 +432,19 @@ fun ComposeScreen(
                             }
                         }
 
+                        // Collapsed poll floats over the text area instead of taking layout space
+                        if (uiState.pollEnabled) {
+                            PollSummaryChip(
+                                optionCount = uiState.pollOptions.count { it.isNotBlank() },
+                                durationMinutes = uiState.pollDurationMinutes,
+                                onEdit = { showPollEditor = true },
+                                onRemove = viewModel::removePoll,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(8.dp),
+                            )
+                        }
+
                         // Mention autocomplete popup
                         if (uiState.mentionSuggestions.isNotEmpty() || uiState.isLoadingMentions) {
                             Popup(
@@ -466,15 +479,6 @@ fun ComposeScreen(
                             onRemove = viewModel::removeMediaAttachment,
                             onAttachmentClick = { selectedAttachmentId = it },
                         )
-
-                        if (uiState.pollEnabled) {
-                            PollSummaryChip(
-                                optionCount = uiState.pollOptions.count { it.isNotBlank() },
-                                durationMinutes = uiState.pollDurationMinutes,
-                                onEdit = { showPollEditor = true },
-                                onRemove = viewModel::removePoll,
-                            )
-                        }
 
                         // Quoted post preview
                         QuotedPostSection(
@@ -793,29 +797,30 @@ private fun PollSummaryChip(
     durationMinutes: Long,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
 
     Surface(
         onClick = onEdit,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(AppShapes.pillRadius),
         color = colors.surface,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
+        border = BorderStroke(1.dp, colors.divider),
+        shadowElevation = 4.dp,
+        modifier = modifier,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 4.dp),
+            modifier = Modifier.padding(start = 10.dp, top = 2.dp, bottom = 2.dp, end = 2.dp),
         ) {
             Icon(
                 imageVector = Icons.Filled.Poll,
                 contentDescription = null,
                 tint = colors.accent,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(16.dp),
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = pluralStringResource(
                     R.plurals.poll_options_count,
@@ -823,14 +828,17 @@ private fun PollSummaryChip(
                     optionCount,
                 ) + " · " + stringResource(pollDurationLabelRes(durationMinutes)),
                 color = colors.textPrimary,
-                style = typography.bodyMedium,
-                modifier = Modifier.weight(1f),
+                style = typography.labelMedium,
             )
-            IconButton(onClick = onRemove) {
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(32.dp),
+            ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.poll_remove),
                     tint = colors.textSecondary,
+                    modifier = Modifier.size(16.dp),
                 )
             }
         }
