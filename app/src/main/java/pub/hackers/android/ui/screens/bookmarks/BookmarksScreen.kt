@@ -245,7 +245,8 @@ fun BookmarksScreen(
                                                 context.startActivity(Intent.createChooser(sendIntent, null))
                                             }
                                         },
-                                        onQuotedPostClick = onPostClick
+                                        onQuotedPostClick = onPostClick,
+                                        onVotePoll = viewModel::voteOnPoll
                                     )
                                     HorizontalDivider(
                                         color = colors.divider,
@@ -309,7 +310,8 @@ fun BookmarksScreen(
                                                 context.startActivity(Intent.createChooser(sendIntent, null))
                                             }
                                         },
-                                        onQuotedPostClick = onPostClick
+                                        onQuotedPostClick = onPostClick,
+                                        onVotePoll = viewModel::voteOnPoll
                                     )
                                     HorizontalDivider(
                                         color = colors.divider,

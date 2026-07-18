@@ -26,6 +26,7 @@ import pub.hackers.android.data.repository.HackersPubRepository
 import pub.hackers.android.domain.model.AccountLink
 import pub.hackers.android.domain.model.Actor
 import pub.hackers.android.domain.model.ActorField
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.domain.model.ReactionGroup
 import pub.hackers.android.ui.bookmark.BookmarkMutationCoordinator
@@ -58,6 +59,11 @@ class ProfileViewModel @Inject constructor(
     private val repository: HackersPubRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    suspend fun voteOnPoll(questionId: String, optionIndices: List<Int>): Result<Poll> {
+        return repository.voteOnPoll(questionId, optionIndices)
+            .mapCatching { it.poll ?: error("Vote result did not include poll state") }
+    }
 
     private val handle: String = checkNotNull(savedStateHandle["handle"])
 

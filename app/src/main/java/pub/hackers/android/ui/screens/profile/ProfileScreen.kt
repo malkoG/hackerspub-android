@@ -74,6 +74,7 @@ import kotlinx.coroutines.flow.Flow
 import pub.hackers.android.R
 import pub.hackers.android.domain.model.AccountLink
 import pub.hackers.android.domain.model.ActorField
+import pub.hackers.android.domain.model.Poll
 import pub.hackers.android.domain.model.Post
 import pub.hackers.android.ui.components.ErrorMessage
 import pub.hackers.android.ui.components.FullScreenLoading
@@ -280,7 +281,8 @@ fun ProfileScreen(
                                                 )
                                             )
                                         }
-                                    }
+                                    },
+                                    onVotePoll = viewModel::voteOnPoll
                                 )
                             }
                         }
@@ -358,7 +360,8 @@ fun ProfileScreen(
                                                 )
                                             }
                                         },
-                                        onQuotedPostClick = onPostClick
+                                        onQuotedPostClick = onPostClick,
+                                        onVotePoll = viewModel::voteOnPoll
                                     )
                                     HorizontalDivider(
                                         color = LocalAppColors.current.divider,
@@ -389,6 +392,7 @@ private fun PinnedPostsSection(
     onEditClick: (String) -> Unit,
     onPinClick: (Post) -> Unit,
     onExternalShareClick: (Post) -> Unit,
+    onVotePoll: (suspend (questionId: String, optionIndices: List<Int>) -> Result<Poll>)? = null,
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
@@ -427,6 +431,7 @@ private fun PinnedPostsSection(
                 onPinClick = onPinClick,
                 onExternalShareClick = { onExternalShareClick(post.sharedPost ?: post) },
                 onQuotedPostClick = onPostClick,
+                onVotePoll = onVotePoll,
             )
             HorizontalDivider(
                 color = colors.divider,
