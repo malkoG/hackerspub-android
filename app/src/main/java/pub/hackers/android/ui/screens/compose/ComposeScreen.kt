@@ -3,6 +3,7 @@ package pub.hackers.android.ui.screens.compose
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.AutoFixHigh
@@ -775,6 +777,7 @@ private fun PollComposerSection(
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
     var durationMenuOpen by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(true) }
 
     val durationOptions = listOf(
         R.string.poll_duration_5_minutes to 5L,
@@ -789,7 +792,12 @@ private fun PollComposerSection(
         .firstOrNull { it.second == durationMinutes }?.first
         ?: R.string.poll_duration_1_day
 
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .animateContentSize(),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
@@ -802,11 +810,24 @@ private fun PollComposerSection(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = stringResource(R.string.poll_add),
+                text = stringResource(R.string.poll_label),
                 color = colors.textPrimary,
                 style = typography.labelMedium,
                 modifier = Modifier.weight(1f),
             )
+            IconButton(onClick = { expanded = !expanded }, enabled = enabled) {
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Default.KeyboardArrowDown
+                    } else {
+                        Icons.Default.KeyboardArrowUp
+                    },
+                    contentDescription = stringResource(
+                        if (expanded) R.string.poll_collapse else R.string.poll_expand
+                    ),
+                    tint = colors.textSecondary,
+                )
+            }
             IconButton(onClick = onRemovePoll, enabled = enabled) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
@@ -815,6 +836,8 @@ private fun PollComposerSection(
                 )
             }
         }
+
+        if (!expanded) return@Column
 
         OutlinedTextField(
             value = title,
