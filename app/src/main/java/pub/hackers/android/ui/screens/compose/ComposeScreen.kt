@@ -61,6 +61,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Scaffold
@@ -619,6 +620,7 @@ fun ComposeScreen(
     selectedAttachment?.let { attachment ->
         ModalBottomSheet(
             onDismissRequest = { selectedAttachmentId = null },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             MediaAttachmentEditorSheet(
                 attachment = attachment,
