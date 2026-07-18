@@ -45,6 +45,27 @@ class NotificationsViewModelTest {
     }
 
     @Test
+    fun `markAsRead delegates to repository`() = runTest {
+        val vm = newViewModel()
+
+        vm.markAsRead()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repository.markNotificationsAsRead() }
+    }
+
+    @Test
+    fun `markAsRead can be called multiple times`() = runTest {
+        val vm = newViewModel()
+
+        vm.markAsRead()
+        vm.markAsRead()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { repository.markNotificationsAsRead() }
+    }
+
+    @Test
     fun `notifications flow is exposed`() = runTest {
         // Smoke test — just verify the property exists and is not null.
         // Actual PagingData emissions require paging-testing setup per-method.

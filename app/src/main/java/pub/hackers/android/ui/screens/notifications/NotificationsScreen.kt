@@ -67,6 +67,11 @@ fun NotificationsScreen(
     val listState = rememberLazyListState()
     val colors = LocalAppColors.current
 
+    // Mark as read every time the tab is activated (screen re-enters composition).
+    LaunchedEffect(Unit) {
+        viewModel.markAsRead()
+    }
+
     // Mark as seen once the initial refresh finishes successfully with items.
     LaunchedEffect(items.loadState.refresh, items.itemCount) {
         if (items.loadState.refresh is LoadState.NotLoading && items.itemCount > 0) {
