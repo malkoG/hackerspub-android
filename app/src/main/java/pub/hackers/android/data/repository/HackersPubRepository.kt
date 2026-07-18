@@ -88,6 +88,7 @@ import pub.hackers.android.graphql.fragment.ActorFields
 import pub.hackers.android.graphql.fragment.EngagementStatsFields
 import pub.hackers.android.graphql.fragment.MediaFields
 import pub.hackers.android.graphql.fragment.NewsStoryFields
+import pub.hackers.android.graphql.fragment.PollFields
 import pub.hackers.android.graphql.fragment.PostFields
 import pub.hackers.android.graphql.fragment.SharedPostFields
 import pub.hackers.android.graphql.type.PostVisibility as GqlPostVisibility
@@ -1966,6 +1967,26 @@ class HackersPubRepository @Inject constructor(
                     )
                     else -> null
                 }
+            },
+            poll = onQuestion?.poll?.pollFields?.toPoll()
+        )
+    }
+
+    private fun PollFields.toPoll(): Poll {
+        return Poll(
+            multiple = multiple,
+            closed = closed,
+            ends = Instant.parse(ends.toString()),
+            viewerHasVoted = viewerHasVoted,
+            votersCount = voters.totalCount,
+            votesCount = votes.totalCount,
+            options = options.map { option ->
+                PollOption(
+                    index = option.index,
+                    title = option.title,
+                    viewerHasVoted = option.viewerHasVoted,
+                    votesCount = option.votes.totalCount
+                )
             }
         )
     }
@@ -1993,7 +2014,8 @@ class HackersPubRepository @Inject constructor(
             engagementStats = engagementStats.engagementStatsFields.toEngagementStats(),
             mentions = mentions.edges.map { it.node.handle },
             visibility = visibility.toPostVisibility(),
-            quotePolicy = quotePolicy.toQuotePolicy()
+            quotePolicy = quotePolicy.toQuotePolicy(),
+            poll = onQuestion?.poll?.pollFields?.toPoll()
         )
     }
 
