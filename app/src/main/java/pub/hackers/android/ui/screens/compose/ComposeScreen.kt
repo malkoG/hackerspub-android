@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.AutoFixHigh
@@ -60,6 +59,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -169,6 +169,7 @@ fun ComposeScreen(
         onResult = { uris -> viewModel.addMediaUris(uris) }
     )
     var selectedAttachmentId by remember { mutableStateOf<String?>(null) }
+    var pollExpanded by remember { mutableStateOf(true) }
     val selectedAttachment = uiState.mediaAttachments.firstOrNull { it.localId == selectedAttachmentId }
 
     // Track TextFieldValue for cursor position
@@ -442,7 +443,7 @@ fun ComposeScreen(
                             onAttachmentClick = { selectedAttachmentId = it },
                         )
 
-                        if (uiState.pollEnabled) {
+                        if (uiState.pollEnabled && pollExpanded) {
                             PollComposerSection(
                                 title = uiState.pollTitle,
                                 options = uiState.pollOptions,
@@ -456,6 +457,7 @@ fun ComposeScreen(
                                 onMultipleChange = viewModel::setPollMultiple,
                                 onDurationChange = viewModel::updatePollDurationMinutes,
                                 onRemovePoll = viewModel::togglePoll,
+                                onCollapse = { pollExpanded = false },
                             )
                         }
 
@@ -464,6 +466,20 @@ fun ComposeScreen(
                             isLoading = uiState.isLoadingQuotedPost,
                             quotedPost = uiState.quotedPost,
                             compact = useCompactContextPreviews,
+                        )
+                    }
+                }
+
+                if (uiState.pollEnabled && !pollExpanded) {
+                    SmallFloatingActionButton(
+                        onClick = { pollExpanded = true },
+                        containerColor = colors.accent,
+                        contentColor = colors.background,
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Poll,
+                            contentDescription = stringResource(R.string.poll_expand),
                         )
                     }
                 }
@@ -497,7 +513,10 @@ fun ComposeScreen(
                     }
 
                     IconButton(
-                        onClick = { viewModel.togglePoll() },
+                        onClick = {
+                            if (!uiState.pollEnabled) pollExpanded = true
+                            viewModel.togglePoll()
+                        },
                         enabled = !isEditing && !uiState.isPosting,
                     ) {
                         Icon(
@@ -773,11 +792,11 @@ private fun PollComposerSection(
     onMultipleChange: (Boolean) -> Unit,
     onDurationChange: (Long) -> Unit,
     onRemovePoll: () -> Unit,
+    onCollapse: () -> Unit,
 ) {
     val colors = LocalAppColors.current
     val typography = LocalAppTypography.current
     var durationMenuOpen by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(true) }
 
     val durationOptions = listOf(
         R.string.poll_duration_5_minutes to 5L,
@@ -815,16 +834,10 @@ private fun PollComposerSection(
                 style = typography.labelMedium,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = { expanded = !expanded }, enabled = enabled) {
+            IconButton(onClick = onCollapse, enabled = enabled) {
                 Icon(
-                    imageVector = if (expanded) {
-                        Icons.Default.KeyboardArrowDown
-                    } else {
-                        Icons.Default.KeyboardArrowUp
-                    },
-                    contentDescription = stringResource(
-                        if (expanded) R.string.poll_collapse else R.string.poll_expand
-                    ),
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.poll_collapse),
                     tint = colors.textSecondary,
                 )
             }
@@ -836,8 +849,6 @@ private fun PollComposerSection(
                 )
             }
         }
-
-        if (!expanded) return@Column
 
         OutlinedTextField(
             value = title,
