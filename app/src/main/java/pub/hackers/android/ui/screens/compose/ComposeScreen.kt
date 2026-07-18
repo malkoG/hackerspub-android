@@ -628,6 +628,7 @@ fun ComposeScreen(
                     viewModel.removeMediaAttachment(attachment.localId)
                     selectedAttachmentId = null
                 },
+                onSave = { selectedAttachmentId = null },
             )
         }
     }
@@ -1196,6 +1197,7 @@ private fun MediaAttachmentEditorSheet(
     onAltTextChange: (String, String) -> Unit,
     onGenerateAltText: (String) -> Unit,
     onRemove: () -> Unit,
+    onSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalAppColors.current
@@ -1289,28 +1291,62 @@ private fun MediaAttachmentEditorSheet(
             },
         )
 
-        TextButton(
-            onClick = { onGenerateAltText(attachment.localId) },
-            enabled = !attachment.isUploading &&
-                attachment.uploadedMediumRelayId != null &&
-                !attachment.isGeneratingAltText,
-            modifier = Modifier.align(Alignment.End),
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            if (attachment.isGeneratingAltText) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-            } else {
-                Icon(
-                    imageVector = Icons.Outlined.AutoFixHigh,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
+            TextButton(
+                onClick = { onGenerateAltText(attachment.localId) },
+                enabled = !attachment.isUploading &&
+                    attachment.uploadedMediumRelayId != null &&
+                    !attachment.isGeneratingAltText,
+            ) {
+                if (attachment.isGeneratingAltText) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.AutoFixHigh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+                Text(stringResource(R.string.auto_fill_alt_text))
             }
-            Text(stringResource(R.string.auto_fill_alt_text))
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            if (attachment.altText.isNotBlank()) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = colors.accent,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.alt_text_saved),
+                    style = typography.labelSmall,
+                    color = colors.accent,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+
+            Button(
+                onClick = onSave,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.composeAccent,
+                    contentColor = colors.composeOnAccent,
+                ),
+            ) {
+                Text(stringResource(R.string.save))
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))

@@ -77,6 +77,7 @@
     <string name="remove_image">Remove image</string>
     <string name="alt_text_required">Alt text</string>
     <string name="alt_text_required_supporting">Required before posting</string>
+    <string name="alt_text_saved">Saved</string>
     <string name="auto_fill_alt_text">Auto-fill</string>
 
     <!-- Article Compose -->
